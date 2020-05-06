@@ -3,7 +3,6 @@
 
 #include <qopengl.h>
 #include <QVector>
-#include <QWidget>
 
 class CreateGeometry
 {

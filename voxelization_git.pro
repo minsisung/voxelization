@@ -17,17 +17,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    createcubes.cpp \
     creategeometry.cpp \
     main.cpp \
     mainwindow.cpp \
-    myopenglwidget.cpp
+    myopenglwidget.cpp \
+    voxel.cpp \
+    voxelizer.cpp
 
 HEADERS += \
+    createcubes.h \
     creategeometry.h \
     mainwindow.h \
     myopenglwidget.h \
     shaders.h \
     stl_reader.h \
+    voxel.h \
     voxelizer.h
 
 FORMS += \

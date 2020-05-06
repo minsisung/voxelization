@@ -6,7 +6,9 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
-#include<creategeometry.h>
+#include <creategeometry.h>
+#include <createcubes.h>
+#include <voxelizer.h>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -65,6 +67,7 @@ private:
     int m_normalMatrixLoc;
     int m_lightPosLoc;
     int m_colorLoc;
+    int m_alphaLoc;
     QMatrix4x4 m_proj;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
@@ -72,8 +75,8 @@ private:
     static bool m_transparent;
     QString m_filepath;
 
-
     CreateGeometry m_geometry;
+    CreateCubes m_cubeGemoetry;
 };
 
 #endif

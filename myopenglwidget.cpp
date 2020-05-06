@@ -6,7 +6,9 @@
 #include <shaders.h>
 #include <QFileDialog>
 
-bool MyOpenGLWidget::m_transparent = false;
+
+
+bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent),
@@ -16,8 +18,8 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-    m_filepath = QFileDialog::getOpenFileName(this,
-                                              tr("Open 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+    //    m_filepath = QFileDialog::getOpenFileName(this,
+    //                                              tr("Open 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -108,9 +110,10 @@ void MyOpenGLWidget::initializeGL()
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &MyOpenGLWidget::cleanup);
 
     initializeOpenGLFunctions();
-    glClearColor(0.3f, 0.3f, 0.3f, m_transparent ? 0 : 1);
+    glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
-    m_geometry.readSTL(m_filepath);
+    //    m_geometry.readSTL(m_filepath);
+    m_cubeGemoetry.createVoxelspace(300.0f, 1.0f);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -125,9 +128,10 @@ void MyOpenGLWidget::initializeGL()
     m_normalMatrixLoc = m_program->uniformLocation("normalMatrix");
     m_lightPosLoc = m_program->uniformLocation("lightPos");
     m_colorLoc = m_program->uniformLocation("color");
+    m_alphaLoc = m_program->uniformLocation("alpha");
 
-    m_vao.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    //    m_vao.create();
+    //    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     //To use a VAO, all you have to do is bind the VAO
 
     // Setup our vertex buffer object.
@@ -137,8 +141,11 @@ void MyOpenGLWidget::initializeGL()
     m_geometryVbo.bind();
     //Bind the buffer so that it is the current active buffer
 
-    m_geometryVbo.allocate(m_geometry.constData(), m_geometry.totalCount() * sizeof(GLfloat));
+    m_geometryVbo.allocate(m_cubeGemoetry.constData(), m_cubeGemoetry.totalCount() * sizeof(GLfloat));
     //Allocate and initialize the information
+
+    m_geometryVbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    //set usage pattern for the data is changed a lot and used many times.
 
     // Store the vertex attribute bindings for the program.
     setupVertexAttribs();
@@ -148,10 +155,8 @@ void MyOpenGLWidget::initializeGL()
 
     // Light position is fixed.
     m_program->setUniformValue(m_lightPosLoc, QVector3D(-2000, 2000, 2000));
-
-    //Set default color for the component
-    m_color = QVector3D(1.0, 1.0, 1.0);
     m_program->setUniformValue(m_colorLoc, m_color);
+    m_program->setUniformValue(m_alphaLoc, 1.0f);
 
     m_program->release();
 }
@@ -161,6 +166,9 @@ void MyOpenGLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     m_world.setToIdentity();
     m_world.rotate(-90.0f, 1, 0, 0);        //Transform to intuitive machine tool coordinate
@@ -170,60 +178,63 @@ void MyOpenGLWidget::paintGL()
     m_camera.setToIdentity();
     m_camera.translate(m_xTran,m_yTran,m_zTran) ;
 
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    //    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     m_program->bind();
     m_program->setUniformValue(m_projMatrixLoc, m_proj);
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
     QMatrix3x3 normalMatrix = m_world.normalMatrix();
     m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
 
+    //set color for model
     m_color = QVector3D(0.752941176470588, 0.752941176470588, 0.752941176470588);
     m_program->setUniformValue(m_colorLoc, m_color);
 
-    glDrawArrays(GL_TRIANGLES, 0, m_geometry.totalCount());
+    //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawArrays(GL_TRIANGLES, 0, m_cubeGemoetry.totalCount());
 
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
-    //        //x axis
-    //        glBegin( GL_LINES );
-    //        glVertex3f( 0., 0., 0. );
-    //        glVertex3f( 600, 0., 0. );
 
-    //        // arrow
-    //        glVertex3f(600, 0.0f, 0.0f);
-    //        glVertex3f(500, 100, 0.0f);
+    //x axis
+    glBegin( GL_LINES );
+    glVertex3f( 0., 0., 0. );
+    glVertex3f( 600, 0., 0. );
 
-    //        glVertex3f(600, 0.0f, 0.0f);
-    //        glVertex3f(500, -100, 0.0f);
-    //        glEnd();
-    //        glFlush();
+    // arrow
+    glVertex3f(600, 0.0f, 0.0f);
+    glVertex3f(500, 100, 0.0f);
 
-    //        //y axis
-    //        glBegin( GL_LINES );
-    //        glVertex3f( 0., 0., 0. );
-    //        glVertex3f( 0., 400., 0. );
+    glVertex3f(600, 0.0f, 0.0f);
+    glVertex3f(500, -100, 0.0f);
+    glEnd();
+    glFlush();
 
-    //        // arrow
-    //        glVertex3f(0, 400.0f, 0.0f);
-    //        glVertex3f(0, 300, 100.0f);
+    //y axis
+    glBegin( GL_LINES );
+    glVertex3f( 0., 0., 0. );
+    glVertex3f( 0., 400., 0. );
 
-    //        glVertex3f(0, 400.0f, 0.0f);
-    //        glVertex3f(0, 300, -100.0f);
-    //        glEnd();
-    //        glFlush();
+    // arrow
+    glVertex3f(0, 400.0f, 0.0f);
+    glVertex3f(0, 300, 100.0f);
 
-    //        //z axis
-    //        glBegin( GL_LINES );
-    //        glVertex3f( 0., 0., 0. );
-    //        glVertex3f( 0, 0., 400. );
+    glVertex3f(0, 400.0f, 0.0f);
+    glVertex3f(0, 300, -100.0f);
+    glEnd();
+    glFlush();
 
-    //        // arrow
-    //        glVertex3f(0, 0.0f, 400.0f);
-    //        glVertex3f(0, 100, 300.0f);
+    //z axis
+    glBegin( GL_LINES );
+    glVertex3f( 0., 0., 0. );
+    glVertex3f( 0, 0., 400. );
 
-    //        glVertex3f(0, 0.0f, 400.0f);
-    //        glVertex3f(0, -100, 300.0f);
-    //        glEnd();
-    //        glFlush();
+    // arrow
+    glVertex3f(0, 0.0f, 400.0f);
+    glVertex3f(0, 100, 300.0f);
+
+    glVertex3f(0, 0.0f, 400.0f);
+    glVertex3f(0, -100, 300.0f);
+    glEnd();
+    glFlush();
 
     m_program->release();
 }
