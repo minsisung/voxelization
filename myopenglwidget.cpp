@@ -18,8 +18,8 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-    //    m_filepath = QFileDialog::getOpenFileName(this,
-    //                                              tr("Open 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+        m_filepath = QFileDialog::getOpenFileName(this,
+                                                  tr("Open 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -113,7 +113,7 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //    m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(300.0f, 1.0f);
+    m_cubeGemoetry.createVoxelspace(500.0f, 1.0f,m_filepath);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);

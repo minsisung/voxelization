@@ -9,49 +9,6 @@
     if (x2 < min) min = x2;                 \
     if (x2 > max) max = x2;
 
-typedef struct vx_vertex {
-    union {
-        float v[3];
-        struct {
-            float x;
-            float y;
-            float z;
-        };
-        struct {
-            float r;
-            float g;
-            float b;
-        };
-    };
-} vx_vertex_t;
-
-typedef vx_vertex_t vx_vec3_t;
-typedef vx_vertex_t vx_color_t;
-
-typedef struct vx_mesh {
-    vx_vertex_t* vertices;          // Contiguous mesh vertices
-    vx_color_t* colors;             // Contiguous vertices colors
-    vx_vec3_t* normals;             // Contiguous mesh normals
-    unsigned int* indices;          // Mesh indices
-    unsigned int* normalindices;    // Mesh normal indices
-    size_t nindices;                // The number of normal indices
-    size_t nvertices;               // The number of vertices
-    size_t nnormals;                // The number of normals
-} vx_mesh_t;
-
-typedef struct vx_triangle {
-    union {
-        vx_vertex_t vertices[3];
-        struct {
-            vx_vertex_t p1;
-            vx_vertex_t p2;
-            vx_vertex_t p3;
-        };
-    };
-    vx_color_t colors[3];
-} vx_triangle_t;
-
-
 vx_vec3_t vx__vec3_cross(vx_vec3_t* v1, vx_vec3_t* v2)
 {
     vx_vec3_t cross;
@@ -257,92 +214,70 @@ bool vx__triangle_box_overlap(vx_vertex_t boxcenter,
 #undef AXISTEST_Z12
 
 
-Voxelizer::Voxelizer()
+
+Voxelizer::Voxelizer(float s_Length, float v_Size)
 {
-
-}
-
-
-void Voxelizer::Voxelize(float spaceLength, float voxelSize)
-{
-    //resize voxelspace
-    resize(spaceLength/voxelSize);
-
-
-    vx_vertex_t boxcenter;
-    vx_vertex_t halfboxsize;
-    vx_triangle_t triangle;
-
-    boxcenter.x = 0.0;
-    boxcenter.y = 0.0;
-    boxcenter.z = 0.0;
-
+    voxelSize = v_Size;
+    spaceLength = s_Length;
     halfboxsize.x = voxelSize/2;
     halfboxsize.y = voxelSize/2;
     halfboxsize.z = voxelSize/2;
 
+    //resize voxelspace
+    resize(spaceLength/voxelSize);
+}
+
+
+void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
+{
     vx_vertex_t p1;
     vx_vertex_t p2;
     vx_vertex_t p3;
-
-    p1.x = 140.0;
-    p1.y = 40.0;
-    p1.z = 40.0;
-
-    p2.x = 140.0;
-    p2.y = 140.0;
-    p2.z = 40.0;
-
-    p3.x = 40.0;
-    p3.y = 140.0;
-    p3.z = 140.0;
-
-    triangle.p1 = p1;
-    triangle.p2 = p2;
-    triangle.p3 = p3;
-
-    //find bounding box of triangle
     float min_x, max_x, min_y, max_y, min_z, max_z;
-    VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
-            VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
-            VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
-//            qDebug()<<"min_x: "<<min_x<<endl;
-//    qDebug()<<"max_x: "<<max_x<<endl;
-//    qDebug()<<"min_y: "<<min_y<<endl;
-//    qDebug()<<"max_y: "<<max_y<<endl;
-//    qDebug()<<"min_z: "<<min_z<<endl;
-//    qDebug()<<"max_z: "<<max_z<<endl;
+    for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
-    int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
-    int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
-    int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
-    int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
-    int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
-    int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+        p1.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0];
+        p1.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1];
+        p1.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2];
 
 
-//    qDebug()<<"index_x_min: "<<index_x_min<<endl;
-//    qDebug()<<"index_x_max: "<<index_x_max<<endl;
-//    qDebug()<<"index_y_min: "<<index_y_min<<endl;
-//    qDebug()<<"index_y_max: "<<index_y_max<<endl;
-//    qDebug()<<"index_z_min: "<<index_z_min<<endl;
-//    qDebug()<<"index_z_max: "<<index_z_max<<endl;
+        p2.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0];
+        p2.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1];
+        p2.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[2];
 
-    for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
-        for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
-            for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+        p3.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[0];
+        p3.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[1];
+        p3.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[2];
 
-                boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
-                boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
-                boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+        triangle.p1 = p1;
+        triangle.p2 = p2;
+        triangle.p3 = p3;
 
-//                qDebug()<<"boxcenter x: "<<boxcenter.x<<endl;
-//                qDebug()<<"boxcenter y: "<<boxcenter.y<<endl;
-//                qDebug()<<"boxcenter z: "<<boxcenter.z<<endl;
-//                qDebug()<<"Collide ?"<< vx__triangle_box_overlap(boxcenter, halfboxsize,triangle)<<endl;
-                if(vx__triangle_box_overlap(boxcenter, halfboxsize,triangle))
-                    voxelspace[ind_x][ind_y][ind_z].setStatus(1);
+        //find bounding box of triangle
+
+        VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                //get voxel indices of bounding box of triangle
+                int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
+        int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
+        int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
+        int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
+        int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
+        int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+
+        for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
+            for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
+                for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+
+                    boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
+                    boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
+                    boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                    if(vx__triangle_box_overlap(boxcenter, halfboxsize,triangle))
+                        voxelspace[ind_x][ind_y][ind_z].setStatus(1);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 #include "createcubes.h"
 #include <qvector3d.h>
 #include <QDebug>
+#include<iostream>
 
 CreateCubes::CreateCubes():
     m_totalCount(0)
@@ -8,10 +9,17 @@ CreateCubes::CreateCubes():
 
 }
 
-void CreateCubes::createVoxelspace(float spaceLength, float voxelSize)
+void CreateCubes::createVoxelspace(float spaceLength, float voxelSize,QString filepath)
 {
-    Voxelizer voxelizer;
-    voxelizer.Voxelize(spaceLength,voxelSize);
+    Voxelizer voxelizer{spaceLength, voxelSize};
+    try {
+        stl_reader::StlMesh <float, unsigned int> mesh(filepath.toStdString());
+        voxelizer.Voxelize(mesh);
+    }
+    catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+
 
 
     int n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);

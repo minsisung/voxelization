@@ -12,7 +12,7 @@ public:
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
     int totocalVertexCount() const { return m_totalCount / 6; }
-    void createVoxelspace(float spaceLength, float voxelSize);
+    void createVoxelspace(float spaceLength, float voxelSize,QString filepath);
 private:
     QVector<GLfloat> m_data;
     int m_totalCount;
