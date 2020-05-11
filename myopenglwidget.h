@@ -73,7 +73,8 @@ private:
     QMatrix4x4 m_world;
     QVector3D m_color;
     static bool m_transparent;
-    QString m_filepath;
+    QString m_filepath1;
+    QString m_filepath2;
 
     CreateGeometry m_geometry;
     CreateCubes m_cubeGemoetry;

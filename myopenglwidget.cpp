@@ -6,8 +6,6 @@
 #include <shaders.h>
 #include <QFileDialog>
 
-
-
 bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -18,8 +16,11 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-        m_filepath = QFileDialog::getOpenFileName(this,
-                                                  tr("Open 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+    m_filepath1 = QFileDialog::getOpenFileName(this,
+                                              tr("Open first 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+
+    m_filepath2 = QFileDialog::getOpenFileName(this,
+                                              tr("Open second 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -113,7 +114,7 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //    m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(500.0f, 1.0f,m_filepath);
+    m_cubeGemoetry.createVoxelspace(500.0f, 5.0f,m_filepath1, m_filepath2);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -166,8 +167,8 @@ void MyOpenGLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //    glEnable (GL_BLEND);
+    //    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     m_world.setToIdentity();
@@ -186,14 +187,15 @@ void MyOpenGLWidget::paintGL()
     m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
 
     //set color for model
-    m_color = QVector3D(0.752941176470588, 0.752941176470588, 0.752941176470588);
+    m_color = QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f);
     m_program->setUniformValue(m_colorLoc, m_color);
 
-    //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_TRIANGLES, 0, m_cubeGemoetry.totalCount());
 
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
 
+    //Creating coordinate system
     //x axis
     glBegin( GL_LINES );
     glVertex3f( 0., 0., 0. );

@@ -51,10 +51,11 @@ typedef struct vx_triangle {
 class Voxelizer
 {
 public:
-    Voxelizer(float spaceLength, float voxelSize);
+    Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
     void Voxelize(stl_reader::StlMesh <float, unsigned int> mesh);
     void resize(int size);
+    void setupSize(float spaceLength, float voxelSize);
 
 private:
     float spaceLength;

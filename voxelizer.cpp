@@ -1,6 +1,11 @@
 #include "voxelizer.h"
 #include <QDebug>
 #include <math.h>
+#include <QElapsedTimer>
+
+//====================================================================================================================
+// ** Functions and variable types for calculating AABB-triangle intersection **
+//====================================================================================================================
 
 #define VX_FINDMINMAX(x0, x1, x2, min, max) \
     min = max = x0;                         \
@@ -214,17 +219,14 @@ bool vx__triangle_box_overlap(vx_vertex_t boxcenter,
 #undef AXISTEST_Z12
 
 
+//====================================================================================================================
 
-Voxelizer::Voxelizer(float s_Length, float v_Size)
+
+
+//constructor
+Voxelizer::Voxelizer()
 {
-    voxelSize = v_Size;
-    spaceLength = s_Length;
-    halfboxsize.x = voxelSize/2;
-    halfboxsize.y = voxelSize/2;
-    halfboxsize.z = voxelSize/2;
 
-    //resize voxelspace
-    resize(spaceLength/voxelSize);
 }
 
 
@@ -235,8 +237,12 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
     vx_vertex_t p3;
     float min_x, max_x, min_y, max_y, min_z, max_z;
 
+    QElapsedTimer timer;
+    timer.start();
+
     for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
+        //Load triangles from mesh
         p1.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0];
         p1.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1];
         p1.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2];
@@ -255,7 +261,6 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         triangle.p3 = p3;
 
         //find bounding box of triangle
-
         VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
                 VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
                 VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
@@ -268,19 +273,21 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
         int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
 
+        //Check intersection between triangle and voxels in the bounding boxes of triangle
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
-
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
-                    if(vx__triangle_box_overlap(boxcenter, halfboxsize,triangle))
+                    if(vx__triangle_box_overlap(boxcenter, halfboxsize, triangle))
                         voxelspace[ind_x][ind_y][ind_z].setStatus(1);
                 }
             }
         }
     }
+    qDebug() << "The mesh contains " << mesh.num_tris() << " triangles."<<endl;
+    qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
 }
 
 void Voxelizer::resize(int size)
@@ -295,4 +302,16 @@ void Voxelizer::resize(int size)
         }
     }
 
+}
+
+void Voxelizer::setupSize(float s_Length, float v_Size)
+{
+    voxelSize = v_Size;
+    spaceLength = s_Length;
+    halfboxsize.x = voxelSize/2;
+    halfboxsize.y = voxelSize/2;
+    halfboxsize.z = voxelSize/2;
+
+    //resize voxelspace
+    resize(static_cast<int>(spaceLength/voxelSize));
 }
