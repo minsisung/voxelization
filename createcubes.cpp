@@ -32,10 +32,10 @@ void CreateCubes::createVoxelspace(float spaceLength, float voxelSize,QString fi
     QElapsedTimer timer;
     timer.start();
 
-    //loop through voxel space to plot occupied voxels
-    for (int number_x = 0; number_x < n_voxel_in_axis; ++number_x) {
-        for (int number_y = 0; number_y < n_voxel_in_axis; ++number_y) {
-            for (int number_z = 0; number_z < n_voxel_in_axis; ++number_z) {
+    //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
+    for (int number_x = voxelizer.get_x_min_index(); number_x < voxelizer.get_x_max_index()+1; ++number_x) {
+        for (int number_y = voxelizer.get_y_min_index(); number_y < voxelizer.get_y_max_index()+1; ++number_y) {
+            for (int number_z = voxelizer.get_z_min_index(); number_z < voxelizer.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
                 if(voxelizer.voxelspace[number_x][number_y][number_z].getStatus()==0)

@@ -3,6 +3,7 @@
 #include <QVector>
 #include <stl_reader.h>
 #include <voxel.h>
+#include <limits>
 
 
 typedef struct vx_vertex {
@@ -56,6 +57,13 @@ public:
     void Voxelize(stl_reader::StlMesh <float, unsigned int> mesh);
     void resize(int size);
     void setupSize(float spaceLength, float voxelSize);
+    int get_x_min_index(){return bounding_x_min_index;}
+    int get_x_max_index(){return bounding_x_max_index;}
+    int get_y_min_index(){return bounding_y_min_index;}
+    int get_y_max_index(){return bounding_y_max_index;}
+    int get_z_min_index(){return bounding_z_min_index;}
+    int get_z_max_index(){return bounding_z_max_index;}
+    void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
 
 private:
     float spaceLength;
@@ -63,8 +71,12 @@ private:
     vx_vertex_t boxcenter;
     vx_vertex_t halfboxsize;
     vx_triangle_t triangle;
-
-
+    int bounding_x_min_index = std::numeric_limits<int>::max();
+    int bounding_x_max_index = 0;
+    int bounding_y_min_index = std::numeric_limits<int>::max();
+    int bounding_y_max_index = 0;
+    int bounding_z_min_index = std::numeric_limits<int>::max();
+    int bounding_z_max_index = 0;
 };
 
 #endif // VOXELIZER_H

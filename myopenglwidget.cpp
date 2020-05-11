@@ -114,7 +114,7 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //    m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(500.0f, 5.0f,m_filepath1, m_filepath2);
+    m_cubeGemoetry.createVoxelspace(6000.0f,5.0f,m_filepath1, m_filepath2);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);

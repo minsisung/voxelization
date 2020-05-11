@@ -229,6 +229,35 @@ Voxelizer::Voxelizer()
 
 }
 
+void Voxelizer::resize(int size)
+{
+    voxelspace.resize(size);
+    for (int i = 0; i < size; i++)
+    {
+        voxelspace[i].resize(size);
+        for (int j = 0; j < size; j++)
+        {
+            voxelspace[i][j].resize(size);
+        }
+    }
+}
+
+void Voxelizer::setupSize(float s_Length, float v_Size)
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    voxelSize = v_Size;
+    spaceLength = s_Length;
+    halfboxsize.x = voxelSize/2;
+    halfboxsize.y = voxelSize/2;
+    halfboxsize.z = voxelSize/2;
+
+    //resize voxelspace
+    resize(static_cast<int>(spaceLength/voxelSize));
+
+    qDebug() << "Setup size of voxel space took" << timer.elapsed() << "milliseconds"<<endl;
+}
 
 void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
 {
@@ -246,7 +275,6 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         p1.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0];
         p1.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1];
         p1.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2];
-
 
         p2.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0];
         p2.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1];
@@ -273,6 +301,9 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
         int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
 
+        //setup the bounding voxel index of the geometry to speed up cubes creation
+        set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+
         //Check intersection between triangle and voxels in the bounding boxes of triangle
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
@@ -280,8 +311,9 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
-                    if(vx__triangle_box_overlap(boxcenter, halfboxsize, triangle))
+                    if(vx__triangle_box_overlap(boxcenter, halfboxsize, triangle)){
                         voxelspace[ind_x][ind_y][ind_z].setStatus(1);
+                    }
                 }
             }
         }
@@ -290,28 +322,26 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
     qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
 }
 
-void Voxelizer::resize(int size)
+void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max)
 {
-    voxelspace.resize(size);
-    for (int i = 0; i < size; i++)
-    {
-        voxelspace[i].resize(size);
-        for (int j = 0; j < size; j++)
-        {
-            voxelspace[i][j].resize(size);
-        }
-    }
+    if(index_x_min < bounding_x_min_index)
+        bounding_x_min_index = index_x_min;
+
+    if(index_x_max > bounding_x_max_index)
+        bounding_x_max_index = index_x_max;
+
+    if(index_y_min < bounding_y_min_index)
+        bounding_y_min_index = index_y_min;
+
+    if(index_y_max > bounding_y_max_index)
+        bounding_y_max_index = index_y_max;
+
+    if(index_z_min < bounding_z_min_index)
+        bounding_z_min_index = index_z_min;
+
+    if(index_z_max > bounding_z_max_index)
+        bounding_z_max_index = index_z_max;
 
 }
 
-void Voxelizer::setupSize(float s_Length, float v_Size)
-{
-    voxelSize = v_Size;
-    spaceLength = s_Length;
-    halfboxsize.x = voxelSize/2;
-    halfboxsize.y = voxelSize/2;
-    halfboxsize.z = voxelSize/2;
 
-    //resize voxelspace
-    resize(static_cast<int>(spaceLength/voxelSize));
-}
