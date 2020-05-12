@@ -5,9 +5,9 @@ class Voxel
 {
 public:
     Voxel();
-    void setStatus(int status){Status = status;}
+    void setStatus(char status){Status = status;}
     int getStatus(){return Status;}
 private:
-    int Status = 0;   //0: empty  1: occupied  2: collided
+    char Status = 'E';   //E: empty  O: occupied  C: collided
 };
 #endif // VOXEL_H

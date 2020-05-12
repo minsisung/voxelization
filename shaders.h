@@ -28,7 +28,7 @@ static const char *fragmentShaderSourceCore =
         "   highp vec3 L = normalize(lightPos - vert);\n"
         "   highp float NL = max(dot(normalize(vertNormal), L), 0.0);\n"
         "   highp vec3 col = clamp(color * 0.3 + color * 0.7 * NL, 0.0, 1.0);\n"
-        "   fragColor = vec4(col, alpha);\n"
+        "   fragColor = vec4(col, 1.0);\n"
         "}\n";
 
 static const char *vertexShaderSource =

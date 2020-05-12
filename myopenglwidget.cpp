@@ -16,11 +16,8 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-    m_filepath1 = QFileDialog::getOpenFileName(this,
-                                              tr("Open first 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
-
-    m_filepath2 = QFileDialog::getOpenFileName(this,
-                                              tr("Open second 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+    m_filepathes = QFileDialog::getOpenFileNames(this,
+                                                 tr("Open first 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -113,8 +110,8 @@ void MyOpenGLWidget::initializeGL()
     initializeOpenGLFunctions();
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
-    //    m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(6000.0f,5.0f,m_filepath1, m_filepath2);
+    //m_geometry.readSTL(m_filepath);
+    m_cubeGemoetry.createVoxelspace(4000.0f,10.0f,m_filepathes);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -129,10 +126,10 @@ void MyOpenGLWidget::initializeGL()
     m_normalMatrixLoc = m_program->uniformLocation("normalMatrix");
     m_lightPosLoc = m_program->uniformLocation("lightPos");
     m_colorLoc = m_program->uniformLocation("color");
-    m_alphaLoc = m_program->uniformLocation("alpha");
+    //    m_alphaLoc = m_program->uniformLocation("alpha");
 
-    //    m_vao.create();
-    //    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    m_vao.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     //To use a VAO, all you have to do is bind the VAO
 
     // Setup our vertex buffer object.
@@ -156,8 +153,8 @@ void MyOpenGLWidget::initializeGL()
 
     // Light position is fixed.
     m_program->setUniformValue(m_lightPosLoc, QVector3D(-2000, 2000, 2000));
-    m_program->setUniformValue(m_colorLoc, m_color);
-    m_program->setUniformValue(m_alphaLoc, 1.0f);
+    //    m_program->setUniformValue(m_colorLoc, m_color);
+    //    m_program->setUniformValue(m_alphaLoc, 1.0f);
 
     m_program->release();
 }
@@ -179,23 +176,11 @@ void MyOpenGLWidget::paintGL()
     m_camera.setToIdentity();
     m_camera.translate(m_xTran,m_yTran,m_zTran) ;
 
-    //    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
-    m_program->bind();
-    m_program->setUniformValue(m_projMatrixLoc, m_proj);
-    m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
-    QMatrix3x3 normalMatrix = m_world.normalMatrix();
-    m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
-
-    //set color for model
-    m_color = QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f);
-    m_program->setUniformValue(m_colorLoc, m_color);
-
-    //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawArrays(GL_TRIANGLES, 0, m_cubeGemoetry.totalCount());
+    drawComponents();
 
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
 
-    //Creating coordinate system
+    //Creating coordinate system================================================================================
     //x axis
     glBegin( GL_LINES );
     glVertex3f( 0., 0., 0. );
@@ -238,6 +223,8 @@ void MyOpenGLWidget::paintGL()
     glEnd();
     glFlush();
 
+    //================================================================================================
+
     m_program->release();
 }
 
@@ -258,6 +245,48 @@ void MyOpenGLWidget::setupVertexAttribs()
     f->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
                              reinterpret_cast<void *>(3 * sizeof(GLfloat)));
     m_geometryVbo.release();
+}
+
+void MyOpenGLWidget::drawComponents()
+{
+    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    m_program->bind();
+    m_program->setUniformValue(m_projMatrixLoc, m_proj);
+    m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
+    QMatrix3x3 normalMatrix = m_world.normalMatrix();
+    m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
+
+    QVector<int> totalVerticesVector = m_cubeGemoetry.get_vertices_numbers();
+    int startNumber = 0;
+
+    for (int i = 0; i < m_filepathes.size(); ++i){
+        //set color for model
+
+        if (i == 0)
+            m_color = QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f);
+
+        else if (i == 1)
+            m_color = QVector3D(0.4f, 0.3f, 0.752941176470588f);
+
+        else if (i == 2)
+            m_color = QVector3D(0.8f, 0.752941176470588f, 0.3f);
+
+        else if (i == 3)
+            m_color = QVector3D(0.752941176470588f, 0.2f, 0.72f);
+
+        else if (i == 4)
+            m_color = QVector3D(0.3f, 0.8f, 0.72f);
+
+        else
+            m_color = QVector3D(0.5f, 0.5f, 0.72f);
+
+
+        m_program->setUniformValue(m_colorLoc, m_color);
+
+        //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDrawArrays(GL_TRIANGLES, startNumber, totalVerticesVector.at(i));
+        startNumber += totalVerticesVector.at(i);
+    }
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)

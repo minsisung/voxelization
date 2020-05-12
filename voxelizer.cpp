@@ -301,6 +301,10 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
         int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
 
+        // bounding box of triangle can't be outside of voxelspace
+        Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
+                    min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
+
         //setup the bounding voxel index of the geometry to speed up cubes creation
         set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
 
@@ -308,11 +312,16 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+
+                    //if voxel has already assigned, jump to next iteration
+                    if(voxelspace[ind_x][ind_y][ind_z].getStatus()!='E')
+                        continue;
+
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
                     if(vx__triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        voxelspace[ind_x][ind_y][ind_z].setStatus(1);
+                        voxelspace[ind_x][ind_y][ind_z].setStatus('O');
                     }
                 }
             }
@@ -341,7 +350,16 @@ void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int i
 
     if(index_z_max > bounding_z_max_index)
         bounding_z_max_index = index_z_max;
+}
 
+void Voxelizer::reset_bounding_index()
+{
+    bounding_x_min_index = std::numeric_limits<int>::max();
+    bounding_x_max_index = 0;
+    bounding_y_min_index = std::numeric_limits<int>::max();
+    bounding_y_max_index = 0;
+    bounding_z_min_index = std::numeric_limits<int>::max();
+    bounding_z_max_index = 0;
 }
 
 

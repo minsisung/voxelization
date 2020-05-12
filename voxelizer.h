@@ -4,6 +4,7 @@
 #include <stl_reader.h>
 #include <voxel.h>
 #include <limits>
+#include <QtGlobal>
 
 
 typedef struct vx_vertex {
@@ -64,6 +65,7 @@ public:
     int get_z_min_index(){return bounding_z_min_index;}
     int get_z_max_index(){return bounding_z_max_index;}
     void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
+    void reset_bounding_index();
 
 private:
     float spaceLength;
