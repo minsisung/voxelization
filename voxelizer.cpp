@@ -259,11 +259,8 @@ void Voxelizer::setupSize(float s_Length, float v_Size)
     qDebug() << "Setup size of voxel space took" << timer.elapsed() << "milliseconds"<<endl;
 }
 
-void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
+void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component)
 {
-    vx_vertex_t p1;
-    vx_vertex_t p2;
-    vx_vertex_t p3;
     float min_x, max_x, min_y, max_y, min_z, max_z;
 
     QElapsedTimer timer;
@@ -271,22 +268,8 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int> mesh)
 
     for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
-        //Load triangles from mesh
-        p1.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0];
-        p1.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1];
-        p1.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2];
-
-        p2.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0];
-        p2.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1];
-        p2.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[2];
-
-        p3.x = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[0];
-        p3.y = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[1];
-        p3.z = 1000 * mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[2];
-
-        triangle.p1 = p1;
-        triangle.p2 = p2;
-        triangle.p3 = p3;
+        //Load and transform triangles from mesh
+        loadAndTransform(itri, mesh, component);
 
         //find bounding box of triangle
         VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -360,6 +343,85 @@ void Voxelizer::reset_bounding_index()
     bounding_y_max_index = 0;
     bounding_z_min_index = std::numeric_limits<int>::max();
     bounding_z_max_index = 0;
+}
+
+void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh,char component)
+{
+    QVector3D vertex1;
+    QVector3D vertex2;
+    QVector3D vertex3;
+
+    if(component == 'C')
+        transformMatrix = transformMatrixC;
+    if(component == 'B')
+        transformMatrix = transformMatrixB;
+    if(component == 'b')
+        transformMatrix = transformMatrixBase;
+    if(component == 'X')
+        transformMatrix = transformMatrixX;
+    if(component == 'Y')
+        transformMatrix = transformMatrixY;
+    if(component == 'Z')
+        transformMatrix = transformMatrixZ;
+
+    vertex1.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0]);
+    vertex1.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1]);
+    vertex1.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2]);
+    vertex1= transformMatrix * vertex1;
+
+    vertex2.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0]);
+    vertex2.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1]);
+    vertex2.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[2]);
+    vertex2 = transformMatrix * vertex2;
+
+    vertex3.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[0]);
+    vertex3.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[1]);
+    vertex3.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[2]);
+    vertex3 = transformMatrix * vertex3;
+
+    p1.x = 1000 * vertex1.x();
+    p1.y = 1000 * vertex1.y();
+    p1.z = 1000 * vertex1.z();
+
+    p2.x = 1000 * vertex2.x();
+    p2.y = 1000 * vertex2.y();
+    p2.z = 1000 * vertex2.z();
+
+    p3.x = 1000 * vertex3.x();
+    p3.y = 1000 * vertex3.y();
+    p3.z = 1000 * vertex3.z();
+
+    triangle.p1 = p1;
+    triangle.p2 = p2;
+    triangle.p3 = p3;
+}
+
+void Voxelizer::setupTransformationMatrix()
+{
+    //Transform according to each component
+
+    //B axis
+    transformMatrixB.translate(0.0f, -0.95138f, 0.0f);
+    transformMatrixB.rotate(20.0f,0.0,1.0,0.0);
+
+    //C axis
+    transformMatrixC = transformMatrixB;
+    transformMatrixC.translate(0.0f, 0.41802f, -0.051308f);
+    transformMatrixC.rotate(20.0f,0.0,0.0,1.0);
+
+    //X axis
+    transformMatrixX.translate(0.3f, 0.0f, 0.0f);
+
+    //Y axis
+    transformMatrixY = transformMatrixX;
+    transformMatrixY.translate(0.0f, -0.3f, 0.0f);
+
+    //Z axis
+    transformMatrixZ = transformMatrixY;
+    transformMatrixZ.translate(0.0f, 0.0f, -0.3f);
+
+    //BASE
+//    transformMatrixBase.setToIdentity();
 }
 
 

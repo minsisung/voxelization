@@ -6,18 +6,24 @@
 #include <shaders.h>
 #include <QFileDialog>
 
+
 bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent),
       m_xRot(0),m_yRot(0),m_zRot(0),
-      m_xTran(0), m_yTran(0), m_zTran(-4500), //original camera position
+      m_xTran(0), m_yTran(0), m_zTran(-5000), //original camera position
       fov(45.0f),
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-    m_filepathes = QFileDialog::getOpenFileNames(this,
-                                                 tr("Open first 3D Model"), "/home/",tr("3D Model Files (*.stl)"));
+    //    m_filepathes = QFileDialog::getOpenFileNames(this,
+    //                                                 tr("Open one or more 3D Models"), "/home/",tr("3D Model Files (*.stl)"));
+
+    m_filepathes << "B_Link.STL"<< "C_Link.STL"<<"Base_Link.STL"<<
+                    "X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
+
+    Q_ASSERT_X(m_filepathes.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -111,7 +117,7 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(4000.0f,10.0f,m_filepathes);
+    m_cubeGemoetry.createVoxelspace(4000.0f,5.0f,m_filepathes);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -128,9 +134,9 @@ void MyOpenGLWidget::initializeGL()
     m_colorLoc = m_program->uniformLocation("color");
     //    m_alphaLoc = m_program->uniformLocation("alpha");
 
-    m_vao.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
-    //To use a VAO, all you have to do is bind the VAO
+    //    m_vao.create();
+    //    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    //    //To use a VAO, all you have to do is bind the VAO
 
     // Setup our vertex buffer object.
     m_geometryVbo.create();
@@ -166,7 +172,6 @@ void MyOpenGLWidget::paintGL()
     glEnable(GL_CULL_FACE);
     //    glEnable (GL_BLEND);
     //    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
     m_world.setToIdentity();
     m_world.rotate(-90.0f, 1, 0, 0);        //Transform to intuitive machine tool coordinate
@@ -249,7 +254,7 @@ void MyOpenGLWidget::setupVertexAttribs()
 
 void MyOpenGLWidget::drawComponents()
 {
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    //  QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     m_program->bind();
     m_program->setUniformValue(m_projMatrixLoc, m_proj);
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
@@ -262,29 +267,19 @@ void MyOpenGLWidget::drawComponents()
     for (int i = 0; i < m_filepathes.size(); ++i){
         //set color for model
 
-        if (i == 0)
-            m_color = QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f);
-
-        else if (i == 1)
-            m_color = QVector3D(0.4f, 0.3f, 0.752941176470588f);
-
-        else if (i == 2)
-            m_color = QVector3D(0.8f, 0.752941176470588f, 0.3f);
-
-        else if (i == 3)
-            m_color = QVector3D(0.752941176470588f, 0.2f, 0.72f);
-
-        else if (i == 4)
-            m_color = QVector3D(0.3f, 0.8f, 0.72f);
-
-        else
-            m_color = QVector3D(0.5f, 0.5f, 0.72f);
+        QVector<QVector3D> colorVector{QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f),  QVector3D(0.1f, 0.3f, 0.752941176470588f),
+                    QVector3D(0.8f, 0.3f, 0.1f), QVector3D(0.752941176470588f, 0.9f, 0.72f),
+                    QVector3D(0.3f, 0.8f, 0.72f), QVector3D(0.5f, 0.5f, 0.72f)};
 
 
-        m_program->setUniformValue(m_colorLoc, m_color);
+        m_program->setUniformValue(m_colorLoc, colorVector.at(i));
 
+        // only draw skeleton of each triangle
         //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, totalVerticesVector.at(i));
+        //update starting number of each component
         startNumber += totalVerticesVector.at(i);
     }
 }

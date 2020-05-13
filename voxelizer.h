@@ -5,6 +5,7 @@
 #include <voxel.h>
 #include <limits>
 #include <QtGlobal>
+#include <QMatrix4x4>
 
 
 typedef struct vx_vertex {
@@ -55,7 +56,18 @@ class Voxelizer
 public:
     Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
-    void Voxelize(stl_reader::StlMesh <float, unsigned int> mesh);
+
+    //Component       Char
+    //    Base         'b'
+    //    X            'X'
+    //    Y            'Y'
+    //    Z            'Z'
+    //    A            'A'
+    //    B            'B'
+    //    C            'C'
+
+    void Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component);
+
     void resize(int size);
     void setupSize(float spaceLength, float voxelSize);
     int get_x_min_index(){return bounding_x_min_index;}
@@ -66,6 +78,8 @@ public:
     int get_z_max_index(){return bounding_z_max_index;}
     void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
     void reset_bounding_index();
+    void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh,char component);
+    void setupTransformationMatrix();
 
 private:
     float spaceLength;
@@ -73,12 +87,25 @@ private:
     vx_vertex_t boxcenter;
     vx_vertex_t halfboxsize;
     vx_triangle_t triangle;
+    vx_vertex_t p1;
+    vx_vertex_t p2;
+    vx_vertex_t p3;
+
     int bounding_x_min_index = std::numeric_limits<int>::max();
     int bounding_x_max_index = 0;
     int bounding_y_min_index = std::numeric_limits<int>::max();
     int bounding_y_max_index = 0;
     int bounding_z_min_index = std::numeric_limits<int>::max();
     int bounding_z_max_index = 0;
+
+    QMatrix4x4 transformMatrixA;
+    QMatrix4x4 transformMatrixB;
+    QMatrix4x4 transformMatrixC;
+    QMatrix4x4 transformMatrixX;
+    QMatrix4x4 transformMatrixY;
+    QMatrix4x4 transformMatrixZ;
+    QMatrix4x4 transformMatrixBase;
+    QMatrix4x4 transformMatrix;
 };
 
 #endif // VOXELIZER_H

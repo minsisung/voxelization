@@ -16,16 +16,21 @@ void CreateCubes::createVoxelspace(float spaceLength, float voxelSize,QStringLis
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
     voxelizer.setupSize(spaceLength, voxelSize);
 
+    //setup transformation matrix for each component
+    voxelizer.setupTransformationMatrix();
+
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     float mostLeftBottom = -spaceLength/2.0f;
 
 
-    for (int i = 0; i < m_filepathes.size(); ++i){
+    QVector<char> components{'B','C', 'b', 'X','Y','Z'};
+
+    for (int fileOrder = 0; fileOrder < m_filepathes.size(); ++fileOrder){
         try {
             //read STL file for each file
 
-            stl_reader::StlMesh <float, unsigned int> mesh(m_filepathes.at(i).toStdString());
-            voxelizer.Voxelize(mesh);
+            stl_reader::StlMesh <float, unsigned int> mesh(m_filepathes.at(fileOrder).toStdString());
+            voxelizer.Voxelize(mesh, components.at(fileOrder));
         }
         catch (std::exception& e) {
             std::cout << e.what() << std::endl;
