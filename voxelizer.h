@@ -56,6 +56,11 @@ class Voxelizer
 public:
     Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
+    QVector < QVector < QVector< Voxel > > > basevVoxelspace;
+    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace1;
+    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace2;
+    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace3;
+    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace4;
 
     //Component       Char
     //    Base         'b'
@@ -66,9 +71,8 @@ public:
     //    B            'B'
     //    C            'C'
 
-    void Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component);
+    void Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
 
-    void resize(int size);
     void setupSize(float spaceLength, float voxelSize);
     int get_x_min_index(){return bounding_x_min_index;}
     int get_x_max_index(){return bounding_x_max_index;}
@@ -79,11 +83,21 @@ public:
     void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
     void reset_bounding_index();
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh,char component);
-    void setupTransformationMatrix();
+    void setupTransformationMatrix(float x, float y, float z, float primary, float secondary);
+    void translateX(float x);
+    void translateY(float y);
+    void translateZ(float z);
+    void rotatePrimary(float angle);
+    void rotateSecondary(float angle);
+
 
 private:
+    void translationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
+    void rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
+    void normalVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
     float spaceLength;
     float voxelSize;
+    int voxelSpaceSize;
     vx_vertex_t boxcenter;
     vx_vertex_t halfboxsize;
     vx_triangle_t triangle;

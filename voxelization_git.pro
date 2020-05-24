@@ -19,6 +19,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     createcubes.cpp \
     creategeometry.cpp \
+    kinematicchain.cpp \
     main.cpp \
     mainwindow.cpp \
     myopenglwidget.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
 HEADERS += \
     createcubes.h \
     creategeometry.h \
+    kinematicchain.h \
     mainwindow.h \
     myopenglwidget.h \
     shaders.h \

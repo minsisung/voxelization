@@ -139,9 +139,9 @@ bool vx__plane_box_overlap(vx_vec3_t* normal,
     return false;                              \
     }
 
-bool vx__triangle_box_overlap(vx_vertex_t boxcenter,
-                              vx_vertex_t halfboxsize,
-                              vx_triangle_t triangle)
+bool vx_triangle_box_overlap(vx_vertex_t boxcenter,
+                             vx_vertex_t halfboxsize,
+                             vx_triangle_t triangle)
 {
     vx_vec3_t v1, v2, v3, normal, e1, e2, e3;
     float min, max, d, p1, p2, p3, rad, fex, fey, fez;
@@ -221,50 +221,166 @@ bool vx__triangle_box_overlap(vx_vertex_t boxcenter,
 
 //====================================================================================================================
 
-
-
 //constructor
 Voxelizer::Voxelizer()
 {
 
 }
 
-void Voxelizer::resize(int size)
-{
-    voxelspace.resize(size);
-    for (int i = 0; i < size; i++)
-    {
-        voxelspace[i].resize(size);
-        for (int j = 0; j < size; j++)
-        {
-            voxelspace[i][j].resize(size);
-        }
-    }
-}
-
 void Voxelizer::setupSize(float s_Length, float v_Size)
 {
-    QElapsedTimer timer;
-    timer.start();
-
     voxelSize = v_Size;
     spaceLength = s_Length;
     halfboxsize.x = voxelSize/2;
     halfboxsize.y = voxelSize/2;
     halfboxsize.z = voxelSize/2;
+    voxelSpaceSize = static_cast<int>(spaceLength/voxelSize);
 
-    //resize voxelspace
-    resize(static_cast<int>(spaceLength/voxelSize));
-
-    qDebug() << "Setup size of voxel space took" << timer.elapsed() << "milliseconds"<<endl;
+    //setup size for voxelspace
+    QVector < QVector < QVector< Voxel > > > correctSize(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
+    voxelspace = correctSize;
 }
 
-void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component)
+void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
 {
-    float min_x, max_x, min_y, max_y, min_z, max_z;
-
     QElapsedTimer timer;
     timer.start();
+
+    //creating swept volume for rotary end component
+    if(component =='B'){
+        rotationalSVVoxelization(mesh,component, needVisualization);
+    }
+    else if (component == 'Z'){
+        translationalSVVoxelization(mesh,component, needVisualization);
+    }else{
+        normalVoxelization(mesh,component, needVisualization);
+    }
+
+    //    if (component == 'b')
+    //        previousVoxelSpace = voxelspace;
+
+    //    if(component == 'Z')
+    //        voxelspace = previousVoxelSpace;
+
+    temporaryVoxelSpace1 = voxelspace;
+    temporaryVoxelSpace2 = voxelspace;
+    temporaryVoxelSpace3 = voxelspace;
+    temporaryVoxelSpace4 = voxelspace;
+    basevVoxelspace = voxelspace;
+
+    qDebug() << "The mesh contains " << mesh.num_tris() << " triangles."<<endl;
+    qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
+}
+
+void Voxelizer::translationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+{
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+    for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
+
+        //Load and transform triangles from mesh
+        loadAndTransform(itri, mesh, component);
+
+        //find bounding box of triangle
+        VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                //get voxel indices of bounding box of triangle
+                int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
+        int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
+        int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
+        int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
+        int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
+        int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+
+        // bounding box of triangle can't be outside of voxelspace
+        Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
+                    min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
+
+        //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
+        //(index_z_min for z component is smaller for swept volume)
+        if(needVisualization)
+            set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min-30, index_z_max);
+
+        //Check intersection between triangle and voxels in the bounding boxes of triangle
+        for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
+            for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
+                for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+
+                    boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
+                    boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
+                    boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                    if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+                        for(int i = 0; i<30; i++){
+                            //if voxel has already assigned, jump to next iteration
+                            if(!voxelspace[ind_x][ind_y][ind_z-i].isCoolide(component))
+                                voxelspace[ind_x][ind_y][ind_z-i].addCollide(component);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+{
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+    for (float angle = 0.0f; angle<15.0f; angle += 30.0f ){
+        transformMatrixB.rotate(10.0,0.0,1.0,0.0);
+        for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
+
+            //Load and transform triangles from mesh
+            loadAndTransform(itri, mesh, component);
+
+            //find bounding box of triangle
+            VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                    VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                    VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                    //get voxel indices of bounding box of triangle
+                    int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
+            int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
+            int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
+            int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
+            int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
+            int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+
+            // bounding box of triangle can't be outside of voxelspace
+            Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
+                        min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2),
+                       "voxelizer", "part of geometry is outside of voxelspace");
+
+            //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
+            //(index_z_min for z component is smaller for swept volume)
+            if(needVisualization)
+                set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+
+            //Check intersection between triangle and voxels in the bounding boxes of triangle
+            for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
+                for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
+                    for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+
+                        //if voxel has already assigned, jump to next iteration
+                        if(voxelspace[ind_x][ind_y][ind_z].isCoolide(component))
+                            continue;
+
+                        boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
+                        boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
+                        boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                        if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle))
+                            voxelspace[ind_x][ind_y][ind_z].addCollide(component);
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+void Voxelizer::normalVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+{
+    float min_x, max_x, min_y, max_y, min_z, max_z;
 
     for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
@@ -288,8 +404,10 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char c
         Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
                     min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
 
-        //setup the bounding voxel index of the geometry to speed up cubes creation
-        set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+        //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
+        //(index_z_min for z component is smaller for swept volume)
+        if(needVisualization)
+            set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
 
         //Check intersection between triangle and voxels in the bounding boxes of triangle
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
@@ -297,22 +415,21 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char c
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
 
                     //if voxel has already assigned, jump to next iteration
-                    if(voxelspace[ind_x][ind_y][ind_z].getStatus()!='E')
+                    if(voxelspace[ind_x][ind_y][ind_z].isCoolide(component))
                         continue;
 
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
-                    if(vx__triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        voxelspace[ind_x][ind_y][ind_z].setStatus('O');
-                    }
+                    if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle))
+                        voxelspace[ind_x][ind_y][ind_z].addCollide(component);
                 }
             }
         }
     }
-    qDebug() << "The mesh contains " << mesh.num_tris() << " triangles."<<endl;
-    qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
 }
+
+
 
 void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max)
 {
@@ -351,18 +468,33 @@ void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsign
     QVector3D vertex2;
     QVector3D vertex3;
 
-    if(component == 'C')
+    switch (component)
+    {
+    case 'C':
         transformMatrix = transformMatrixC;
-    if(component == 'B')
+        break;
+    case 'B':
         transformMatrix = transformMatrixB;
-    if(component == 'b')
+        break;
+    case 'A':
+        transformMatrix = transformMatrixA;
+        break;
+    case 'b':
         transformMatrix = transformMatrixBase;
-    if(component == 'X')
+        break;
+    case 'X':
         transformMatrix = transformMatrixX;
-    if(component == 'Y')
+        break;
+    case 'Y':
         transformMatrix = transformMatrixY;
-    if(component == 'Z')
+        break;
+    case 'Z':
         transformMatrix = transformMatrixZ;
+        break;
+    default:
+        transformMatrixBase.setToIdentity();
+        break;
+    }
 
     vertex1.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0]);
     vertex1.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1]);
@@ -396,32 +528,59 @@ void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsign
     triangle.p3 = p3;
 }
 
-void Voxelizer::setupTransformationMatrix()
+void Voxelizer::setupTransformationMatrix(float x, float y, float z, float primary, float secondary)
 {
     //Transform according to each component
 
     //B axis
     transformMatrixB.translate(0.0f, -0.95138f, 0.0f);
-    transformMatrixB.rotate(20.0f,0.0,1.0,0.0);
+    rotatePrimary(primary);
 
     //C axis
     transformMatrixC = transformMatrixB;
     transformMatrixC.translate(0.0f, 0.41802f, -0.051308f);
-    transformMatrixC.rotate(20.0f,0.0,0.0,1.0);
+    rotateSecondary(secondary);
 
     //X axis
-    transformMatrixX.translate(0.3f, 0.0f, 0.0f);
+    translateX(x);
 
     //Y axis
     transformMatrixY = transformMatrixX;
-    transformMatrixY.translate(0.0f, -0.3f, 0.0f);
+    translateY(y);
 
     //Z axis
     transformMatrixZ = transformMatrixY;
-    transformMatrixZ.translate(0.0f, 0.0f, -0.3f);
+    translateZ(z);
 
     //BASE
-//    transformMatrixBase.setToIdentity();
+    //    transformMatrixBase.setToIdentity();
 }
+
+void Voxelizer::translateX(float x)
+{
+    transformMatrixX.translate(x, 0.0f, 0.0f);
+}
+
+void Voxelizer::translateY(float y)
+{
+    transformMatrixY.translate(0.0f, y, 0.0f);
+}
+
+void Voxelizer::translateZ(float z)
+{
+    transformMatrixZ.translate(0.0f, 0.0f, z);
+}
+
+void Voxelizer::rotatePrimary(float angle)
+{
+    transformMatrixB.rotate(angle,0.0,1.0,0.0);
+}
+
+void Voxelizer::rotateSecondary(float angle)
+{
+    transformMatrixC.rotate(angle,0.0,0.0,1.0);
+}
+
+
 
 

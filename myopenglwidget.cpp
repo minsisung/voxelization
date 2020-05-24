@@ -20,8 +20,10 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     //    m_filepathes = QFileDialog::getOpenFileNames(this,
     //                                                 tr("Open one or more 3D Models"), "/home/",tr("3D Model Files (*.stl)"));
 
-    m_filepathes << "B_Link.STL"<< "C_Link.STL"<<"Base_Link.STL"<<
-                    "X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
+//    m_filepathes << "Base_Link.STL"<< "B_Link.STL"<< "C_Link.STL"<<
+//                    "X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
+
+        m_filepathes <<"Base_Link.STL"<< "B_Link.STL"<< "X_Link.STL";
 
     Q_ASSERT_X(m_filepathes.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
@@ -117,7 +119,7 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(4000.0f,5.0f,m_filepathes);
+    m_cubeGemoetry.createVoxelspace(3500.0f, 2.5f,m_filepathes, false);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -181,7 +183,10 @@ void MyOpenGLWidget::paintGL()
     m_camera.setToIdentity();
     m_camera.translate(m_xTran,m_yTran,m_zTran) ;
 
-    drawComponents();
+    //check if visualization is necessary
+    if(m_cubeGemoetry.ifNeedVisualization){
+        drawComponents();
+    }
 
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
 
@@ -253,7 +258,7 @@ void MyOpenGLWidget::setupVertexAttribs()
 }
 
 void MyOpenGLWidget::drawComponents()
-{
+{        
     //  QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     m_program->bind();
     m_program->setUniformValue(m_projMatrixLoc, m_proj);

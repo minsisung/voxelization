@@ -13,10 +13,11 @@ public:
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
     int totocalVertexCount() const { return m_totalCount / 6; }
-    void createVoxelspace(float spaceLength, float voxelSize,QStringList m_filepathes);
+    void createVoxelspace(float spaceLength, float voxelSize,QStringList m_filepathes, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     QVector<int> get_vertices_numbers(){return vertices_number_vector;}
+    bool ifNeedVisualization;
 
 private:
     QVector<GLfloat> m_data;
