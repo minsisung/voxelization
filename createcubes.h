@@ -13,11 +13,13 @@ public:
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
     int totocalVertexCount() const { return m_totalCount / 6; }
-    void createVoxelspace(float spaceLength, float voxelSize,QStringList m_filepathes, bool needVisualization);
+    void createMTVoxelspace(float spaceLength, float voxelSize,QStringList m_filepathes, bool needVisualization);
+    void createCollisionVoxelspace(float spaceLength, float vSize, QStringList m_filepathes);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
+    bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     QVector<int> get_vertices_numbers(){return vertices_number_vector;}
-    bool ifNeedVisualization;
+    bool ifNeedVisualization = true;
 
 private:
     QVector<GLfloat> m_data;
@@ -25,6 +27,10 @@ private:
     Voxelizer voxelizer;
     int n_voxel_in_axis;
     QVector<int> vertices_number_vector;
+    float voxelSize;
+    float mostLeftBottom;
+    void drawVoxelforCollision(int& numberVertices);
+    void drawVoxelforMT(int& numberVertices);
 };
 
 

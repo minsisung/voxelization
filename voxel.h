@@ -1,15 +1,17 @@
 #ifndef VOXEL_H
 #define VOXEL_H
-#include<QVector>
 
 class Voxel
 {
 public:
     Voxel();
-    void addCollide(char component){collideList.append(component);}
-    bool isCoolide(char component){return collideList.contains(component);}
-    int listSize(){return collideList.size();}
+    void setStatus(char status){Status = status;}
+    int getStatus(){return Status;}
+
+    void collide(){collisionStatus = true;}
+    bool isCollide(){return collisionStatus;}
 private:
-    QVector<char> collideList;   //E: empty  O: occupied  C: collided
+    char Status = 'E';   //E: empty  O: occupied  C: collided
+    bool collisionStatus = false;
 };
 #endif // VOXEL_H

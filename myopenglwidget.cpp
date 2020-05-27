@@ -20,10 +20,14 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     //    m_filepathes = QFileDialog::getOpenFileNames(this,
     //                                                 tr("Open one or more 3D Models"), "/home/",tr("3D Model Files (*.stl)"));
 
-//    m_filepathes << "Base_Link.STL"<< "B_Link.STL"<< "C_Link.STL"<<
-//                    "X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
+    //    m_filepathes << "UMC-750_Base_Link.STL"<< "UMC-750_B_Link.STL"<< "UMC-750_C_Link.STL"<<
+    //                    "UMC-750_X_Link.STL"<<"UMC-750_Y_Link.STL"<< "UMC-750_Z_Link.STL";
 
-        m_filepathes <<"Base_Link.STL"<< "B_Link.STL"<< "X_Link.STL";
+    m_filepathes << "VF-2_Base_Link.STL"<<
+                    "VF-2_Z_Link.STL" << "VF-2_A_Link.STL"<< "VF-2_C_Link.STL";
+
+
+    //        m_filepathes <<"Base_Link.STL"<< "B_Link.STL"<<"X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
 
     Q_ASSERT_X(m_filepathes.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
@@ -119,7 +123,12 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //m_geometry.readSTL(m_filepath);
-    m_cubeGemoetry.createVoxelspace(3500.0f, 2.5f,m_filepathes, false);
+    //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
+    //    m_cubeGemoetry.createCollisionVoxelspace(4400.0f, 2.0f, m_filepathes);  //UMC-750
+                m_cubeGemoetry.createMTVoxelspace(4500.0f, 5.0f, m_filepathes, true); //VF-2
+//    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 1.5f, m_filepathes);  //VF-2
+    //    m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, m_filepathes, true); //UMC-500
+    //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, m_filepathes); //UMC-500
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -150,8 +159,8 @@ void MyOpenGLWidget::initializeGL()
     m_geometryVbo.allocate(m_cubeGemoetry.constData(), m_cubeGemoetry.totalCount() * sizeof(GLfloat));
     //Allocate and initialize the information
 
-    m_geometryVbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
-    //set usage pattern for the data is changed a lot and used many times.
+    m_geometryVbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    //The data will be set once and used many times for drawing operations.
 
     // Store the vertex attribute bindings for the program.
     setupVertexAttribs();
@@ -273,7 +282,7 @@ void MyOpenGLWidget::drawComponents()
         //set color for model
 
         QVector<QVector3D> colorVector{QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f),  QVector3D(0.1f, 0.3f, 0.752941176470588f),
-                    QVector3D(0.8f, 0.3f, 0.1f), QVector3D(0.752941176470588f, 0.9f, 0.72f),
+                    QVector3D(0.8f, 0.3f, 0.1f), QVector3D(0.8f, 0.2f, 1.0f),
                     QVector3D(0.3f, 0.8f, 0.72f), QVector3D(0.5f, 0.5f, 0.72f)};
 
 

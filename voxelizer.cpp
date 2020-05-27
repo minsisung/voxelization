@@ -247,7 +247,7 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char c
     timer.start();
 
     //creating swept volume for rotary end component
-    if(component =='B'){
+    if(component =='C'){
         rotationalSVVoxelization(mesh,component, needVisualization);
     }
     else if (component == 'Z'){
@@ -262,11 +262,11 @@ void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char c
     //    if(component == 'Z')
     //        voxelspace = previousVoxelSpace;
 
-    temporaryVoxelSpace1 = voxelspace;
-    temporaryVoxelSpace2 = voxelspace;
-    temporaryVoxelSpace3 = voxelspace;
-    temporaryVoxelSpace4 = voxelspace;
-    basevVoxelspace = voxelspace;
+    //    temporaryVoxelSpace1 = voxelspace;
+    //    temporaryVoxelSpace2 = voxelspace;
+    //    temporaryVoxelSpace3 = voxelspace;
+    //    temporaryVoxelSpace4 = voxelspace;
+    //    basevVoxelspace = voxelspace;
 
     qDebug() << "The mesh contains " << mesh.num_tris() << " triangles."<<endl;
     qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
@@ -307,16 +307,20 @@ void Voxelizer::translationalSVVoxelization(stl_reader::StlMesh <float, unsigned
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
 
+                    //if voxel has already assigned, jump to next iteration
+                    if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
+                        continue;
+
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
                     if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        for(int i = 0; i<30; i++){
-                            //if voxel has already assigned, jump to next iteration
-                            if(!voxelspace[ind_x][ind_y][ind_z-i].isCoolide(component))
-                                voxelspace[ind_x][ind_y][ind_z-i].addCollide(component);
-                        }
+                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
+                            voxelspace[ind_x][ind_y][ind_z].collide();
+
+                        voxelspace[ind_x][ind_y][ind_z].setStatus(component);
                     }
+
                 }
             }
         }
@@ -327,7 +331,7 @@ void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned in
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
     for (float angle = 0.0f; angle<15.0f; angle += 30.0f ){
-        transformMatrixB.rotate(10.0,0.0,1.0,0.0);
+//                transformMatrixC.rotate(10.0,0.0,0.0,1.0);
         for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
             //Load and transform triangles from mesh
@@ -362,14 +366,18 @@ void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned in
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
 
                         //if voxel has already assigned, jump to next iteration
-                        if(voxelspace[ind_x][ind_y][ind_z].isCoolide(component))
+                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
                             continue;
 
                         boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                         boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                         boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
-                        if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle))
-                            voxelspace[ind_x][ind_y][ind_z].addCollide(component);
+                        if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+                            if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
+                                voxelspace[ind_x][ind_y][ind_z].collide();
+
+                            voxelspace[ind_x][ind_y][ind_z].setStatus(component);
+                        }
                     }
                 }
             }
@@ -415,14 +423,18 @@ void Voxelizer::normalVoxelization(stl_reader::StlMesh <float, unsigned int>& me
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
 
                     //if voxel has already assigned, jump to next iteration
-                    if(voxelspace[ind_x][ind_y][ind_z].isCoolide(component))
+                    if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
                         continue;
 
                     boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
                     boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
                     boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
-                    if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle))
-                        voxelspace[ind_x][ind_y][ind_z].addCollide(component);
+                    if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
+                            voxelspace[ind_x][ind_y][ind_z].collide();
+
+                        voxelspace[ind_x][ind_y][ind_z].setStatus(component);
+                    }
                 }
             }
         }
@@ -532,24 +544,33 @@ void Voxelizer::setupTransformationMatrix(float x, float y, float z, float prima
 {
     //Transform according to each component
 
+    //Y axis
+    //    transformMatrixY = transformMatrixX;
+    translateY(y);
+
+    //X axis
+    transformMatrixX = transformMatrixY;
+    translateX(x);
+
+    //A axis
+    transformMatrixA = transformMatrixX;
+    transformMatrixA.translate(-0.327768f, -0.690981f, 0.59217175f);    //VF-2
+    rotatePrimary(primary);
+
     //B axis
-    transformMatrixB.translate(0.0f, -0.95138f, 0.0f);
+    //    transformMatrixB.translate(0.0f, -0.95138f, 0.0f);
+    //    transformMatrixB.translate(0.0f, -0.53336f, 0.0f);   //UMC500
+    transformMatrixB.translate(0.0f, -0.5842f, 0.0f);    //UMC750
     rotatePrimary(primary);
 
     //C axis
-    transformMatrixC = transformMatrixB;
-    transformMatrixC.translate(0.0f, 0.41802f, -0.051308f);
+    transformMatrixC = transformMatrixA;
+    //    transformMatrixC.translate(0.0f, 0.41802f, -0.051308f);
+    //    transformMatrixC.translate(0.0f, -0.53336f, 0.0f);
     rotateSecondary(secondary);
 
-    //X axis
-    translateX(x);
-
-    //Y axis
-    transformMatrixY = transformMatrixX;
-    translateY(y);
-
     //Z axis
-    transformMatrixZ = transformMatrixY;
+    //    transformMatrixZ = transformMatrixY;
     translateZ(z);
 
     //BASE
@@ -573,7 +594,8 @@ void Voxelizer::translateZ(float z)
 
 void Voxelizer::rotatePrimary(float angle)
 {
-    transformMatrixB.rotate(angle,0.0,1.0,0.0);
+    //    transformMatrixB.rotate(angle,0.0,1.0,0.0);
+    transformMatrixA.rotate(angle,1.0,0.0,0.0);
 }
 
 void Voxelizer::rotateSecondary(float angle)
