@@ -7,10 +7,9 @@
 CreateCubes::CreateCubes():
     m_totalCount(0)
 {
-
 }
 
-void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, QStringList m_filepathes, bool needVisualization)
+void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization)
 {
     //initialize if visualization is necessary
     ifNeedVisualization = needVisualization;
@@ -22,31 +21,14 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, QStringList
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
     voxelizer.setupSize(spaceLength, voxelSize);
 
-    //setup transformation matrix for each component  (X,Y,Z,primary, secondary)
-    voxelizer.setupTransformationMatrix(0.2f, 0.2f, -0.2f, 30.0f, 0.0f);
+    //setup transformation matrix for each component  (X,Y,Z,A,B,C)
+    voxelizer.setupTransformationMatrix(MT, 0.5f, -0.3f, -0.3f, 0.0f, 30.0f, 0.0f);
 
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
 
-    //component order
-    QVector<char> components{'b','Z','A','C'};
-    //        QVector<char> components{'b','B','X','Y','Z'};
-
-    for (int fileOrder = 0; fileOrder < m_filepathes.size(); ++fileOrder){
-        try {
-            //read STL file for each file
-            stl_reader::StlMesh <float, unsigned int> mesh(m_filepathes.at(fileOrder).toStdString());
-            voxelizer.Voxelize(mesh, components.at(fileOrder), ifNeedVisualization);
-        }
-        catch (std::exception& e) {
-            std::cout << e.what() << std::endl;
-        }
-
-        //        if(components.at(fileOrder) == 'B')
-        //            voxelizer.temporaryVoxelSpace1 = voxelizer.voxelspace;
-
-        //        if(components.at(fileOrder) == 'X')
-        //            voxelizer.temporaryVoxelSpace2 = voxelizer.voxelspace;
+    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+        voxelizer.Voxelize(MT, *loop, true);
 
         // check if visualization is necessary     ===========================================================
         if(ifNeedVisualization){
@@ -55,28 +37,21 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, QStringList
             QElapsedTimer timer;
             timer.start();
 
-            //total number of vertices for each component
-            int numberVertices = 0;
-
-            drawVoxelforMT(numberVertices);
-
-            //save totally number of vertices for each component
-            vertices_number_vector.append(numberVertices);
+            drawVoxelforMT(loop->numberOfVertex);
 
             //reset bounding index for next component
             voxelizer.reset_bounding_index();
 
             qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
         }
-        // ====================================================================================================
-
-        if(components.at(fileOrder) == 'b')
-            voxelizer.basevVoxelspace = voxelizer.voxelspace;
     }
 }
 
-void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, QStringList m_filepathes)
+void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT ,bool needVisualization)
 {
+    //initialize if visualization is necessary
+    ifNeedVisualization = needVisualization;
+
     //setup voxelsize
     voxelSize = vSize;
 
@@ -84,48 +59,36 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, QStr
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
     voxelizer.setupSize(spaceLength, voxelSize);
 
-    //setup transformation matrix for each component  (X,Y,Z,primary, secondary)
-    voxelizer.setupTransformationMatrix(0.5f, 0.2f, -0.2f, 30.0f, 0.0f);
+    //setup transformation matrix for each component  (X,Y,Z,A,B,C)
+    voxelizer.setupTransformationMatrix(MT, 0.0f, -0.0f, -0.0f, 0.0f, 0.0f, 0.0f);
 
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
 
-    //component order
-    QVector<char> components{'b','Z','A','C'};
-    //    QVector<char> components{'b','B','X'};
+    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+        voxelizer.Voxelize(MT, *loop, true);
 
-    for (int fileOrder = 0; fileOrder < m_filepathes.size(); ++fileOrder){
-        try {
-            //read STL file for each file
-            stl_reader::StlMesh <float, unsigned int> mesh(m_filepathes.at(fileOrder).toStdString());
-            voxelizer.Voxelize(mesh, components.at(fileOrder), true);
+        // check if visualization is necessary     ===========================================================
+        if(ifNeedVisualization){
+
+            //timer
+            QElapsedTimer timer;
+            timer.start();
+
+            drawVoxelforCollision(loop->numberOfVertex);
+
+            //reset bounding index for next component
+            voxelizer.reset_bounding_index();
+
+            qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
         }
-        catch (std::exception& e) {
-            std::cout << e.what() << std::endl;
-        }
-        //timer
-        QElapsedTimer timer;
-        timer.start();
-
-        //total number of vertices for each component
-        int numberVertices = 0;
-
-        drawVoxelforCollision(numberVertices);
-
-        //save totally number of vertices for each component
-        vertices_number_vector.append(numberVertices);
-
-        //reset bounding index for next component
-        voxelizer.reset_bounding_index();
-
-        qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
     }
 }
 
 void CreateCubes::drawVoxelforMT(int& numberVertices)
 {
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
-    for (int number_x = voxelizer.get_x_min_index(); number_x < voxelizer.get_x_max_index()+1; ++number_x) {
+    for (int number_x = voxelizer.get_x_min_index(); number_x < (voxelizer.get_x_max_index())+1; ++number_x) {
         for (int number_y = voxelizer.get_y_min_index(); number_y < voxelizer.get_y_max_index()+1; ++number_y) {
             for (int number_z = voxelizer.get_z_min_index(); number_z < voxelizer.get_z_max_index()+1; ++number_z) {
 

@@ -6,7 +6,7 @@
 #include <limits>
 #include <QtGlobal>
 #include <QMatrix4x4>
-
+#include "machinetool.h"
 
 typedef struct vx_vertex {
     union {
@@ -16,27 +16,11 @@ typedef struct vx_vertex {
             float y;
             float z;
         };
-        struct {
-            float r;
-            float g;
-            float b;
-        };
     };
 } vx_vertex_t;
 
 typedef vx_vertex_t vx_vec3_t;
-typedef vx_vertex_t vx_color_t;
 
-typedef struct vx_mesh {
-    vx_vertex_t* vertices;          // Contiguous mesh vertices
-    vx_color_t* colors;             // Contiguous vertices colors
-    vx_vec3_t* normals;             // Contiguous mesh normals
-    unsigned int* indices;          // Mesh indices
-    unsigned int* normalindices;    // Mesh normal indices
-    size_t nindices;                // The number of normal indices
-    size_t nvertices;               // The number of vertices
-    size_t nnormals;                // The number of normals
-} vx_mesh_t;
 
 typedef struct vx_triangle {
     union {
@@ -47,7 +31,6 @@ typedef struct vx_triangle {
             vx_vertex_t p3;
         };
     };
-    vx_color_t colors[3];
 } vx_triangle_t;
 
 
@@ -71,7 +54,7 @@ public:
     //    B            'B'
     //    C            'C'
 
-    void Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
+    void Voxelize(MachineTool& MT, Link& link, bool needVisualization);
 
     void setupSize(float spaceLength, float voxelSize);
     int get_x_min_index(){return bounding_x_min_index;}
@@ -82,28 +65,26 @@ public:
     int get_z_max_index(){return bounding_z_max_index;}
     void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
     void reset_bounding_index();
-    void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh,char component);
-    void setupTransformationMatrix(float x, float y, float z, float primary, float secondary);
-    void translateX(float x);
-    void translateY(float y);
-    void translateZ(float z);
-    void rotatePrimary(float angle);
-    void rotateSecondary(float angle);
+    void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
+    void setupTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
 
 
 private:
-    void translationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
-    void rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
-    void normalVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization);
+    void fillVoxelModel(char linkType);
+    void translationalSVVoxelization(Link& link, bool needVisualization);
+    void rotationalSVVoxelization(Link& link, bool needVisualization);
+    void normalVoxelization(Link& link, bool needVisualization);
     float spaceLength;
     float voxelSize;
     int voxelSpaceSize;
+
     vx_vertex_t boxcenter;
     vx_vertex_t halfboxsize;
     vx_triangle_t triangle;
     vx_vertex_t p1;
     vx_vertex_t p2;
     vx_vertex_t p3;
+    QVector < QVector < QVector<int> > > shellMap;
 
     int bounding_x_min_index = std::numeric_limits<int>::max();
     int bounding_x_max_index = 0;
@@ -111,15 +92,6 @@ private:
     int bounding_y_max_index = 0;
     int bounding_z_min_index = std::numeric_limits<int>::max();
     int bounding_z_max_index = 0;
-
-    QMatrix4x4 transformMatrixA;
-    QMatrix4x4 transformMatrixB;
-    QMatrix4x4 transformMatrixC;
-    QMatrix4x4 transformMatrixX;
-    QMatrix4x4 transformMatrixY;
-    QMatrix4x4 transformMatrixZ;
-    QMatrix4x4 transformMatrixBase;
-    QMatrix4x4 transformMatrix;
 };
 
 #endif // VOXELIZER_H

@@ -9,6 +9,7 @@
 #include <creategeometry.h>
 #include <createcubes.h>
 #include <voxelizer.h>
+#include "machinetool.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -76,9 +77,10 @@ private:
     static bool m_transparent;
 
     QStringList m_filepathes;
-
     CreateGeometry m_geometry;
     CreateCubes m_cubeGemoetry;
+
+    MachineTool MT;
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include <QFileDialog>
 
 
+
 bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -17,19 +18,13 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-    //    m_filepathes = QFileDialog::getOpenFileNames(this,
-    //                                                 tr("Open one or more 3D Models"), "/home/",tr("3D Model Files (*.stl)"));
 
-    //    m_filepathes << "UMC-750_Base_Link.STL"<< "UMC-750_B_Link.STL"<< "UMC-750_C_Link.STL"<<
-    //                    "UMC-750_X_Link.STL"<<"UMC-750_Y_Link.STL"<< "UMC-750_Z_Link.STL";
+    //create machine tool by reading urdf
+        MT.readURDF("VF-2.urdf");
+    //        MT.readURDF("umc500.urdf");
+//    MT.readURDF("UMC-750.urdf");
 
-    m_filepathes << "VF-2_Base_Link.STL"<<
-                    "VF-2_Z_Link.STL" << "VF-2_A_Link.STL"<< "VF-2_C_Link.STL";
-
-
-    //        m_filepathes <<"Base_Link.STL"<< "B_Link.STL"<<"X_Link.STL"<<"Y_Link.STL"<< "Z_Link.STL";
-
-    Q_ASSERT_X(m_filepathes.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
+    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -124,11 +119,11 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
     //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
-    //    m_cubeGemoetry.createCollisionVoxelspace(4400.0f, 2.0f, m_filepathes);  //UMC-750
-                m_cubeGemoetry.createMTVoxelspace(4500.0f, 5.0f, m_filepathes, true); //VF-2
-//    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 1.5f, m_filepathes);  //VF-2
-    //    m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, m_filepathes, true); //UMC-500
-    //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, m_filepathes); //UMC-500
+//        m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 1.5f, MT, true);  //UMC-750
+//    m_cubeGemoetry.createMTVoxelspace(4500.0f, 3.0f, MT, true); //VF-2
+                m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 2.5f, MT, true);  //VF-2
+    //    m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
+    //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -243,7 +238,6 @@ void MyOpenGLWidget::paintGL()
     glFlush();
 
     //================================================================================================
-
     m_program->release();
 }
 
@@ -267,8 +261,8 @@ void MyOpenGLWidget::setupVertexAttribs()
 }
 
 void MyOpenGLWidget::drawComponents()
-{        
-    //  QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+{
+    //QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     m_program->bind();
     m_program->setUniformValue(m_projMatrixLoc, m_proj);
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
@@ -278,23 +272,18 @@ void MyOpenGLWidget::drawComponents()
     QVector<int> totalVerticesVector = m_cubeGemoetry.get_vertices_numbers();
     int startNumber = 0;
 
-    for (int i = 0; i < m_filepathes.size(); ++i){
-        //set color for model
+    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
 
-        QVector<QVector3D> colorVector{QVector3D(0.752941176470588f, 0.752941176470588f, 0.752941176470588f),  QVector3D(0.1f, 0.3f, 0.752941176470588f),
-                    QVector3D(0.8f, 0.3f, 0.1f), QVector3D(0.8f, 0.2f, 1.0f),
-                    QVector3D(0.3f, 0.8f, 0.72f), QVector3D(0.5f, 0.5f, 0.72f)};
-
-
-        m_program->setUniformValue(m_colorLoc, colorVector.at(i));
-
+        m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(loop->getRGBA().r),
+                                                         static_cast<float>(loop->getRGBA().g),
+                                                         static_cast<float>(loop->getRGBA().b)));
         // only draw skeleton of each triangle
         //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         //draw triangles
-        glDrawArrays(GL_TRIANGLES, startNumber, totalVerticesVector.at(i));
+        glDrawArrays(GL_TRIANGLES, startNumber, loop->numberOfVertex);
         //update starting number of each component
-        startNumber += totalVerticesVector.at(i);
+        startNumber += loop->numberOfVertex;
     }
 }
 

@@ -141,7 +141,7 @@ bool vx__plane_box_overlap(vx_vec3_t* normal,
 
 bool vx_triangle_box_overlap(vx_vertex_t boxcenter,
                              vx_vertex_t halfboxsize,
-                             vx_triangle_t triangle)
+                             vx_triangle_t& triangle)
 {
     vx_vec3_t v1, v2, v3, normal, e1, e2, e3;
     float min, max, d, p1, p2, p3, rad, fex, fey, fez;
@@ -237,48 +237,68 @@ void Voxelizer::setupSize(float s_Length, float v_Size)
     voxelSpaceSize = static_cast<int>(spaceLength/voxelSize);
 
     //setup size for voxelspace
-    QVector < QVector < QVector< Voxel > > > correctSize(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
-    voxelspace = correctSize;
+    QVector < QVector < QVector< Voxel > > > correctSizeVS(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
+    voxelspace = correctSizeVS;
+
+
 }
 
-void Voxelizer::Voxelize(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+void Voxelizer::Voxelize(MachineTool& MT, Link& link, bool needVisualization)
 {
+    QVector < QVector < QVector<int> > > correctSizeMap(voxelSpaceSize, QVector < QVector< int > >(voxelSpaceSize, QVector<int>(0)));
+    shellMap = correctSizeMap;
+
+    qDebug() << "The mesh contains " << link.getSTLMesh().num_tris() << " triangles."<<endl;
+
     QElapsedTimer timer;
     timer.start();
 
     //creating swept volume for rotary end component
-    if(component =='C'){
-        rotationalSVVoxelization(mesh,component, needVisualization);
-    }
-    else if (component == 'Z'){
-        translationalSVVoxelization(mesh,component, needVisualization);
-    }else{
-        normalVoxelization(mesh,component, needVisualization);
-    }
+    //    if(link.getLinkType() =='C'){
+    //        rotationalSVVoxelization(link, needVisualization);
+    //    }
+    //    else if (link.getLinkType() == 'Z'){
+    //        translationalSVVoxelization(link, needVisualization);
+    //    }else{
 
-    //    if (component == 'b')
-    //        previousVoxelSpace = voxelspace;
 
-    //    if(component == 'Z')
-    //        voxelspace = previousVoxelSpace;
 
-    //    temporaryVoxelSpace1 = voxelspace;
-    //    temporaryVoxelSpace2 = voxelspace;
-    //    temporaryVoxelSpace3 = voxelspace;
-    //    temporaryVoxelSpace4 = voxelspace;
-    //    basevVoxelspace = voxelspace;
+    normalVoxelization(link, needVisualization);
 
-    qDebug() << "The mesh contains " << mesh.num_tris() << " triangles."<<endl;
     qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
+
+
+    QElapsedTimer timer2;
+    timer2.start();
+
+    //    fill voxels in voxel shell
+    fillVoxelModel(link.getLinkType());
+
+    qDebug() << "Filling voxels took" << timer2.elapsed() << "milliseconds"<<endl;
+
+
+
+
+    //    if(link.getLinkType() == 'A'){
+    //        setupTransformationMatrix(MT, 0.0f, 0.0f, 0.0f, 60.0f, 0.0f, 0.0f);
+    //        normalVoxelization(link, needVisualization);
+    //    }
+    //    }
+
 }
 
-void Voxelizer::translationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+void Voxelizer::translationalSVVoxelization(Link& link, bool needVisualization)
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
+    char linkType = link.getLinkType();
+    float voxelStartingCenter = (-spaceLength/2) + (voxelSize/2);
+    stl_reader::StlMesh <float, unsigned int> mesh = link.getSTLMesh();
+    QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
+
     for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
         //Load and transform triangles from mesh
-        loadAndTransform(itri, mesh, component);
+        loadAndTransform(itri, mesh, TransformMatrix);
 
         //find bounding box of triangle
         VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -286,12 +306,12 @@ void Voxelizer::translationalSVVoxelization(stl_reader::StlMesh <float, unsigned
                 VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
                 //get voxel indices of bounding box of triangle
-                int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
-        int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
-        int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
-        int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
-        int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
-        int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+                int index_x_min = floor((min_x - (-spaceLength/2))/voxelSize);
+        int index_x_max = floor((max_x - (-spaceLength/2))/voxelSize);
+        int index_y_min = floor((min_y - (-spaceLength/2))/voxelSize);
+        int index_y_max = floor((max_y - (-spaceLength/2))/voxelSize);
+        int index_z_min = floor((min_z - (-spaceLength/2))/voxelSize);
+        int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
 
         // bounding box of triangle can't be outside of voxelspace
         Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
@@ -306,36 +326,42 @@ void Voxelizer::translationalSVVoxelization(stl_reader::StlMesh <float, unsigned
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+                    Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
+                    char type = voxel.getStatus();
 
                     //if voxel has already assigned, jump to next iteration
-                    if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
+                    if(type == linkType)
                         continue;
 
-                    boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
-                    boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
-                    boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                    boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
+                    boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
+                    boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                     if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
-                            voxelspace[ind_x][ind_y][ind_z].collide();
+                        if(type != 'E')
+                            voxel.collide();
 
-                        voxelspace[ind_x][ind_y][ind_z].setStatus(component);
+                        voxel.setStatus(linkType);
                     }
-
                 }
             }
         }
     }
 }
 
-void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
+    char linkType = link.getLinkType();
+    float voxelStartingCenter = (-spaceLength/2) + (voxelSize/2);
+    stl_reader::StlMesh <float, unsigned int> mesh = link.getSTLMesh();
+    QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
+
     for (float angle = 0.0f; angle<15.0f; angle += 30.0f ){
-//                transformMatrixC.rotate(10.0,0.0,0.0,1.0);
+        //                transformMatrixC.rotate(10.0,0.0,0.0,1.0);
         for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
             //Load and transform triangles from mesh
-            loadAndTransform(itri, mesh, component);
+            loadAndTransform(itri, mesh, TransformMatrix);
 
             //find bounding box of triangle
             VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -343,12 +369,12 @@ void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned in
                     VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
                     //get voxel indices of bounding box of triangle
-                    int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
-            int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
-            int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
-            int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
-            int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
-            int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+                    int index_x_min = floor((min_x - (-spaceLength/2))/voxelSize);
+            int index_x_max = floor((max_x - (-spaceLength/2))/voxelSize);
+            int index_y_min = floor((min_y - (-spaceLength/2))/voxelSize);
+            int index_y_max = floor((max_y - (-spaceLength/2))/voxelSize);
+            int index_z_min = floor((min_z - (-spaceLength/2))/voxelSize);
+            int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
 
             // bounding box of triangle can't be outside of voxelspace
             Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
@@ -364,19 +390,21 @@ void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned in
             for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
                 for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+                        Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
+                        char type = voxel.getStatus();
 
                         //if voxel has already assigned, jump to next iteration
-                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
+                        if(type == linkType)
                             continue;
 
-                        boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
-                        boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
-                        boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                        boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
+                        boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
+                        boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                         if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                            if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
-                                voxelspace[ind_x][ind_y][ind_z].collide();
+                            if(type != 'E')
+                                voxel.collide();
 
-                            voxelspace[ind_x][ind_y][ind_z].setStatus(component);
+                            voxel.setStatus(linkType);
                         }
                     }
                 }
@@ -386,14 +414,18 @@ void Voxelizer::rotationalSVVoxelization(stl_reader::StlMesh <float, unsigned in
 
 }
 
-void Voxelizer::normalVoxelization(stl_reader::StlMesh <float, unsigned int>& mesh, char component, bool needVisualization)
+void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
+    char linkType = link.getLinkType();
+    float voxelStartingCenter = (-spaceLength/2) + (voxelSize/2);
+    stl_reader::StlMesh <float, unsigned int> mesh = link.getSTLMesh();
+    QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
 
     for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
 
         //Load and transform triangles from mesh
-        loadAndTransform(itri, mesh, component);
+        loadAndTransform(itri, mesh, TransformMatrix);
 
         //find bounding box of triangle
         VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -401,12 +433,12 @@ void Voxelizer::normalVoxelization(stl_reader::StlMesh <float, unsigned int>& me
                 VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
                 //get voxel indices of bounding box of triangle
-                int index_x_min = static_cast<int>(floor((min_x - (-spaceLength/2))/voxelSize));
-        int index_x_max = static_cast<int>(floor((max_x - (-spaceLength/2))/voxelSize));
-        int index_y_min = static_cast<int>(floor((min_y - (-spaceLength/2))/voxelSize));
-        int index_y_max = static_cast<int>(floor((max_y - (-spaceLength/2))/voxelSize));
-        int index_z_min = static_cast<int>(floor((min_z - (-spaceLength/2))/voxelSize));
-        int index_z_max = static_cast<int>(floor((max_z - (-spaceLength/2))/voxelSize));
+                int index_x_min = floor((min_x - (-spaceLength/2))/voxelSize);
+        int index_x_max = floor((max_x - (-spaceLength/2))/voxelSize);
+        int index_y_min = floor((min_y - (-spaceLength/2))/voxelSize);
+        int index_y_max = floor((max_y - (-spaceLength/2))/voxelSize);
+        int index_z_min = floor((min_z - (-spaceLength/2))/voxelSize);
+        int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
 
         // bounding box of triangle can't be outside of voxelspace
         Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
@@ -421,19 +453,24 @@ void Voxelizer::normalVoxelization(stl_reader::StlMesh <float, unsigned int>& me
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+                    Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
+                    char type = voxel.getStatus();
 
                     //if voxel has already assigned, jump to next iteration
-                    if(voxelspace[ind_x][ind_y][ind_z].getStatus() == component)
-                        continue;
+//                    if(type == linkType)
+//                        continue;
 
-                    boxcenter.x = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_x;
-                    boxcenter.y = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_y;
-                    boxcenter.z = (-spaceLength/2) + (voxelSize/2) + voxelSize*ind_z;
+                    boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
+                    boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
+                    boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                     if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        if(voxelspace[ind_x][ind_y][ind_z].getStatus() != 'E')
-                            voxelspace[ind_x][ind_y][ind_z].collide();
+                        if(type != 'E' && type != linkType)
+                            voxel.collide();
 
-                        voxelspace[ind_x][ind_y][ind_z].setStatus(component);
+                        voxel.setStatus(linkType);
+                        shellMap[ind_y][ind_z].append(ind_x);
+                        if(mesh.tri_normal(itri)[0] < 0)
+                            voxel.setNormalPointToMinus();
                     }
                 }
             }
@@ -474,54 +511,22 @@ void Voxelizer::reset_bounding_index()
     bounding_z_max_index = 0;
 }
 
-void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh,char component)
+void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix)
 {
-    QVector3D vertex1;
-    QVector3D vertex2;
-    QVector3D vertex3;
+    QVector3D vertex1(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2]);
+    vertex1 = TransformMatrix * vertex1;
 
-    switch (component)
-    {
-    case 'C':
-        transformMatrix = transformMatrixC;
-        break;
-    case 'B':
-        transformMatrix = transformMatrixB;
-        break;
-    case 'A':
-        transformMatrix = transformMatrixA;
-        break;
-    case 'b':
-        transformMatrix = transformMatrixBase;
-        break;
-    case 'X':
-        transformMatrix = transformMatrixX;
-        break;
-    case 'Y':
-        transformMatrix = transformMatrixY;
-        break;
-    case 'Z':
-        transformMatrix = transformMatrixZ;
-        break;
-    default:
-        transformMatrixBase.setToIdentity();
-        break;
-    }
+    QVector3D vertex2(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[2]);
+    vertex2 = TransformMatrix * vertex2;
 
-    vertex1.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[0]);
-    vertex1.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[1]);
-    vertex1.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 0))[2]);
-    vertex1= transformMatrix * vertex1;
-
-    vertex2.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[0]);
-    vertex2.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[1]);
-    vertex2.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 1))[2]);
-    vertex2 = transformMatrix * vertex2;
-
-    vertex3.setX(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[0]);
-    vertex3.setY(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[1]);
-    vertex3.setZ(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[2]);
-    vertex3 = transformMatrix * vertex3;
+    QVector3D vertex3(mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[0],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[1],
+            mesh.vrt_coords(mesh.tri_corner_ind(itri, 2))[2]);
+    vertex3 = TransformMatrix * vertex3;
 
     p1.x = 1000 * vertex1.x();
     p1.y = 1000 * vertex1.y();
@@ -540,67 +545,87 @@ void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsign
     triangle.p3 = p3;
 }
 
-void Voxelizer::setupTransformationMatrix(float x, float y, float z, float primary, float secondary)
+void Voxelizer::setupTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c)
 {
     //Transform according to each component
+    for (QVector<Joint>::iterator loop = MT.JointVector.begin();loop != MT.JointVector.end(); loop++)
+    {
+        Link *ParentLink = loop->getParentLink();
+        Link *ChildLink = loop->getChildLink();
 
-    //Y axis
-    //    transformMatrixY = transformMatrixX;
-    translateY(y);
+        switch(ChildLink->getLinkType()) {
+        case 'A':
+            loop->rotational_motion = a;
+            break;
+        case 'B':
+            loop->rotational_motion = b;
+            break;
+        case 'C':
+            loop->rotational_motion = c;
+            break;
+        case 'X':
+            loop->translational_motion = x;
+            break;
+        case 'Y':
+            loop->translational_motion = y;
+            break;
+        case 'Z':
+            loop->translational_motion = z;
+            break;
+        }
 
-    //X axis
-    transformMatrixX = transformMatrixY;
-    translateX(x);
+        if (loop->getType() == "prismatic")
+        {
+            ChildLink->m_TransformMatrix = ParentLink->m_TransformMatrix;
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),static_cast<float>(loop->getOrigin_xyz().y),
+                                                   static_cast<float>(loop->getOrigin_xyz().z));
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getAxis().x) * static_cast<float>(loop->translational_motion)
+                                                   ,static_cast<float>(loop->getAxis().y) * static_cast<float>(loop->translational_motion),
+                                                   static_cast<float>(loop->getAxis().z) * static_cast<float>(loop->translational_motion));
+        }
 
-    //A axis
-    transformMatrixA = transformMatrixX;
-    transformMatrixA.translate(-0.327768f, -0.690981f, 0.59217175f);    //VF-2
-    rotatePrimary(primary);
+        if (loop->getType() == "revolute")
+        {
+            ChildLink->m_TransformMatrix = ParentLink->m_TransformMatrix;
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),static_cast<float>(loop->getOrigin_xyz().y),
+                                                   static_cast<float>(loop->getOrigin_xyz().z));
+            ChildLink->m_TransformMatrix.rotate(static_cast<float>(loop->rotational_motion), static_cast<float>(loop->getAxis().x),
+                                                static_cast<float>(loop->getAxis().y),static_cast<float>(loop->getAxis().z));
+        }
+    }
 
-    //B axis
-    //    transformMatrixB.translate(0.0f, -0.95138f, 0.0f);
-    //    transformMatrixB.translate(0.0f, -0.53336f, 0.0f);   //UMC500
-    transformMatrixB.translate(0.0f, -0.5842f, 0.0f);    //UMC750
-    rotatePrimary(primary);
-
-    //C axis
-    transformMatrixC = transformMatrixA;
-    //    transformMatrixC.translate(0.0f, 0.41802f, -0.051308f);
-    //    transformMatrixC.translate(0.0f, -0.53336f, 0.0f);
-    rotateSecondary(secondary);
-
-    //Z axis
-    //    transformMatrixZ = transformMatrixY;
-    translateZ(z);
-
-    //BASE
-    //    transformMatrixBase.setToIdentity();
 }
 
-void Voxelizer::translateX(float x)
+void Voxelizer::fillVoxelModel(char linkType)
 {
-    transformMatrixX.translate(x, 0.0f, 0.0f);
-}
+    for(int y = bounding_y_min_index; y < bounding_y_max_index + 1; y++)
+    {
+        for(int z = bounding_z_min_index; z < bounding_z_max_index + 1; z++){
+            QVector<int> currentShellMap = shellMap[y][z];
+            if(currentShellMap.size()<2)
+                continue;
 
-void Voxelizer::translateY(float y)
-{
-    transformMatrixY.translate(0.0f, y, 0.0f);
-}
+            qSort(currentShellMap.begin(), currentShellMap.end());
 
-void Voxelizer::translateZ(float z)
-{
-    transformMatrixZ.translate(0.0f, 0.0f, z);
-}
+            for(int i = 1; i < currentShellMap.size(); i++){
+                int previousIndex = currentShellMap.at(i-1);
+                int currentIndex = currentShellMap.at(i);
+                if(currentIndex - previousIndex > 1 &&
+                        voxelspace[previousIndex][y][z].isNormalPointMinus() &&
+                        !voxelspace[currentIndex][y][z].isNormalPointMinus()){
 
-void Voxelizer::rotatePrimary(float angle)
-{
-    //    transformMatrixB.rotate(angle,0.0,1.0,0.0);
-    transformMatrixA.rotate(angle,1.0,0.0,0.0);
-}
+                    for(int j = 1; j < currentIndex - previousIndex; j++){
+                        if(voxelspace[currentIndex - j][y][z].getStatus() != 'E' &&
+                                voxelspace[currentIndex - j][y][z].getStatus() != linkType)
+                            voxelspace[currentIndex - j][y][z].collide();
 
-void Voxelizer::rotateSecondary(float angle)
-{
-    transformMatrixC.rotate(angle,0.0,0.0,1.0);
+                        voxelspace[currentIndex - j][y][z].setStatus(linkType);
+
+                    }
+                }
+            }
+        }
+    }
 }
 
 

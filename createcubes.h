@@ -5,6 +5,7 @@
 #include <QVector>
 #include "voxelizer.h"
 #include <qvector3d.h>
+#include "machinetool.h"
 
 class CreateCubes
 {
@@ -13,8 +14,8 @@ public:
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
     int totocalVertexCount() const { return m_totalCount / 6; }
-    void createMTVoxelspace(float spaceLength, float voxelSize,QStringList m_filepathes, bool needVisualization);
-    void createCollisionVoxelspace(float spaceLength, float vSize, QStringList m_filepathes);
+    void createMTVoxelspace(float spaceLength, float voxelSize, MachineTool& MT, bool needVisualization);
+    void createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
@@ -31,6 +32,7 @@ private:
     float mostLeftBottom;
     void drawVoxelforCollision(int& numberVertices);
     void drawVoxelforMT(int& numberVertices);
+    QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
 };
 
 

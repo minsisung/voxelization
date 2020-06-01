@@ -19,21 +19,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     createcubes.cpp \
     creategeometry.cpp \
-    kinematicchain.cpp \
+    joint.cpp \
+    link.cpp \
+    machinetool.cpp \
     main.cpp \
     mainwindow.cpp \
     myopenglwidget.cpp \
+    tinyxml2.cpp \
     voxel.cpp \
     voxelizer.cpp
 
 HEADERS += \
+    Vector3.h \
     createcubes.h \
     creategeometry.h \
-    kinematicchain.h \
+    joint.h \
+    link.h \
+    machinetool.h \
     mainwindow.h \
     myopenglwidget.h \
     shaders.h \
     stl_reader.h \
+    tinyxml2.h \
     voxel.h \
     voxelizer.h
 
