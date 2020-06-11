@@ -9,6 +9,17 @@ CreateCubes::CreateCubes():
 {
 }
 
+void CreateCubes::setupInitialTransformation(MachineTool &MT)
+{
+    //setup transformation matrix for each component  (X,Y,Z,A,B,C)
+    voxelizer.setupInitialTransformationMatrix(MT, 0.0f, 0.0f, -0.7f, 0.0f, 0.0f, 0.0f);
+}
+
+void CreateCubes::setupTransformation(MachineTool &MT, char linkType, float amount)
+{
+    voxelizer.setTransformationMatrix(MT, linkType, amount);
+}
+
 void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization)
 {
     //initialize if visualization is necessary
@@ -21,13 +32,17 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
     voxelizer.setupSize(spaceLength, voxelSize);
 
-    //setup transformation matrix for each component  (X,Y,Z,A,B,C)
-    voxelizer.setupTransformationMatrix(MT, 0.5f, -0.3f, -0.3f, 0.0f, 30.0f, 0.0f);
+    //setup transformation matrix for each component
+    setupInitialTransformation(MT);
+
+    setupTransformation(MT, 'B', 30.0f);
+    setupTransformation(MT, 'X', 0.8f);
 
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
 
     for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+
         voxelizer.Voxelize(MT, *loop, true);
 
         // check if visualization is necessary     ===========================================================
@@ -37,63 +52,27 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
             QElapsedTimer timer;
             timer.start();
 
-            drawVoxelforMT(loop->numberOfVertex);
+            drawVoxelforMT(*loop);
 
             //reset bounding index for next component
             voxelizer.reset_bounding_index();
 
-            qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
+            qDebug() << "The creation of cubes for "<<loop->getLinkType()  << " took" << timer.elapsed() << "milliseconds"<<endl;
         }
+        // ========================================================================================
     }
+    //    drawVoxelforMT(MT.LinkVector[1]);
 }
 
-void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT ,bool needVisualization)
-{
-    //initialize if visualization is necessary
-    ifNeedVisualization = needVisualization;
-
-    //setup voxelsize
-    voxelSize = vSize;
-
-    //initialize voxel space and voxel size (space length should be xx times of voxel size)
-    Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
-    voxelizer.setupSize(spaceLength, voxelSize);
-
-    //setup transformation matrix for each component  (X,Y,Z,A,B,C)
-    voxelizer.setupTransformationMatrix(MT, 0.0f, -0.0f, -0.0f, 0.0f, 0.0f, 0.0f);
-
-    n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
-    mostLeftBottom = -spaceLength/2.0f;
-
-    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
-        voxelizer.Voxelize(MT, *loop, true);
-
-        // check if visualization is necessary     ===========================================================
-        if(ifNeedVisualization){
-
-            //timer
-            QElapsedTimer timer;
-            timer.start();
-
-            drawVoxelforCollision(loop->numberOfVertex);
-
-            //reset bounding index for next component
-            voxelizer.reset_bounding_index();
-
-            qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
-        }
-    }
-}
-
-void CreateCubes::drawVoxelforMT(int& numberVertices)
+void CreateCubes::drawVoxelforMT(Link& link)
 {
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
-    for (int number_x = voxelizer.get_x_min_index(); number_x < (voxelizer.get_x_max_index())+1; ++number_x) {
-        for (int number_y = voxelizer.get_y_min_index(); number_y < voxelizer.get_y_max_index()+1; ++number_y) {
-            for (int number_z = voxelizer.get_z_min_index(); number_z < voxelizer.get_z_max_index()+1; ++number_z) {
+    for (int number_x = link.get_x_min_index(); number_x < (link.get_x_max_index())+1; ++number_x) {
+        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
+            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
-                if(voxelizer.voxelspace[number_x][number_y][number_z].getStatus() == 'E')
+                if(link.linkVoxelspace[number_x][number_y][number_z].getStatus() == 'E')
                     continue;
                 GLfloat offset_y = voxelSize * number_y;
                 GLfloat offset_x = voxelSize * number_x;
@@ -178,7 +157,7 @@ void CreateCubes::drawVoxelforMT(int& numberVertices)
                     m_totalCount += 36;
 
                     //update number of vertices
-                    numberVertices += 6;
+                    link.numberOfVertex += 6;
                 }
             }
         }
@@ -186,15 +165,56 @@ void CreateCubes::drawVoxelforMT(int& numberVertices)
 }
 
 
-void CreateCubes::drawVoxelforCollision(int& numberVertices)
+void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT ,bool needVisualization)
+{
+    //initialize if visualization is necessary
+    ifNeedVisualization = needVisualization;
+
+    //setup voxelsize
+    voxelSize = vSize;
+
+    //initialize voxel space and voxel size (space length should be xx times of voxel size)
+    Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
+    voxelizer.setupSize(spaceLength, voxelSize);
+
+    //setup transformation matrix for each component
+    setupInitialTransformation(MT);
+
+    setupTransformation(MT, 'B', 30.0f);
+
+    n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
+    mostLeftBottom = -spaceLength/2.0f;
+
+    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+        voxelizer.Voxelize(MT, *loop, true);
+
+        // check if visualization is necessary     ===========================================================
+        if(ifNeedVisualization){
+
+            //timer
+            QElapsedTimer timer;
+            timer.start();
+
+            drawVoxelforCollision(*loop);
+
+            //reset bounding index for next component
+            voxelizer.reset_bounding_index();
+
+            qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
+        }
+    }
+}
+
+
+void CreateCubes::drawVoxelforCollision(Link& link)
 {
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
-    for (int number_x = voxelizer.get_x_min_index(); number_x < voxelizer.get_x_max_index()+1; ++number_x) {
-        for (int number_y = voxelizer.get_y_min_index(); number_y < voxelizer.get_y_max_index()+1; ++number_y) {
-            for (int number_z = voxelizer.get_z_min_index(); number_z < voxelizer.get_z_max_index()+1; ++number_z) {
+    for (int number_x = link.get_x_min_index(); number_x < (link.get_x_max_index())+1; ++number_x) {
+        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
+            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
-                if(!voxelizer.voxelspace[number_x][number_y][number_z].isCollide())
+                if(!link.linkVoxelspace[number_x][number_y][number_z].isCollide())
                     continue;
                 GLfloat offset_y = voxelSize * number_y;
                 GLfloat offset_x = voxelSize * number_x;
@@ -279,7 +299,7 @@ void CreateCubes::drawVoxelforCollision(int& numberVertices)
                     m_totalCount += 36;
 
                     //update number of vertices
-                    numberVertices += 6;
+                    link.numberOfVertex += 6;
                 }
             }
         }

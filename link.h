@@ -4,6 +4,7 @@
 #include <Vector3.h>
 #include <QMatrix4x4>
 #include <stl_reader.h>
+#include "voxel.h"
 
 class Link
 {
@@ -15,6 +16,13 @@ private:
       VectorRGBA m_rgba;
       stl_reader::StlMesh <float, unsigned int> m_STLMesh;
       char linkType = 'b';
+
+      int bounding_x_min_index;
+      int bounding_x_max_index;
+      int bounding_y_min_index;
+      int bounding_y_max_index;
+      int bounding_z_min_index;
+      int bounding_z_max_index;
 
 public:
     Link();             //constructor
@@ -39,6 +47,16 @@ public:
     stl_reader::StlMesh <float, unsigned int>  getSTLMesh(){return m_STLMesh;}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}
+    int get_x_min_index(){return bounding_x_min_index;}
+    int get_x_max_index(){return bounding_x_max_index;}
+    int get_y_min_index(){return bounding_y_min_index;}
+    int get_y_max_index(){return bounding_y_max_index;}
+    int get_z_min_index(){return bounding_z_min_index;}
+    int get_z_max_index(){return bounding_z_max_index;}
+    void setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,
+                             int z_min_index, int z_max_index);
+
+    QVector < QVector < QVector< Voxel > > > linkVoxelspace;
 };
 
 #endif // LINK_H

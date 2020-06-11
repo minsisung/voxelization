@@ -30,9 +30,11 @@ private:
     QVector<int> vertices_number_vector;
     float voxelSize;
     float mostLeftBottom;
-    void drawVoxelforCollision(int& numberVertices);
-    void drawVoxelforMT(int& numberVertices);
+    void drawVoxelforCollision(Link& link);
+    void drawVoxelforMT(Link& link);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
+    void setupInitialTransformation(MachineTool& MT);
+    void setupTransformation(MachineTool& MT, char linkType, float amount);
 };
 
 

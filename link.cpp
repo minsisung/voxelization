@@ -31,3 +31,14 @@ void Link::setSTLMesh()
         std::cout << e.what() << std::endl;
     }
 }
+
+void Link::setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,
+                               int z_min_index, int z_max_index)
+{
+    bounding_x_min_index = x_min_index;
+    bounding_x_max_index = x_max_index;
+    bounding_y_min_index = y_min_index;
+    bounding_y_max_index = y_max_index;
+    bounding_z_min_index = z_min_index;
+    bounding_z_max_index = z_max_index;
+}

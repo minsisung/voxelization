@@ -39,11 +39,6 @@ class Voxelizer
 public:
     Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
-    QVector < QVector < QVector< Voxel > > > basevVoxelspace;
-    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace1;
-    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace2;
-    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace3;
-    QVector < QVector < QVector< Voxel > > > temporaryVoxelSpace4;
 
     //Component       Char
     //    Base         'b'
@@ -66,7 +61,8 @@ public:
     void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
     void reset_bounding_index();
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
-    void setupTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
+    void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
+    void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
 
 
 private:
