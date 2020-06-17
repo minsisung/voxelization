@@ -28,11 +28,11 @@ Link* MachineTool::find_link(std::string linkName, QVector<Link> &myVector)
 void MachineTool::assignLinkType(Joint &joint)
 {
     if(joint.getType() == "revolute"){
-        if(joint.getAxis().x == 1.0)
+        if(abs(joint.getAxis().x - 1.0) < 0.0001)
             joint.getChildLink()->setLinkType('A');
-        if(joint.getAxis().y == 1.0)
+        if(abs(joint.getAxis().y - 1.0) < 0.0001)
             joint.getChildLink()->setLinkType('B');
-        if(joint.getAxis().z == 1.0)
+        if(abs(joint.getAxis().z - 1.0) < 0.0001)
             joint.getChildLink()->setLinkType('C');
     }
 

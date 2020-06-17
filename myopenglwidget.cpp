@@ -20,9 +20,10 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 
     //create machine tool by reading urdf
-//        MT.readURDF("VF-2.urdf");
+    //        MT.readURDF("VF-2.urdf");
     //        MT.readURDF("umc500.urdf");
-    MT.readURDF("UMC-750.urdf");
+    MT.readURDF("UMC-750-XY_cut.urdf");
+    //            MT.readURDF("twotriangles.urdf");
 
     Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
@@ -119,10 +120,10 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
     //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
-//        m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 1.5f, MT, true);  //UMC-750
-    m_cubeGemoetry.createMTVoxelspace(4500.0f, 5.0f, MT, true); //VF-2
-//                m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.5f, MT, true);  //VF-2
-    //    m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
+//                m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 2.0f, MT, true);  //UMC-750
+    m_cubeGemoetry.createMTVoxelspace(4500.0f, 2.0f, MT, true); //VF-2
+//                m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 2.0f, MT, true);  //VF-2
+//            m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
     //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
 
     m_program = new QOpenGLShaderProgram;
@@ -164,7 +165,7 @@ void MyOpenGLWidget::initializeGL()
     m_camera.translate(m_xTran,m_yTran, m_zTran);
 
     // Light position is fixed.
-    m_program->setUniformValue(m_lightPosLoc, QVector3D(-2000, 2000, 2000));
+    m_program->setUniformValue(m_lightPosLoc, QVector3D(2000, -1000, 1000));
     //    m_program->setUniformValue(m_colorLoc, m_color);
     //    m_program->setUniformValue(m_alphaLoc, 1.0f);
 
@@ -237,6 +238,28 @@ void MyOpenGLWidget::paintGL()
     glEnd();
     glFlush();
 
+
+
+    glBegin( GL_LINES );
+    glVertex3f( 0., 200., 0. );
+    glVertex3f( 600, 200., 0. );
+
+    glVertex3f( 0., 0., 200. );
+    glVertex3f( 600, 0., 200. );
+
+    glVertex3f( 200., 0., 0. );
+    glVertex3f( 200, 600., 0. );
+
+    glVertex3f( -397.645, -1000., 787.007);
+    glVertex3f( -397.645, 2000., 787.007 );
+
+
+
+    glEnd();
+    glFlush();
+
+
+
     //================================================================================================
     m_program->release();
 }
@@ -275,11 +298,13 @@ void MyOpenGLWidget::drawComponents()
     for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
 
 
+        // only draw skeleton of each triangle
+//                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(loop->getRGBA().r),
                                                          static_cast<float>(loop->getRGBA().g),
                                                          static_cast<float>(loop->getRGBA().b)));
-        // only draw skeleton of each triangle
-//          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
         //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, loop->numberOfVertex);
@@ -311,6 +336,6 @@ void MyOpenGLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void MyOpenGLWidget::wheelEvent(QWheelEvent *event)
 {
-    setZoom(event->delta()/30);
+    setZoom(event->delta()/45);
 
 }

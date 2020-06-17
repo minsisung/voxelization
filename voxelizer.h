@@ -66,7 +66,7 @@ public:
 
 
 private:
-    void fillVoxelModel(char linkType);
+    void fillInnerShell(char linkType, int indexX, int indexY, int indexZ, const float* normalArray);
     void translationalSVVoxelization(Link& link, bool needVisualization);
     void rotationalSVVoxelization(Link& link, bool needVisualization);
     void normalVoxelization(Link& link, bool needVisualization);
