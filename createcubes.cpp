@@ -12,7 +12,7 @@ CreateCubes::CreateCubes():
 void CreateCubes::setupInitialTransformation(MachineTool &MT)
 {
     //setup transformation matrix for each component  (X,Y,Z,A,B,C)
-    voxelizer.setupInitialTransformationMatrix(MT, 0.0f, -0.0f, -0.0f, 0.0f, 0.0f, 0.0f);
+    voxelizer.setupInitialTransformationMatrix(MT, 0.0f, 0.0f, -0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void CreateCubes::setupTransformation(MachineTool &MT, char linkType, float amount)
@@ -68,26 +68,23 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
 
 void CreateCubes::drawVoxelforMT(Link& link)
 {
-    char linkType = link.getLinkType();
-
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
     for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() + 1; ++number_x) {
-        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index() + 1; ++number_y) {
-            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index() + 1; ++number_z) {
+        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
+            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
-                if(voxelizer.voxelspace[number_x][number_y][number_z].getLinkType() == 'E')
+                if(link.linkVoxelspace[number_x][number_y][number_z].getStatus() == 'E')
                     continue;
-
                 GLfloat offset_y = voxelSize * number_y;
                 GLfloat offset_x = voxelSize * number_x;
                 GLfloat offset_z = voxelSize * number_z;
-                GLfloat x_right = mostLeftBottom + voxelSize/2 + offset_x;
-                GLfloat x_left = mostLeftBottom - voxelSize/2 + offset_x;
-                GLfloat y_up = mostLeftBottom + voxelSize/2 + offset_y;
-                GLfloat y_down = mostLeftBottom - voxelSize/2 + offset_y;
-                GLfloat z_futher = mostLeftBottom - voxelSize/2 + offset_z;
-                GLfloat z_closer = mostLeftBottom + voxelSize/2 + offset_z;
+                GLfloat x_right = mostLeftBottom + voxelSize + offset_x;
+                GLfloat x_left = mostLeftBottom + offset_x;
+                GLfloat y_up = mostLeftBottom + voxelSize + offset_y;
+                GLfloat y_down = mostLeftBottom + offset_y;
+                GLfloat z_futher = mostLeftBottom + offset_z;
+                GLfloat z_closer = mostLeftBottom + voxelSize + offset_z;
 
                 //coordinates of triangles forming faces of cubes
                 //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
@@ -107,7 +104,7 @@ void CreateCubes::drawVoxelforMT(Link& link)
                 for (int i = 0; i < 6; ++i) {
                     normal = setNormal(i);
 
-                    ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, linkType);
+                    ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
                     if(ifDuplicate)
                         continue;
 
@@ -185,50 +182,52 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //setup transformation matrix for each component
     setupInitialTransformation(MT);
 
+    setupTransformation(MT, 'B', 30.0f);
+
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
 
     for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
-
         voxelizer.Voxelize(MT, *loop, true);
 
         // check if visualization is necessary     ===========================================================
         if(ifNeedVisualization){
+
             //timer
             QElapsedTimer timer;
             timer.start();
 
-            drawVoxelforCollision(*loop);
+            drawVoxelforCoincident(*loop);
 
             //reset bounding index for next component
             voxelizer.reset_bounding_index();
 
-            qDebug() << "The creation of cubes for "<<loop->getLinkType()  << " took" << timer.elapsed() << "milliseconds"<<endl;
+            qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
         }
-        // ========================================================================================
     }
 }
 
 
-void CreateCubes::drawVoxelforCollision(Link& link)
+void CreateCubes::drawVoxelforCoincident(Link& link)
 {
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
-    for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() +1; ++number_x) {
+    for (int number_x = link.get_x_min_index(); number_x < (link.get_x_max_index())+1; ++number_x) {
         for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
             for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
-                if(!voxelizer.voxelspace[number_x][number_y][number_z].isCoincident())
+                if(!link.linkVoxelspace[number_x][number_y][number_z].isCoincident())
                     continue;
+
                 GLfloat offset_y = voxelSize * number_y;
                 GLfloat offset_x = voxelSize * number_x;
                 GLfloat offset_z = voxelSize * number_z;
-                GLfloat x_right = mostLeftBottom + voxelSize/2 + offset_x;
-                GLfloat x_left = mostLeftBottom - voxelSize/2 + offset_x;
-                GLfloat y_up = mostLeftBottom + voxelSize/2 + offset_y;
-                GLfloat y_down = mostLeftBottom - voxelSize/2 + offset_y;
-                GLfloat z_futher = mostLeftBottom - voxelSize/2 + offset_z;
-                GLfloat z_closer = mostLeftBottom + voxelSize/2 + offset_z;
+                GLfloat x_right = mostLeftBottom + voxelSize + offset_x;
+                GLfloat x_left = mostLeftBottom + offset_x;
+                GLfloat y_up = mostLeftBottom + voxelSize + offset_y;
+                GLfloat y_down = mostLeftBottom + offset_y;
+                GLfloat z_futher = mostLeftBottom + offset_z;
+                GLfloat z_closer = mostLeftBottom + voxelSize + offset_z;
 
                 //coordinates of triangles forming faces of cubes
                 //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
@@ -244,11 +243,11 @@ void CreateCubes::drawVoxelforCollision(Link& link)
                 QVector3D normal;
                 bool ifDuplicate = false;
 
-                // Draw6 different normal direction and avoid overlapping face for each face
+                // Draw 6 different normal direction and avoid overlapping face for each face
                 for (int i = 0; i < 6; ++i) {
                     normal = setNormal(i);
 
-                    ifDuplicate = checkDuplicateFaceforCollision(i, number_x, number_y, number_z);
+                    ifDuplicate = checkDuplicateFaceforCoincident(i, number_x, number_y, number_z);
                     if(ifDuplicate)
                         continue;
 
@@ -257,6 +256,7 @@ void CreateCubes::drawVoxelforCollision(Link& link)
                     //first triangle in the face
                     m_data.resize(m_totalCount+36);
                     GLfloat *p = m_data.data() + m_totalCount;
+
                     *p++ = coords[i][0][0];
                     *p++ = coords[i][0][1];
                     *p++ = coords[i][0][2];
@@ -311,41 +311,41 @@ void CreateCubes::drawVoxelforCollision(Link& link)
 }
 
 
-bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int number_z, char linkType)
+bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int number_z)
 {
     // number_z - 1 has overlapping face
     if (i==0 && number_z > 0){
-        if(voxelizer.voxelspace[number_x][number_y][number_z - 1].getLinkType() != 'E'){
+        if(voxelizer.voxelspace[number_x][number_y][number_z - 1].getStatus() != 'E'){
             return true;
         }
     }
     // number_y + 1 has overlapping face
     else if (i==1 && number_y < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x][number_y + 1][number_z].getLinkType()!= 'E'){
+        if(voxelizer.voxelspace[number_x][number_y + 1][number_z].getStatus()!= 'E'){
             return true;
         }
     }
     // number_x + 1 has overlapping face
     else if (i==2 && number_x < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x + 1][number_y][number_z].getLinkType()!= 'E'){
+        if(voxelizer.voxelspace[number_x + 1][number_y][number_z].getStatus()!= 'E'){
             return true;
         }
     }
     // number_x - 1 has overlapping face
     else if (i==3 && number_x > 0){
-        if(voxelizer.voxelspace[number_x - 1][number_y][number_z].getLinkType()!= 'E'){
+        if(voxelizer.voxelspace[number_x - 1][number_y][number_z].getStatus()!= 'E'){
             return true;
         }
     }
     // number_y - 1 has overlapping face
     else if (i==4 && number_y > 0){
-        if(voxelizer.voxelspace[number_x][number_y - 1][number_z].getLinkType()!= 'E'){
+        if(voxelizer.voxelspace[number_x][number_y - 1][number_z].getStatus()!= 'E'){
             return true;
         }
     }
     // number_z + 1 has overlapping face
     else if (i==5 && number_z < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x][number_y][number_z + 1].getLinkType()!= 'E'){
+        if(voxelizer.voxelspace[number_x][number_y][number_z + 1].getStatus()!= 'E'){
             return true;
         }
     }
@@ -353,7 +353,7 @@ bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int numb
     return false;
 }
 
-bool CreateCubes::checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z)
+bool CreateCubes::checkDuplicateFaceforCoincident(int i, int number_x, int number_y, int number_z)
 {
     // number_z - 1 has overlapping face
     if (i==0 && number_z > 0){

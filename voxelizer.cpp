@@ -239,23 +239,37 @@ void Voxelizer::setupSize(float s_Length, float v_Size)
     //setup size for voxelspace
     QVector < QVector < QVector< Voxel > > > correctSizeVS(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
     voxelspace = correctSizeVS;
+
+
 }
 
 void Voxelizer::Voxelize(MachineTool& MT, Link& link, bool needVisualization)
 {
-    qDebug() << "The mesh contains " << link.getSTLMesh().num_tris() << " triangles."<<endl;
+    QVector < QVector < QVector<int> > > correctSizeMap(voxelSpaceSize, QVector < QVector< int > >(voxelSpaceSize, QVector<int>(0)));
+    shellMap = correctSizeMap;
 
-    //    if(link.ParentLink != nullptr)
-    //        voxelspace = link.ParentLink->linkVoxelspace;
+    qDebug() << "The mesh of"  <<link.getLinkType()  << " contains " << link.getSTLMesh().num_tris() << " triangles."<<endl;
+
+    if(link.ParentLink != nullptr)
+        voxelspace = link.ParentLink->linkVoxelspace;
 
     QElapsedTimer timer;
     timer.start();
 
     normalVoxelization(link, needVisualization);
 
-    qDebug() << "The mesh voxelization took" << timer.elapsed() << "milliseconds"<<endl;
+    qDebug() << "The mesh voxelization for"<<link.getLinkType()  << " took " << timer.elapsed() << "milliseconds"<<endl;
 
-    //    link.linkVoxelspace = voxelspace;
+
+    QElapsedTimer timer2;
+    timer2.start();
+
+    //    fill voxels in voxel shell
+    fillVoxelModel(link.getLinkType());
+
+    qDebug() << "Filling voxels took" << timer2.elapsed() << "milliseconds"<<endl;
+
+    link.linkVoxelspace = voxelspace;
 }
 
 void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
@@ -285,7 +299,7 @@ void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
         int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
 
         // bounding box of triangle can't be outside of voxelspace
-        Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 && max_z < spaceLength/2 &&
+        Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
                     min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
 
         //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
@@ -298,20 +312,26 @@ void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                     Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                    char type = voxel.getLinkType();
+                    char type = voxel.getStatus();
 
                     boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
                     boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
                     boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                     if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-                        if(type != 'E' && type != linkType)
-                            voxel.coincident();
+                        if(type != 'E' && type != linkType){
+                            if (voxel.getShellType() == 'O')
+                                voxel.coincident();
+                            else if(voxel.getShellType() == 'I'){
+                                voxel.collide();
+                            }
+                        }
 
-                        voxel.setLinkType(linkType);
+                        voxel.setStatus(linkType);
                         voxel.setShellType('O');
 
-                        //fill inner shell
-                        fillInnerShell(linkType, ind_x, ind_y, ind_z, mesh.tri_normal(itri));
+                        shellMap[ind_y][ind_z].append(ind_x);
+                        if(mesh.tri_normal(itri)[0] < 0)
+                            voxel.setNormalPointToMinus();
                     }
                 }
             }
@@ -362,7 +382,7 @@ void Voxelizer::translationalSVVoxelization(Link& link, bool needVisualization)
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                     Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                    char type = voxel.getLinkType();
+                    char type = voxel.getStatus();
 
                     //if voxel has already assigned, jump to next iteration
                     //                    if(type == linkType)
@@ -373,13 +393,12 @@ void Voxelizer::translationalSVVoxelization(Link& link, bool needVisualization)
                     boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                     if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
                         if(type != 'E' && type != linkType)
-                            voxel.collide();
+                            voxel.coincident();
 
-                        voxel.setLinkType(linkType);
-                        voxel.setShellType('O');
-
-                        //fill inner shell
-                        fillInnerShell(linkType, ind_x, ind_y, ind_z, mesh.tri_normal(itri));
+                        voxel.setStatus(linkType);
+                        shellMap[ind_y][ind_z].append(ind_x);
+                        if(mesh.tri_normal(itri)[0] < 0)
+                            voxel.setNormalPointToMinus();
                     }
                 }
             }
@@ -430,7 +449,7 @@ void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
                 for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                         Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                        char type = voxel.getLinkType();
+                        char type = voxel.getStatus();
 
                         //if voxel has already assigned, jump to next iteration
                         if(type == linkType)
@@ -441,13 +460,12 @@ void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
                         boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                         if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
                             if(type != 'E' && type != linkType)
-                                voxel.collide();
+                                voxel.coincident();
 
-                            voxel.setLinkType(linkType);
-                            voxel.setShellType('O');
-
-                            //fill inner shell
-                            fillInnerShell(linkType, ind_x, ind_y, ind_z, mesh.tri_normal(itri));
+                            voxel.setStatus(linkType);
+                            shellMap[ind_y][ind_z].append(ind_x);
+                            if(mesh.tri_normal(itri)[0] < 0)
+                                voxel.setNormalPointToMinus();
                         }
                     }
                 }
@@ -582,15 +600,11 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float am
         Link *ChildLink = loop->getChildLink();
 
         if(ChildLink->getLinkType() == linkType){
-            if(linkType == 'A' | linkType == 'B' | linkType == 'C'){
+            if(linkType == 'A' | linkType == 'B' | linkType == 'C')
                 loop->rotational_motion = amount;
-            }
-            else if(linkType == 'X' | linkType == 'Y' | linkType == 'Z'){
+
+            if(linkType == 'X' | linkType == 'Y' | linkType == 'Z')
                 loop->translational_motion = amount;
-            }else{
-                qDebug()<<"There is no such linkType"<<endl;
-                break;
-            }
         }
 
 
@@ -613,112 +627,38 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float am
                                                 static_cast<float>(loop->getAxis().y),static_cast<float>(loop->getAxis().z));
         }
     }
+
 }
 
-void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int index_Z, const float* normalArray)
+void Voxelizer::fillVoxelModel(char linkType)
 {
-    Voxel* voxelBottom = &voxelspace[index_X][index_Y][index_Z - 1];
-    Voxel* voxelTop = &voxelspace[index_X][index_Y][index_Z + 1];
-    Voxel* voxelFront = &voxelspace[index_X][index_Y - 1][index_Z];
-    Voxel* voxelBack = &voxelspace[index_X][index_Y + 1][index_Z];
-    Voxel* voxelLeft = &voxelspace[index_X - 1][index_Y][index_Z];
-    Voxel* voxelRight = &voxelspace[index_X + 1][index_Y][index_Z];
-    QVector<Voxel*> voxelArray{voxelBottom, voxelTop, voxelFront,
-                voxelBack, voxelLeft, voxelRight};
+    for(int y = bounding_y_min_index; y < bounding_y_max_index + 1; y++)
+    {
+        for(int z = bounding_z_min_index; z < bounding_z_max_index + 1; z++){
+            QVector<int> currentShellMap = shellMap[y][z];
+            if(currentShellMap.size()<2)
+                continue;
 
-    for(int i = 0; i < voxelArray.size(); i++){
-        // if the voxel has been assigned as outer shell or
-        // has been assigned as not inside by any triangle mesh, then continue
-        if(voxelArray[i]->getShellType() == 'O' && voxelArray[i]->getLinkType() == linkType)
-            continue;
+            qSort(currentShellMap.begin(), currentShellMap.end());
 
-        if(voxelArray[i]->getShellType() == 'N' && voxelArray[i]->getLinkType() == linkType)
-            continue;
+            for(int i = 1; i < currentShellMap.size(); i++){
+                int previousIndex = currentShellMap.at(i-1);
+                int currentIndex = currentShellMap.at(i);
+                if(currentIndex - previousIndex > 1 &&
+                        voxelspace[previousIndex][y][z].isNormalPointMinus() &&
+                        !voxelspace[currentIndex][y][z].isNormalPointMinus()){
 
-        switch(i){
-        case 0:   //BOTTOM
-            if(normalArray[2] > 0.001f){
-                if(voxelBottom->getLinkType() != 'E' && voxelBottom->getLinkType() != linkType)
-                    voxelBottom->coincident();
-                voxelBottom->setShellType('I');
-                voxelBottom->setLinkType(linkType);
-            }else{
-                if(voxelBottom->getLinkType() != 'E' && voxelBottom->getLinkType() != linkType)
-                    voxelBottom->notCoincident();
-//                voxelBottom->setShellType('N');
-//                voxelBottom->setLinkType('E');
+                    for(int j = 1; j < currentIndex - previousIndex; j++){
+                        if(voxelspace[currentIndex - j][y][z].getStatus() != 'E' &&
+                                voxelspace[currentIndex - j][y][z].getStatus() != linkType){
+                            voxelspace[currentIndex - j][y][z].collide();
+                        }
+
+                        voxelspace[currentIndex - j][y][z].setStatus(linkType);
+                        voxelspace[currentIndex - j][y][z].setShellType('I');
+                    }
+                }
             }
-            break;
-
-        case 1:   //TOP
-            if(normalArray[2] < -0.001f){
-                if(voxelTop->getLinkType() != 'E' && voxelTop->getLinkType() != linkType)
-                    voxelTop->coincident();
-                voxelTop->setShellType('I');
-                voxelTop->setLinkType(linkType);
-            }else{
-                if(voxelTop->getLinkType() != 'E' && voxelTop->getLinkType() != linkType)
-                    voxelTop->notCoincident();
-//                voxelTop->setShellType('N');
-//                voxelTop->setLinkType('E');
-            }
-            break;
-
-        case 2:  //FRONT
-            if(normalArray[1] > 0.001f){
-                if(voxelFront->getLinkType() != 'E' && voxelFront->getLinkType() != linkType)
-                    voxelFront->coincident();
-                voxelFront->setShellType('I');
-                voxelFront->setLinkType(linkType);
-            }else{
-                if(voxelFront->getLinkType() != 'E' && voxelFront->getLinkType() != linkType)
-                    voxelFront->notCoincident();
-//                voxelFront->setShellType('N');
-//                voxelFront->setLinkType('E');
-            }
-            break;
-
-        case 3:    //BACK
-            if(normalArray[1] < -0.001f){
-                if(voxelBack->getLinkType() != 'E' && voxelBack->getLinkType() != linkType)
-                    voxelBack->coincident();
-                voxelBack->setShellType('I');
-                voxelBack->setLinkType(linkType);
-            }else{
-                if(voxelBack->getLinkType() != 'E' && voxelBack->getLinkType() != linkType)
-                    voxelBack->notCoincident();
-//                voxelBack->setShellType('N');
-//                voxelBack->setLinkType('E');
-            }
-            break;
-
-        case 4:    //LEFT
-            if(normalArray[0] > 0.001f){
-                if(voxelLeft->getLinkType() != 'E' && voxelLeft->getLinkType() != linkType)
-                    voxelLeft->coincident();
-                voxelLeft->setShellType('I');
-                voxelLeft->setLinkType(linkType);
-            }else{
-                if(voxelLeft->getLinkType() != 'E' && voxelLeft->getLinkType() != linkType)
-                    voxelLeft->notCoincident();
-//                voxelLeft->setShellType('N');
-//                voxelLeft->setLinkType('E');
-            }
-            break;
-
-        case 5:    //RIGHT
-            if(normalArray[0] < -0.001f){
-                if(voxelRight->getLinkType() != 'E' && voxelRight->getLinkType() != linkType)
-                    voxelRight->coincident();
-                voxelRight->setShellType('I');
-                voxelRight->setLinkType(linkType);
-            }else{
-                if(voxelRight->getLinkType() != 'E' && voxelRight->getLinkType() != linkType)
-                    voxelRight->notCoincident();
-//                voxelRight->setShellType('N');
-//                voxelRight->setLinkType('E');
-            }
-            break;
         }
     }
 }
