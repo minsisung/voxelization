@@ -5,8 +5,8 @@ class Voxel
 {
 public:
     Voxel();
-    void setStatus(char status){Status = status;}
-    char getStatus(){return Status;}
+    void setLinkType(char status){Status = status;}
+    char getLinkType(){return Status;}
 
     void collide(){collisionStatus = true;}
     bool isCollide(){return collisionStatus;}

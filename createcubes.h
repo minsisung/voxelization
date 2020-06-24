@@ -13,9 +13,9 @@ public:
     CreateCubes();
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
-    int totocalVertexCount() const { return m_totalCount / 6; }
+    int m_totalVoxelCount = 0;
     void createMTVoxelspace(float spaceLength, float voxelSize, MachineTool& MT, bool needVisualization);
-    void createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
+    void createCoincidentVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     bool checkDuplicateFaceforCoincident(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);

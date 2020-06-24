@@ -243,12 +243,12 @@ void Voxelizer::setupSize(float s_Length, float v_Size)
 
 }
 
-void Voxelizer::Voxelize(MachineTool& MT, Link& link, bool needVisualization)
+void Voxelizer::VoxelizeForInterference(Link& link, bool needVisualization)
 {
     QVector < QVector < QVector<int> > > correctSizeMap(voxelSpaceSize, QVector < QVector< int > >(voxelSpaceSize, QVector<int>(0)));
     shellMap = correctSizeMap;
 
-    qDebug() << "The mesh of"  <<link.getLinkType()  << " contains " << link.getSTLMesh().num_tris() << " triangles."<<endl;
+    qDebug() << "The mesh of"  <<link.getLinkType()  << "contains" << link.getSTLMesh().num_tris() << "triangles."<<endl;
 
     if(link.ParentLink != nullptr)
         voxelspace = link.ParentLink->linkVoxelspace;
@@ -256,9 +256,9 @@ void Voxelizer::Voxelize(MachineTool& MT, Link& link, bool needVisualization)
     QElapsedTimer timer;
     timer.start();
 
-    normalVoxelization(link, needVisualization);
+    normalVoxelizationForInterference(link, needVisualization);
 
-    qDebug() << "The mesh voxelization for"<<link.getLinkType()  << " took " << timer.elapsed() << "milliseconds"<<endl;
+    qDebug() << "The mesh voxelization for"<<link.getLinkType()  << "took" << timer.elapsed() << "milliseconds"<<endl;
 
 
     QElapsedTimer timer2;
@@ -272,7 +272,7 @@ void Voxelizer::Voxelize(MachineTool& MT, Link& link, bool needVisualization)
     link.linkVoxelspace = voxelspace;
 }
 
-void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
+void Voxelizer::normalVoxelizationForInterference(Link& link, bool needVisualization)
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
     char linkType = link.getLinkType();
@@ -304,15 +304,32 @@ void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
 
         //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
         //(index_z_min for z component is smaller for swept volume)
-        if(needVisualization)
-            set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+        if(needVisualization){
+            if(index_x_min < bounding_x_min_index)
+                bounding_x_min_index = index_x_min;
+
+            if(index_x_max > bounding_x_max_index)
+                bounding_x_max_index = index_x_max;
+
+            if(index_y_min < bounding_y_min_index)
+                bounding_y_min_index = index_y_min;
+
+            if(index_y_max > bounding_y_max_index)
+                bounding_y_max_index = index_y_max;
+
+            if(index_z_min < bounding_z_min_index)
+                bounding_z_min_index = index_z_min;
+
+            if(index_z_max > bounding_z_max_index)
+                bounding_z_max_index = index_z_max;
+        }
 
         //Check intersection between triangle and voxels in the bounding boxes of triangle
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                     Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                    char type = voxel.getStatus();
+                    char type = voxel.getLinkType();
 
                     boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
                     boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
@@ -326,7 +343,7 @@ void Voxelizer::normalVoxelization(Link& link, bool needVisualization)
                             }
                         }
 
-                        voxel.setStatus(linkType);
+                        voxel.setLinkType(linkType);
                         voxel.setShellType('O');
 
                         shellMap[ind_y][ind_z].append(ind_x);
@@ -374,15 +391,32 @@ void Voxelizer::translationalSVVoxelization(Link& link, bool needVisualization)
 
         //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
         //(index_z_min for z component is smaller for swept volume)
-        if(needVisualization)
-            set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min-30, index_z_max);
+        if(needVisualization){
+            if(index_x_min < bounding_x_min_index)
+                bounding_x_min_index = index_x_min;
+
+            if(index_x_max > bounding_x_max_index)
+                bounding_x_max_index = index_x_max;
+
+            if(index_y_min < bounding_y_min_index)
+                bounding_y_min_index = index_y_min;
+
+            if(index_y_max > bounding_y_max_index)
+                bounding_y_max_index = index_y_max;
+
+            if(index_z_min < bounding_z_min_index)
+                bounding_z_min_index = index_z_min;
+
+            if(index_z_max > bounding_z_max_index)
+                bounding_z_max_index = index_z_max;
+        }
 
         //Check intersection between triangle and voxels in the bounding boxes of triangle
         for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
             for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                 for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                     Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                    char type = voxel.getStatus();
+                    char type = voxel.getLinkType();
 
                     //if voxel has already assigned, jump to next iteration
                     //                    if(type == linkType)
@@ -395,7 +429,7 @@ void Voxelizer::translationalSVVoxelization(Link& link, bool needVisualization)
                         if(type != 'E' && type != linkType)
                             voxel.coincident();
 
-                        voxel.setStatus(linkType);
+                        voxel.setLinkType(linkType);
                         shellMap[ind_y][ind_z].append(ind_x);
                         if(mesh.tri_normal(itri)[0] < 0)
                             voxel.setNormalPointToMinus();
@@ -441,15 +475,32 @@ void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
 
             //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
             //(index_z_min for z component is smaller for swept volume)
-            if(needVisualization)
-                set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+            if(needVisualization){
+                if(index_x_min < bounding_x_min_index)
+                    bounding_x_min_index = index_x_min;
+
+                if(index_x_max > bounding_x_max_index)
+                    bounding_x_max_index = index_x_max;
+
+                if(index_y_min < bounding_y_min_index)
+                    bounding_y_min_index = index_y_min;
+
+                if(index_y_max > bounding_y_max_index)
+                    bounding_y_max_index = index_y_max;
+
+                if(index_z_min < bounding_z_min_index)
+                    bounding_z_min_index = index_z_min;
+
+                if(index_z_max > bounding_z_max_index)
+                    bounding_z_max_index = index_z_max;
+            }
 
             //Check intersection between triangle and voxels in the bounding boxes of triangle
             for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
                 for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
                         Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                        char type = voxel.getStatus();
+                        char type = voxel.getLinkType();
 
                         //if voxel has already assigned, jump to next iteration
                         if(type == linkType)
@@ -462,7 +513,7 @@ void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
                             if(type != 'E' && type != linkType)
                                 voxel.coincident();
 
-                            voxel.setStatus(linkType);
+                            voxel.setLinkType(linkType);
                             shellMap[ind_y][ind_z].append(ind_x);
                             if(mesh.tri_normal(itri)[0] < 0)
                                 voxel.setNormalPointToMinus();
@@ -472,28 +523,96 @@ void Voxelizer::rotationalSVVoxelization(Link& link, bool needVisualization)
             }
         }
     }
-
 }
 
-void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max)
+void Voxelizer::VoxelizeForMT(Link &link, bool needVisualization)
 {
-    if(index_x_min < bounding_x_min_index)
-        bounding_x_min_index = index_x_min;
+    qDebug() << "The mesh of"  <<link.getLinkType()  << " contains " << link.getSTLMesh().num_tris() << " triangles."<<endl;
 
-    if(index_x_max > bounding_x_max_index)
-        bounding_x_max_index = index_x_max;
+    QElapsedTimer timer;
+    timer.start();
 
-    if(index_y_min < bounding_y_min_index)
-        bounding_y_min_index = index_y_min;
+    normalVoxelizationForMT(link, needVisualization);
 
-    if(index_y_max > bounding_y_max_index)
-        bounding_y_max_index = index_y_max;
+    qDebug() << "The mesh voxelization for"<<link.getLinkType()  << " took " << timer.elapsed() << "milliseconds"<<endl;
 
-    if(index_z_min < bounding_z_min_index)
-        bounding_z_min_index = index_z_min;
+    link.linkVoxelspace = voxelspace;
+}
 
-    if(index_z_max > bounding_z_max_index)
-        bounding_z_max_index = index_z_max;
+void Voxelizer::normalVoxelizationForMT(Link& link, bool needVisualization)
+{
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+    char linkType = link.getLinkType();
+    float voxelStartingCenter = (-spaceLength/2) + (voxelSize/2);
+    stl_reader::StlMesh <float, unsigned int> mesh = link.getSTLMesh();
+    QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
+
+    for (size_t itri = 0; itri < mesh.num_tris(); ++itri) {
+
+        //Load and transform triangles from mesh
+        loadAndTransform(itri, mesh, TransformMatrix);
+
+        //find bounding box of triangle
+        VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                //get voxel indices of bounding box of triangle
+                int index_x_min = floor((min_x - (-spaceLength/2))/voxelSize);
+        int index_x_max = floor((max_x - (-spaceLength/2))/voxelSize);
+        int index_y_min = floor((min_y - (-spaceLength/2))/voxelSize);
+        int index_y_max = floor((max_y - (-spaceLength/2))/voxelSize);
+        int index_z_min = floor((min_z - (-spaceLength/2))/voxelSize);
+        int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
+
+        // bounding box of triangle can't be outside of voxelspace
+        Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 &&max_z < spaceLength/2 &&
+                    min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
+
+        //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
+        //(index_z_min for z component is smaller for swept volume)
+        if(needVisualization){
+            if(index_x_min < bounding_x_min_index)
+                bounding_x_min_index = index_x_min;
+
+            if(index_x_max > bounding_x_max_index)
+                bounding_x_max_index = index_x_max;
+
+            if(index_y_min < bounding_y_min_index)
+                bounding_y_min_index = index_y_min;
+
+            if(index_y_max > bounding_y_max_index)
+                bounding_y_max_index = index_y_max;
+
+            if(index_z_min < bounding_z_min_index)
+                bounding_z_min_index = index_z_min;
+
+            if(index_z_max > bounding_z_max_index)
+                bounding_z_max_index = index_z_max;
+        }
+
+        //Check intersection between triangle and voxels in the bounding boxes of triangle
+        for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++ ){
+            for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++ ){
+                for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++ ){
+                    Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
+                    if(voxel.getLinkType() == linkType)
+                        continue;
+
+                    boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
+                    boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
+                    boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
+                    if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+                        voxel.setLinkType(linkType);
+                        link.MTVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
+                    }
+                }
+            }
+        }
+    }
+
+    link.setBoundingBoxIndex(bounding_x_min_index, bounding_x_max_index, bounding_y_min_index,bounding_y_max_index,
+                             bounding_z_min_index, bounding_z_max_index);
 }
 
 void Voxelizer::reset_bounding_index()
@@ -588,7 +707,6 @@ void Voxelizer::setupInitialTransformationMatrix(MachineTool& MT, float x, float
                                                 static_cast<float>(loop->getAxis().y),static_cast<float>(loop->getAxis().z));
         }
     }
-
 }
 
 void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float amount)
@@ -600,13 +718,12 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float am
         Link *ChildLink = loop->getChildLink();
 
         if(ChildLink->getLinkType() == linkType){
-            if(linkType == 'A' | linkType == 'B' | linkType == 'C')
+            if ((linkType == 'A') | (linkType == 'B') | (linkType == 'C'))
                 loop->rotational_motion = amount;
 
-            if(linkType == 'X' | linkType == 'Y' | linkType == 'Z')
+            if ((linkType == 'X') | (linkType == 'Y') | (linkType == 'Z'))
                 loop->translational_motion = amount;
         }
-
 
         if (loop->getType() == "prismatic")
         {
@@ -627,7 +744,84 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float am
                                                 static_cast<float>(loop->getAxis().y),static_cast<float>(loop->getAxis().z));
         }
     }
+}
 
+void Voxelizer::translateVoxelModel(MachineTool &MT, char linkType, float amount)
+{
+    if((linkType == 'X') | (linkType == 'Y') | (linkType == 'Z')){
+
+        int voxelNumberDistance = amount * 1000.0f / voxelSize;
+        float realMovement = voxelNumberDistance * voxelSize;
+
+        //updateTransformationMatrix
+        setTransformationMatrix(MT, linkType, realMovement / 1000.0f);
+
+        //Transform according to each component
+        for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++)
+        {
+            Link *ChildLink = loop->getChildLink();
+
+            if(ChildLink->getLinkType() == linkType){
+                Link *tralatedLink = ChildLink;
+
+                //loop until no child link
+                while(tralatedLink != nullptr){
+                    translateVoxels(tralatedLink, linkType, voxelNumberDistance);
+
+                    //move pointer to childLink
+                    tralatedLink = tralatedLink->ChildLink;
+                }
+            }
+        }
+    }
+}
+
+void Voxelizer::translateVoxels(Link *link, char linkType, int voxelNumberDistance)
+{
+    int voxelNumberDistanceX = 0;
+    int voxelNumberDistanceY = 0;
+    int voxelNumberDistanceZ = 0;
+
+    if(linkType == 'X'){
+        voxelNumberDistanceX = voxelNumberDistance;
+    }else if(linkType == 'Y'){
+        voxelNumberDistanceY = voxelNumberDistance;
+    }else{
+        voxelNumberDistanceZ = voxelNumberDistance;
+    }
+
+
+    // can not translate to outside of voxelspace
+    Q_ASSERT_X(((link->get_x_min_index() + voxelNumberDistanceX) > 0) && ((link->get_x_max_index() + voxelNumberDistanceX) < voxelSpaceSize) &&
+               ((link->get_y_min_index() + voxelNumberDistanceY) > 0) && ((link->get_y_max_index() + voxelNumberDistanceY) < voxelSpaceSize) &&
+               ((link->get_z_min_index() + voxelNumberDistanceZ) > 0) && ((link->get_z_max_index() + voxelNumberDistanceZ) < voxelSpaceSize),
+               "translateVoxels", "translate to outside of voxelspace");
+
+    QVector < QVector < QVector< Voxel > > > temporaryVS(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
+    QVector < QVector < QVector< Voxel > > > linkVS = link->linkVoxelspace;
+
+    //loop through voxel space to translate voxels
+    for (QList<QVector3D>::iterator i = link->MTVoxelIndicesList.begin(); i != link->MTVoxelIndicesList.end(); ++i){
+        int number_x = i->x();
+        int number_y = i->y();
+        int number_z = i->z();
+
+        temporaryVS[number_x + voxelNumberDistanceX][number_y + voxelNumberDistanceY][number_z + voxelNumberDistanceZ]
+                = linkVS[number_x][number_y][number_z];
+
+        //update MTVoxelIndiciesList of the link
+        i->setX( number_x + voxelNumberDistanceX);
+        i->setY( number_x + voxelNumberDistanceY);
+        i->setZ( number_x + voxelNumberDistanceZ);
+    }
+
+    // update link voxel model bounding box
+    link->setBoundingBoxIndex(link->get_x_min_index() + voxelNumberDistanceX, link->get_x_max_index() + voxelNumberDistanceX,
+                              link->get_y_min_index() + voxelNumberDistanceY, link->get_y_max_index() + voxelNumberDistanceY,
+                              link->get_z_min_index() + voxelNumberDistanceZ, link->get_z_max_index() + voxelNumberDistanceZ);
+    //update link voxel space
+    link->linkVoxelspace = temporaryVS;
+    voxelspace = link->linkVoxelspace;
 }
 
 void Voxelizer::fillVoxelModel(char linkType)
@@ -649,12 +843,12 @@ void Voxelizer::fillVoxelModel(char linkType)
                         !voxelspace[currentIndex][y][z].isNormalPointMinus()){
 
                     for(int j = 1; j < currentIndex - previousIndex; j++){
-                        if(voxelspace[currentIndex - j][y][z].getStatus() != 'E' &&
-                                voxelspace[currentIndex - j][y][z].getStatus() != linkType){
-                            voxelspace[currentIndex - j][y][z].collide();
+                        if(voxelspace[currentIndex - j][y][z].getLinkType() != 'E' &&
+                                voxelspace[currentIndex - j][y][z].getLinkType() != linkType){
+                            voxelspace[currentIndex - j][y][z].coincident();
                         }
 
-                        voxelspace[currentIndex - j][y][z].setStatus(linkType);
+                        voxelspace[currentIndex - j][y][z].setLinkType(linkType);
                         voxelspace[currentIndex - j][y][z].setShellType('I');
                     }
                 }

@@ -24,6 +24,7 @@ private:
       int bounding_z_min_index;
       int bounding_z_max_index;
 
+
 public:
     Link();             //constructor
     Link(std::string name);
@@ -57,6 +58,9 @@ public:
                              int z_min_index, int z_max_index);
 
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
+    QList<QVector3D> MTVoxelIndicesList;
+    QList<QVector3D> collisionVoxelIndicesList;
+    QList<QVector3D> interferenceVoxelIndicesList;
 };
 
 #endif // LINK_H

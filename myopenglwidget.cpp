@@ -20,7 +20,7 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 
     //create machine tool by reading urdf
-//        MT.readURDF("VF-2.urdf");
+    //        MT.readURDF("VF-2.urdf");
     //        MT.readURDF("umc500.urdf");
     MT.readURDF("UMC-750.urdf");
 
@@ -119,9 +119,9 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
     //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
-//        m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 1.5f, MT, true);  //UMC-750
-    m_cubeGemoetry.createMTVoxelspace(4500.0f, 5.0f, MT, true); //VF-2
-//                m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 8.0f, MT, true);  //VF-2
+    //        m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 1.5f, MT, true);  //UMC-750
+    m_cubeGemoetry.createMTVoxelspace(4500.0f, 10.0f, MT, true); //VF-2
+    //                m_cubeGemoetry.createCoincidentVoxelspace(4500.0f, 3.0f, MT, true);  //VF-2
     //    m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
     //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
 
@@ -239,11 +239,6 @@ void MyOpenGLWidget::paintGL()
 
     glBegin( GL_LINES );
 
-    glVertex3f( -397.645, -1000., 787.007);
-    glVertex3f( -397.645, 2000., 787.007 );
-
-
-
     glEnd();
     glFlush();
 
@@ -289,7 +284,7 @@ void MyOpenGLWidget::drawComponents()
                                                          static_cast<float>(loop->getRGBA().g),
                                                          static_cast<float>(loop->getRGBA().b)));
         // only draw skeleton of each triangle
-//          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, loop->numberOfVertex);
