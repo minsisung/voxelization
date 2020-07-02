@@ -40,6 +40,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
 
     //setup transformation matrix for each component
     setupInitialTransformation(MT);
+
     //        setupTransformation(MT, 'Y', -0.7f);
 
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
@@ -57,13 +58,14 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //resize m_data (*216 is the number to draw all voxel face but it's too large, so I
     //only use 80 here to approximate the total number of voxel faces)
     //sometime crash because size 80 is too small
-//    m_data.resize(m_totalVoxelCount * 80);
+    //    m_data.resize(m_totalVoxelCount * 80);
 
     //timer
     QElapsedTimer timer1;
     timer1.start();
 
-    voxelizer.translateVoxelModel(MT, 'X', 0.5f);
+    //    voxelizer.translateVoxelModel(MT, 'Y', -0.5f);
+    voxelizer.translateVoxelModel(MT, 'X', 0.6f);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
 
@@ -74,19 +76,29 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
             //timer
             QElapsedTimer timer;
             timer.start();
+
             drawVoxelforMT(*loop);
+
             qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }
 
+    for(int i = 0; i < MT.LinkVector.size(); i++){
+        for(int j = i+1; j < MT.LinkVector.size(); j++){
+            voxelizer.checkCollision(MT.LinkVector[i], MT.LinkVector[j]);
+        }
+    }
 }
 
 void CreateCubes::drawVoxelforMT(Link& link)
 {
-    for (QList<QVector3D>::iterator i = link.MTVoxelIndicesList.begin(); i != link.MTVoxelIndicesList.end(); ++i){
-        int number_x = i->x();
-        int number_y = i->y();
-        int number_z = i->z();
+    for (int i = 0; i < link.MTVoxelIndicesList.size(); ++i){
+        double index = link.MTVoxelIndicesList[i];
+
+        int number_x = int(floor(index));
+        int number_y = int(index*10000 - (floor(index))*10000);
+        int number_z = int(round((index*10000 - floor(index*10000))*10000));
+
 
         GLfloat offset_x = voxelSize * number_x;
         GLfloat offset_y = voxelSize * number_y;
@@ -123,7 +135,7 @@ void CreateCubes::drawVoxelforMT(Link& link)
             // insert vertex position into m_data for creating VBO
 
             //first triangle in the face
-                                    m_data.resize(m_totalCount+36);
+            m_data.resize(m_totalCount+36);
             GLfloat *p = m_data.data() + m_totalCount;
 
             *p++ = coords[i][0][0];
@@ -214,6 +226,13 @@ void CreateCubes::createCoincidentVoxelspace(float spaceLength, float vSize, Mac
             voxelizer.reset_bounding_index();
 
             qDebug() << "The creation of cubes took" << timer.elapsed() << "milliseconds"<<endl;
+        }
+    }
+
+
+    for(int i = 0; i < MT.LinkVector.size(); i++){
+        for(int j = i+1; j < MT.LinkVector.size(); j++){
+            voxelizer.checkCollision(MT.LinkVector[i], MT.LinkVector[j]);
         }
     }
 }

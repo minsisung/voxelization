@@ -9,20 +9,20 @@
 class Link
 {
 private:
-      std::string m_name;
-      Vector3 m_origin_xyz;
-      Vector3 m_origin_rpy;
-      std::string m_meshfile;
-      VectorRGBA m_rgba;
-      stl_reader::StlMesh <float, unsigned int> m_STLMesh;
-      char linkType = 'b';
+    std::string m_name;
+    Vector3 m_origin_xyz;
+    Vector3 m_origin_rpy;
+    std::string m_meshfile;
+    VectorRGBA m_rgba;
+    stl_reader::StlMesh <float, unsigned int> m_STLMesh;
+    char linkType = 'b';
 
-      int bounding_x_min_index;
-      int bounding_x_max_index;
-      int bounding_y_min_index;
-      int bounding_y_max_index;
-      int bounding_z_min_index;
-      int bounding_z_max_index;
+    int bounding_x_min_index;
+    int bounding_x_max_index;
+    int bounding_y_min_index;
+    int bounding_y_max_index;
+    int bounding_z_min_index;
+    int bounding_z_max_index;
 
 
 public:
@@ -58,9 +58,8 @@ public:
                              int z_min_index, int z_max_index);
 
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
-    QList<QVector3D> MTVoxelIndicesList;
-    QList<QVector3D> collisionVoxelIndicesList;
-    QList<QVector3D> interferenceVoxelIndicesList;
+    QList<double> MTVoxelIndicesList;
+    QList<double> MTInnerVoxelIndicesList;
 };
 
 #endif // LINK_H
