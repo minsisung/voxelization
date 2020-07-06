@@ -7,7 +7,6 @@
 #include <QtGlobal>
 #include <QMatrix4x4>
 #include "machinetool.h"
-#include <QElapsedTimer>
 
 typedef struct vx_vertex {
     union {
@@ -50,8 +49,7 @@ public:
     //    B            'B'
     //    C            'C'
 
-    void VoxelizeForInterference(Link& link, bool needVisualization);
-    void VoxelizeForMT(Link& link, bool needVisualization);
+    void Voxelize(MachineTool& MT, Link& link, bool needVisualization);
 
     void setupSize(float spaceLength, float voxelSize);
     int get_x_min_index(){return bounding_x_min_index;}
@@ -60,20 +58,16 @@ public:
     int get_y_max_index(){return bounding_y_max_index;}
     int get_z_min_index(){return bounding_z_min_index;}
     int get_z_max_index(){return bounding_z_max_index;}
-    int getVoxelSpaceSize(){return voxelSpaceSize;}
+    void set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max);
     void reset_bounding_index();
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
-    void translateVoxelModel(MachineTool& MT, char linkType, float amount);
-    void translateVoxels(Link* link, char linkType, int voxelNumberDistance);
-    void checkCollision(Link &link1, Link& link2);
+
 
 private:
-    void fillVoxelModel(Link& link);
-    void normalVoxelizationForInterference(Link& link, bool needVisualization);
-    void normalVoxelizationForMT(Link& link, bool needVisualization);
-
+    void fillInnerShell(char linkType, int indexX, int indexY, int indexZ, const float* normalArray);
+    void normalVoxelization(Link& link, bool needVisualization);
     float spaceLength;
     float voxelSize;
     int voxelSpaceSize;

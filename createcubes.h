@@ -13,11 +13,11 @@ public:
     CreateCubes();
     const GLfloat *constData() const { return m_data.constData(); }
     int totalCount() const { return m_totalCount; }
-    int m_totalVoxelCount = 0;
+    int totocalVertexCount() const { return m_totalCount / 6; }
     void createMTVoxelspace(float spaceLength, float voxelSize, MachineTool& MT, bool needVisualization);
-    void createCoincidentVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
-    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
-    bool checkDuplicateFaceforCoincident(int i, int number_x, int number_y, int number_z);
+    void createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
+    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z, char linkType);
+    bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     QVector<int> get_vertices_numbers(){return vertices_number_vector;}
     bool ifNeedVisualization = true;
@@ -30,7 +30,7 @@ private:
     QVector<int> vertices_number_vector;
     float voxelSize;
     float mostLeftBottom;
-    void drawVoxelforCoincident(Link& link);
+    void drawVoxelforCollision(Link& link);
     void drawVoxelforMT(Link& link);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
     void setupInitialTransformation(MachineTool& MT);
