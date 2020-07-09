@@ -16,11 +16,12 @@ public:
     int totocalVertexCount() const { return m_totalCount / 6; }
     void createMTVoxelspace(float spaceLength, float voxelSize, MachineTool& MT, bool needVisualization);
     void createCollisionVoxelspace(float spaceLength, float vSize, MachineTool& MT, bool needVisualization);
-    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z, char linkType);
+    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z, Link& link);
     bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     QVector<int> get_vertices_numbers(){return vertices_number_vector;}
     bool ifNeedVisualization = true;
+    int m_totalVoxelCount = 0;
 
 private:
     QVector<GLfloat> m_data;

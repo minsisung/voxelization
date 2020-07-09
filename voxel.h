@@ -18,10 +18,14 @@ public:
     void setInnerShellLinkType(char type){innerShellType = type;}
     char getInnerShellLinkType(){return innerShellType;}
 
+    void setOutsideVoxelLinkType(char linkType){outsideVoxelLinkType = linkType;}
+    char getOutsideVoxelLinkType(){return outsideVoxelLinkType;}
+
 private:
     char outterShellLinkType = 'E';   //E: empty
     bool collisionStatus = false;
     bool coincidentStatus = false;
+    char outsideVoxelLinkType = 'E';
 
     //E: empty
     char innerShellType = 'E';

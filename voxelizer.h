@@ -49,7 +49,7 @@ public:
     //    B            'B'
     //    C            'C'
 
-    void Voxelize(MachineTool& MT, Link& link, bool needVisualization);
+    void Voxelize(Link& link, bool needVisualization);
 
     void setupSize(float spaceLength, float voxelSize);
     int get_x_min_index(){return bounding_x_min_index;}
@@ -63,11 +63,13 @@ public:
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
+    void translateVoxelModel(MachineTool &MT, char linkType, float amount);
 
 
 private:
     void fillInnerShell(char linkType, int indexX, int indexY, int indexZ, const float* normalArray);
     void normalVoxelization(Link& link, bool needVisualization);
+    void translateVoxels(Link *link, char linkType, int voxelNumberDistance);
     float spaceLength;
     float voxelSize;
     int voxelSpaceSize;

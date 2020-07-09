@@ -31,8 +31,8 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     // (space length should be xx times of voxel size)
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
 
-    //make zero point in the center of voxel
-    if(static_cast<int>(spaceLength/vSize) %2 == 1)
+    //    //make zero point in the center of voxel
+    if(static_cast<int>(spaceLength/vSize) %2 == 0)
         spaceLength += vSize;
 
     //initialize voxel space and voxel size
@@ -41,30 +41,40 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //setup transformation matrix for each component
     setupInitialTransformation(MT);
 
+    //        voxelizer.setTransformationMatrix(MT, 'X', 0.5f);
+
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
 
     for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+        voxelizer.Voxelize(*loop, true);
 
-        voxelizer.Voxelize(MT, *loop, true);
+        //reset bounding index for next component
+        voxelizer.reset_bounding_index();
+    }
 
-        // check if visualization is necessary     ===========================================================
-        if(ifNeedVisualization){
+    //timer
+    QElapsedTimer timer1;
+    timer1.start();
+
+//    voxelizer.translateVoxelModel(MT, 'X', 0.3f);
+
+    qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
+
+    // check if visualization is necessary     ===========================================================
+    if(ifNeedVisualization){
+        for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
 
             //timer
             QElapsedTimer timer;
             timer.start();
-
             drawVoxelforMT(*loop);
-
-            //reset bounding index for next component
-            voxelizer.reset_bounding_index();
-
-            qDebug() << "The creation of cubes for "<<loop->getLinkType()  << " took" << timer.elapsed() << "milliseconds"<<endl;
+            qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
-        // ========================================================================================
     }
 }
+
+
 
 void CreateCubes::drawVoxelforMT(Link& link)
 {
@@ -75,23 +85,24 @@ void CreateCubes::drawVoxelforMT(Link& link)
         for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index() + 1; ++number_y) {
             for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index() + 1; ++number_z) {
 
-                //if voxel is empty, jump to next iteration
-                if(voxelizer.voxelspace[number_x][number_y][number_z].getInnerShellLinkType() == 'E')
-                    continue;
+                //    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
+                //        int number_x = i->x();
+                //        int number_y = i->y();
+                //        int number_z = i->z();
 
-                //                if(voxelizer.voxelspace[number_x][number_y][number_z].getLinkType() != linkType |
-                //                        voxelizer.voxelspace[number_x][number_y][number_z].getShellType() == 'O')
-                //                    continue;
+                //if voxel is empty, jump to next iteration
+                if(link.linkVoxelspace[number_x][number_y][number_z].getInnerShellLinkType() != linkType)
+                    continue;
 
                 GLfloat offset_y = voxelSize * number_y;
                 GLfloat offset_x = voxelSize * number_x;
                 GLfloat offset_z = voxelSize * number_z;
-                GLfloat x_right = mostLeftBottom + voxelSize/2 + offset_x;
-                GLfloat x_left = mostLeftBottom - voxelSize/2 + offset_x;
-                GLfloat y_up = mostLeftBottom + voxelSize/2 + offset_y;
-                GLfloat y_down = mostLeftBottom - voxelSize/2 + offset_y;
-                GLfloat z_futher = mostLeftBottom - voxelSize/2 + offset_z;
-                GLfloat z_closer = mostLeftBottom + voxelSize/2 + offset_z;
+                GLfloat x_right = mostLeftBottom + voxelSize + offset_x;
+                GLfloat x_left = mostLeftBottom + offset_x;
+                GLfloat y_up = mostLeftBottom + voxelSize + offset_y;
+                GLfloat y_down = mostLeftBottom + offset_y;
+                GLfloat z_futher = mostLeftBottom + offset_z;
+                GLfloat z_closer = mostLeftBottom + voxelSize + offset_z;
 
                 //coordinates of triangles forming faces of cubes
                 //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
@@ -111,9 +122,9 @@ void CreateCubes::drawVoxelforMT(Link& link)
                 for (int i = 0; i < 6; ++i) {
                     normal = setNormal(i);
 
-                    //                    ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, linkType);
-                    //                    if(ifDuplicate)
-                    //                        continue;
+                                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
+                                if(ifDuplicate)
+                                    continue;
 
                     // insert vertex position into m_data for creating VBO
 
@@ -194,7 +205,7 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
 
     for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
 
-        voxelizer.Voxelize(MT, *loop, true);
+        voxelizer.Voxelize(*loop, true);
 
         // check if visualization is necessary     ===========================================================
         if(ifNeedVisualization){
@@ -222,8 +233,7 @@ void CreateCubes::drawVoxelforCollision(Link& link)
             for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
                 //if voxel is empty, jump to next iteration
-                if(!voxelizer.voxelspace[number_x][number_y][number_z].isCollide() &&
-                        !voxelizer.voxelspace[number_x][number_y][number_z].isCoincident())
+                if(!voxelizer.voxelspace[number_x][number_y][number_z].isCollide())
                     continue;
 
                 GLfloat offset_y = voxelSize * number_y;
@@ -317,41 +327,43 @@ void CreateCubes::drawVoxelforCollision(Link& link)
 }
 
 
-bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int number_z, char linkType)
+bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int number_z, Link& link)
 {
+    QVector < QVector < QVector< Voxel > > > &linkVS = link.linkVoxelspace;
+
     // number_z - 1 has overlapping face
     if (i==0 && number_z > 0){
-        if(voxelizer.voxelspace[number_x][number_y][number_z - 1].getOutterShellLinkType() != 'E'){
+        if(linkVS[number_x][number_y][number_z - 1].getInnerShellLinkType() != 'E'){
             return true;
         }
     }
     // number_y + 1 has overlapping face
     else if (i==1 && number_y < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x][number_y + 1][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y + 1][number_z].getInnerShellLinkType()!= 'E'){
             return true;
         }
     }
     // number_x + 1 has overlapping face
     else if (i==2 && number_x < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x + 1][number_y][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x + 1][number_y][number_z].getInnerShellLinkType()!= 'E'){
             return true;
         }
     }
     // number_x - 1 has overlapping face
     else if (i==3 && number_x > 0){
-        if(voxelizer.voxelspace[number_x - 1][number_y][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x - 1][number_y][number_z].getInnerShellLinkType()!= 'E'){
             return true;
         }
     }
     // number_y - 1 has overlapping face
     else if (i==4 && number_y > 0){
-        if(voxelizer.voxelspace[number_x][number_y - 1][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y - 1][number_z].getInnerShellLinkType()!= 'E'){
             return true;
         }
     }
     // number_z + 1 has overlapping face
     else if (i==5 && number_z < n_voxel_in_axis - 1){
-        if(voxelizer.voxelspace[number_x][number_y][number_z + 1].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y][number_z + 1].getInnerShellLinkType()!= 'E'){
             return true;
         }
     }
@@ -417,4 +429,3 @@ QVector3D CreateCubes::setNormal(int i)
     else
         return { 0.0,0.0,1.0};
 }
-

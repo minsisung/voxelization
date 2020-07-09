@@ -58,8 +58,8 @@ public:
                              int z_min_index, int z_max_index);
 
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
-    QList<double> MTVoxelIndicesList;
-    QList<double> MTInnerVoxelIndicesList;
+    QList<QVector3D> MTOutterVoxelIndicesList;
+    QList<QVector3D> MTInnerVoxelIndicesList;
 };
 
 #endif // LINK_H
