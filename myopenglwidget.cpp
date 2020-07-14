@@ -20,10 +20,10 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 
     //create machine tool by reading urdf
-    //        MT.readURDF("VF-2.urdf");
+    //            MT.readURDF("VF-2.urdf");
     //        MT.readURDF("umc500.urdf");
-        MT.readURDF("UMC-750.urdf");
-//    MT.readURDF("walls.urdf");
+    MT.readURDF("UMC-750.urdf");
+    //    MT.readURDF("walls.urdf");
 
     Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
@@ -121,8 +121,8 @@ void MyOpenGLWidget::initializeGL()
     //m_geometry.readSTL(m_filepath);
     //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
     //                    m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 2.0f, MT, true);  //UMC-750
-//    m_cubeGemoetry.createMTVoxelspace(4500.0f, 3.0f, MT, true); //VF-2
-        m_cubeGemoetry.createCollisionVoxelspace(4500.0f,9.0f, MT, true);  //VF-2
+        m_cubeGemoetry.createMTVoxelspace(4500.0f, 4.5f, MT, true); //VF-2
+//    m_cubeGemoetry.createCollisionVoxelspace(4452.0f,3.0f, MT, true);  //VF-2
     //            m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
     //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
 

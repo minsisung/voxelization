@@ -31,7 +31,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     // (space length should be xx times of voxel size)
     Q_ASSERT_X(fmod(spaceLength,voxelSize) == 0.0f, "createVoxelspace", "spaceLength % voxelSize should be zero");
 
-    //    //make zero point in the center of voxel
+    //  make zero point in the center of voxel
     if(static_cast<int>(spaceLength/vSize) %2 == 0)
         spaceLength += vSize;
 
@@ -41,7 +41,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //setup transformation matrix for each component
     setupInitialTransformation(MT);
 
-    //        voxelizer.setTransformationMatrix(MT, 'X', 0.5f);
+    //  voxelizer.setTransformationMatrix(MT, 'X', 0.5f);
 
     n_voxel_in_axis = static_cast<int>(spaceLength / voxelSize);
     mostLeftBottom = -spaceLength/2.0f;
@@ -57,7 +57,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     QElapsedTimer timer1;
     timer1.start();
 
-//    voxelizer.translateVoxelModel(MT, 'X', 0.3f);
+    voxelizer.translateVoxelModel(MT, 'X', 0.3f);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
 
@@ -80,15 +80,15 @@ void CreateCubes::drawVoxelforMT(Link& link)
 {
     char linkType = link.getLinkType();
 
-    //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
+    //    loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
     for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() + 1; ++number_x) {
         for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index() + 1; ++number_y) {
             for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index() + 1; ++number_z) {
 
-                //    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
-                //        int number_x = i->x();
-                //        int number_y = i->y();
-                //        int number_z = i->z();
+                //                    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
+                //                        int number_x = i->x();
+                //                        int number_y = i->y();
+                //                        int number_z = i->z();
 
                 //if voxel is empty, jump to next iteration
                 if(link.linkVoxelspace[number_x][number_y][number_z].getInnerShellLinkType() != linkType)
@@ -122,9 +122,9 @@ void CreateCubes::drawVoxelforMT(Link& link)
                 for (int i = 0; i < 6; ++i) {
                     normal = setNormal(i);
 
-                                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
-                                if(ifDuplicate)
-                                    continue;
+                    ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
+                    if(ifDuplicate)
+                        continue;
 
                     // insert vertex position into m_data for creating VBO
 
@@ -264,9 +264,9 @@ void CreateCubes::drawVoxelforCollision(Link& link)
                 for (int i = 0; i < 6; ++i) {
                     normal = setNormal(i);
 
-                    //                    ifDuplicate = checkDuplicateFaceforCollision(i, number_x, number_y, number_z);
-                    //                    if(ifDuplicate)
-                    //                        continue;
+                    ifDuplicate = checkDuplicateFaceforCollision(i, number_x, number_y, number_z);
+                    if(ifDuplicate)
+                        continue;
 
                     // insert vertex position into m_data for creating VBO
 
