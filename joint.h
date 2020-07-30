@@ -30,6 +30,10 @@ public:
     std::string getType() {return m_type;}
     Link* getParentLink() {return m_parent_link;}
     Link* getChildLink() {return m_child_link;}
+    void setLowerLimit(float lowerLimit){m_lower_limit = lowerLimit; m_child_link->setLowerLimit(lowerLimit);}
+    void setUpperLimit(float upperLimit){m_upper_limit = upperLimit; m_child_link->setUpperLimit(upperLimit);}
+    float getLowerLimit(){return m_lower_limit;}
+    float getUpperLimit(){return m_upper_limit;}
     float translational_motion = 0.0;
     float rotational_motion = 0.0;
 };

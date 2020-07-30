@@ -32,7 +32,7 @@ private:
     float voxelSize;
     float mostLeftBottom;
     void drawVoxelforCollision(Link& link);
-    void drawVoxelforMT(Link& link);
+    void drawVoxelforMT(Link& link, int ind1, int ind2);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
     void setupInitialTransformation(MachineTool& MT);
     void setupTransformation(MachineTool& MT, char linkType, float amount);

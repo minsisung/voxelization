@@ -63,13 +63,13 @@ public:
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
-    void translateVoxelModel(MachineTool &MT, char linkType, float amount);
+    void translateVoxelModel(MachineTool &MT, char linkType, float amount, int ind1, int ind2);
 
 
 private:
     void fillInnerShell(char linkType, int indexX, int indexY, int indexZ, const float* normalArray);
-    void normalVoxelization(Link& link, bool needVisualization);
-    void translateVoxels(Link *link, char linkType, int voxelNumberDistance);
+    void parentModelVoxelization(Link& link, bool needVisualization);
+    void translateVoxels(Link *link, char linkType, int voxelNumberDistance, int ind1, int ind2);
     float spaceLength;
     float voxelSize;
     int voxelSpaceSize;

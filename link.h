@@ -24,6 +24,9 @@ private:
     int bounding_z_min_index;
     int bounding_z_max_index;
 
+    float m_lower_limit;
+    float m_upper_limit;
+
 
 public:
     Link();             //constructor
@@ -48,6 +51,11 @@ public:
     stl_reader::StlMesh <float, unsigned int>  getSTLMesh(){return m_STLMesh;}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}
+
+    void setLowerLimit(float lowerLimit){m_lower_limit = lowerLimit;}
+    void setUpperLimit(float upperLimit){m_upper_limit = upperLimit;}
+    float getLowerLimit(){return m_lower_limit;}
+    float getUpperLimit(){return m_upper_limit;}
     int get_x_min_index(){return bounding_x_min_index;}
     int get_x_max_index(){return bounding_x_max_index;}
     int get_y_min_index(){return bounding_y_min_index;}
@@ -60,9 +68,8 @@ public:
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
     QList<QVector3D> MTOutterVoxelIndicesList;
     QList<QVector3D> MTInnerVoxelIndicesList;
+
+    QVector<QList<QVector3D>> MTOutterVoxelIndicesListVector;
 };
 
 #endif // LINK_H
-
-
-
