@@ -121,8 +121,8 @@ void MyOpenGLWidget::initializeGL()
     //m_geometry.readSTL(m_filepath);
     //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
     //                    m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 2.0f, MT, true);  //UMC-750
-        m_cubeGemoetry.createMTVoxelspace(4500.0f, 2.5f, MT, true); //VF-2
-//    m_cubeGemoetry.createCollisionVoxelspace(4452.0f,3.0f, MT, true);  //VF-2
+//        m_cubeGemoetry.createMTVoxelspace(4500.0f, 1.5f, MT, true); //VF-2
+    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 1.5f, MT, true);  //VF-2
     //            m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
     //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
 

@@ -513,8 +513,10 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, char linkType, float am
     }
 }
 
-void Voxelizer::translateVoxelModel(MachineTool &MT, char movingLinkType, float amount, int ind1, int ind2)
+QSet<QString> Voxelizer::translateVoxelModel(MachineTool &MT, char movingLinkType, float amount, int ind1, int ind2)
 {
+    QSet<QString> totalCollisionSet;
+
     if((movingLinkType == 'X') | (movingLinkType == 'Y') | (movingLinkType == 'Z')){
 
         int voxelNumberDistance = amount * 1000.0f / voxelSize;
@@ -538,7 +540,7 @@ void Voxelizer::translateVoxelModel(MachineTool &MT, char movingLinkType, float 
                     QElapsedTimer timer;
                     timer.start();
 
-                    translateVoxels(tralatedLink, movingLinkType, voxelNumberDistance,ind1, ind2);
+                    totalCollisionSet.unite(translateVoxels(tralatedLink, movingLinkType, voxelNumberDistance,ind1, ind2));
 
                     qDebug() << "Translating"<<tralatedLink->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
                     //                    qDebug() <<tralatedLink->getLinkType()  << " link contains" << tralatedLink->MTOutterVoxelIndicesList.size() << " shell voxels"<<endl;
@@ -550,10 +552,12 @@ void Voxelizer::translateVoxelModel(MachineTool &MT, char movingLinkType, float 
             }
         }
     }
+    return totalCollisionSet;
 }
 
-void Voxelizer::translateVoxels(Link *link, char movingLinkType, int voxelNumberDistance, int ind1, int ind2)
+QSet<QString> Voxelizer::translateVoxels(Link *link, char movingLinkType, int voxelNumberDistance, int ind1, int ind2)
 {
+    QSet<QString> collisionSet;
     char currentLinkType = link->getLinkType();
 
     int voxelNumberDistanceX = 0;
@@ -576,21 +580,64 @@ void Voxelizer::translateVoxels(Link *link, char movingLinkType, int voxelNumber
 
     QVector < QVector < QVector< Voxel > > > newVS = link->ParentLink->linkVoxelspace;
 
-    //    for (QList<QVector3D>::iterator i = link->MTOutterVoxelIndicesList.begin(); i != link->MTOutterVoxelIndicesList.end(); ++i){
+    for (QList<QVector3D>::iterator i = link->MTInnerVoxelIndicesList.begin(); i != link->MTInnerVoxelIndicesList.end(); ++i){
+        int number_x = i->x();
+        int number_y = i->y();
+        int number_z = i->z();
+
+        Voxel& voxel = newVS[number_x + voxelNumberDistanceX][number_y + voxelNumberDistanceY]
+                [number_z + voxelNumberDistanceZ];
+        //        char outterShellType = voxel.getOutterShellLinkType();
+        char innerShellType = voxel.getInnerShellLinkType();
+
+        voxel.setOutterShellLinkType(currentLinkType);
+
+        //        if(outterShellType != 'E' && outterShellType != currentLinkType){
+        //            voxel.coincident();
+        //        }
+
+        if(innerShellType != 'E' && innerShellType != currentLinkType){
+            voxel.collide();
+
+            QString collisionPair;
+            collisionPair.append(currentLinkType);
+            collisionPair.append(innerShellType);
+            if(!collisionSet.contains(collisionPair))
+                collisionSet.insert(collisionPair);
+        }
+
+        //update MTVoxelIndiciesList of the link
+        i->setX( number_x + voxelNumberDistanceX);
+        i->setY( number_y + voxelNumberDistanceY);
+        i->setZ( number_z + voxelNumberDistanceZ);
+    }
+
+    //    for (QList<QVector3D>::iterator i = link->MTInnerVoxelIndicesList.begin(); i != link->MTInnerVoxelIndicesList.end(); ++i){
+
+    //    int index = 0;
+
+    //    if(link->getLinkType() == 'C')
+    //        index = ind1;
+
+    //    if(link->getLinkType() == 'A')
+    //        index = ind2;
+
+    //    for (QList<QVector3D>::iterator i = link->MTOutterVoxelIndicesListVector[index].begin();
+    //         i != link->MTOutterVoxelIndicesListVector[index].end(); ++i){
     //        int number_x = i->x();
     //        int number_y = i->y();
     //        int number_z = i->z();
 
     //        Voxel& voxel = newVS[number_x + voxelNumberDistanceX][number_y + voxelNumberDistanceY]
     //                [number_z + voxelNumberDistanceZ];
-    //        char outterShellType = voxel.getOutterShellLinkType();
+    //        //        char outterShellType = voxel.getOutterShellLinkType();
     //        char innerShellType = voxel.getInnerShellLinkType();
 
-    //        voxel.setOutterShellLinkType(currentLinkType);
+    //        voxel.setInnerShellLinkType(currentLinkType);
 
-    //        if(outterShellType != 'E' && outterShellType != currentLinkType){
-    //            voxel.coincident();
-    //        }
+    //        //        if(outterShellType != 'E' && outterShellType != currentLinkType){
+    //        //            voxel.collide();
+    //        //        }
 
     //        if(innerShellType != 'E' && innerShellType != currentLinkType){
     //            voxel.collide();
@@ -602,43 +649,6 @@ void Voxelizer::translateVoxels(Link *link, char movingLinkType, int voxelNumber
     //        i->setZ( number_z + voxelNumberDistanceZ);
     //    }
 
-    //    for (QList<QVector3D>::iterator i = link->MTInnerVoxelIndicesList.begin(); i != link->MTInnerVoxelIndicesList.end(); ++i){
-
-    int index = 0;
-
-    if(link->getLinkType() == 'C')
-        index = ind1;
-
-    if(link->getLinkType() == 'A')
-        index = ind2;
-
-    for (QList<QVector3D>::iterator i = link->MTOutterVoxelIndicesListVector[index].begin();
-         i != link->MTOutterVoxelIndicesListVector[index].end(); ++i){
-        int number_x = i->x();
-        int number_y = i->y();
-        int number_z = i->z();
-
-        Voxel& voxel = newVS[number_x + voxelNumberDistanceX][number_y + voxelNumberDistanceY]
-                [number_z + voxelNumberDistanceZ];
-        //        char outterShellType = voxel.getOutterShellLinkType();
-        char innerShellType = voxel.getInnerShellLinkType();
-
-        voxel.setInnerShellLinkType(currentLinkType);
-
-        //        if(outterShellType != 'E' && outterShellType != currentLinkType){
-        //            voxel.collide();
-        //        }
-
-        if(innerShellType != 'E' && innerShellType != currentLinkType){
-            voxel.collide();
-        }
-
-        //update MTVoxelIndiciesList of the link
-        i->setX( number_x + voxelNumberDistanceX);
-        i->setY( number_y + voxelNumberDistanceY);
-        i->setZ( number_z + voxelNumberDistanceZ);
-    }
-
 
     // update link voxel model bounding box
     link->setBoundingBoxIndex(link->get_x_min_index() + voxelNumberDistanceX, link->get_x_max_index() + voxelNumberDistanceX,
@@ -647,6 +657,8 @@ void Voxelizer::translateVoxels(Link *link, char movingLinkType, int voxelNumber
     //update link voxel space
     link->linkVoxelspace = newVS;
     //    voxelspace = newVS;
+
+    return collisionSet;
 }
 
 void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int index_Z, const float* normalArray)
@@ -688,8 +700,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
         if(voxelBottom->getOutsideVoxelLinkType() != linkType &&
                 voxelBottom->getInnerShellLinkType() != linkType){
 
-            if(voxelBottom->getInnerShellLinkType() != 'E')
-                voxelBottom->collide();
+            //            if(voxelBottom->getInnerShellLinkType() != 'E'){
+            //                voxelBottom->collide();
+            //                qDebug()<<"Link"<< voxelBottom->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
 
             //set bottom voxel to the inner shell of this link
             voxelBottom->setInnerShellLinkType(linkType);
@@ -710,8 +724,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
 
         if(voxelTop->getOutsideVoxelLinkType() != linkType &&
                 voxelTop->getInnerShellLinkType() != linkType){
-            if(voxelTop->getInnerShellLinkType() != 'E')
-                voxelTop->collide();
+            //            if(voxelTop->getInnerShellLinkType() != 'E'){
+            //                voxelTop->collide();
+            //                qDebug()<<"Link"<< voxelTop->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
 
             voxelTop->setInnerShellLinkType(linkType);
 
@@ -731,9 +747,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
 
         if(voxelFront->getOutsideVoxelLinkType() != linkType  &&
                 voxelFront->getInnerShellLinkType() != linkType){
-            if(voxelFront->getInnerShellLinkType() != 'E')
-                voxelFront->collide();
-
+            //            if(voxelFront->getInnerShellLinkType() != 'E'){
+            //                voxelFront->collide();
+            //                qDebug()<<"Link"<< voxelFront->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
             voxelFront->setInnerShellLinkType(linkType);
             return;
         }
@@ -750,9 +767,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
         if(voxelBack->getOutsideVoxelLinkType() != linkType  &&
                 voxelBack->getInnerShellLinkType() != linkType){
 
-            if(voxelBack->getInnerShellLinkType() != 'E')
-                voxelBack->collide();
-
+            //            if(voxelBack->getInnerShellLinkType() != 'E'){
+            //                voxelBack->collide();
+            //                qDebug()<<"Link"<< voxelBack->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
             voxelBack->setInnerShellLinkType(linkType);
             return;
         }
@@ -768,9 +786,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
 
         if(voxelLeft->getOutsideVoxelLinkType() != linkType  &&
                 voxelLeft->getInnerShellLinkType() != linkType){
-            if(voxelLeft->getInnerShellLinkType() != 'E')
-                voxelLeft->collide();
-
+            //            if(voxelLeft->getInnerShellLinkType() != 'E'){
+            //                voxelLeft->collide();
+            //                qDebug()<<"Link"<< voxelLeft->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
             voxelLeft->setInnerShellLinkType(linkType);
             return;
         }
@@ -786,9 +805,10 @@ void Voxelizer::fillInnerShell(char linkType, int index_X, int index_Y, int inde
 
         if(voxelRight->getOutsideVoxelLinkType() != linkType  &&
                 voxelRight->getInnerShellLinkType() != linkType){
-            if(voxelRight->getInnerShellLinkType() != 'E')
-                voxelRight->collide();
-
+            //            if(voxelRight->getInnerShellLinkType() != 'E'){
+            //                voxelRight->collide();
+            //                qDebug()<<"Link"<< voxelRight->getInnerShellLinkType() <<"and Link"<< linkType <<"collides"<<endl;
+            //            }
             voxelRight->setInnerShellLinkType(linkType);
 
             return;
