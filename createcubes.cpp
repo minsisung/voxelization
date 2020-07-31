@@ -60,106 +60,106 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
 
     //    // create parent voxel models  ----------------------------------------------------------------------
 
-    //    //set joint limit
+    //        //set joint limit
 
-    //    for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++){
-    //        char linkType = loop->getChildLink()->getLinkType();
+    //        for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++){
+    //            char linkType = loop->getChildLink()->getLinkType();
 
-    //        switch (linkType) {
-    //        case 'X':
-    //            loop->setLowerLimit(-0.1f);
-    //            loop->setUpperLimit(0.1f);
-    //            break;
-    //        case 'Y':
-    //            loop->setLowerLimit(-0.1f);
-    //            loop->setUpperLimit(0.1f);
-    //            break;
-    //        case 'Z':
-    //            loop->setLowerLimit(-0.1f);
-    //            loop->setUpperLimit(0.1f);
-    //            break;
-    //        case 'A':
-    //            loop->setLowerLimit(0.0f);
-    //            loop->setUpperLimit(90.0f);
-    //            break;
-    //        case 'C':
-    //            loop->setLowerLimit(0.0f);
-    //            loop->setUpperLimit(90.0f);
-    //            break;
+    //            switch (linkType) {
+    //            case 'X':
+    //                loop->setLowerLimit(-0.1f);
+    //                loop->setUpperLimit(0.1f);
+    //                break;
+    //            case 'Y':
+    //                loop->setLowerLimit(-0.1f);
+    //                loop->setUpperLimit(0.1f);
+    //                break;
+    //            case 'Z':
+    //                loop->setLowerLimit(-0.1f);
+    //                loop->setUpperLimit(0.1f);
+    //                break;
+    //            case 'A':
+    //                loop->setLowerLimit(0.0f);
+    //                loop->setUpperLimit(90.0f);
+    //                break;
+    //            case 'C':
+    //                loop->setLowerLimit(0.0f);
+    //                loop->setUpperLimit(90.0f);
+    //                break;
+    //            }
     //        }
-    //    }
 
-    //    //find and voxelize base link
-    //    Link* baseLink = nullptr;
+    ////        //find and voxelize base link
+    //        Link* baseLink = nullptr;
 
-    //    for (QVector<Link>::iterator loop = MT.LinkVector.begin(); loop != MT.LinkVector.end(); loop++){
-    //        if(loop->ParentLink == nullptr)
-    //        {
-    //            baseLink = loop;
-    //            voxelizer.Voxelize(*baseLink, true);
-
-    //            //reset bounding index for next component
-    //            voxelizer.reset_bounding_index();
-
-    //            break;
-    //        }
-    //    }
-
-    //    // only works for 50 configuration type
-    //    Link* currentLink = baseLink->ChildLink;
-
-    //    while(currentLink->ChildLink != nullptr){
-    //        char linkType = currentLink->getLinkType();
-
-    //        if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
-    //            int samplingNumber = 3;
-
-    //            for(int i = 0; i < samplingNumber; ++i){
-    //                char linkType1 = currentLink->getLinkType();
-    //                float lowerLimit1 = currentLink->getLowerLimit();
-    //                float upperLimit1 = currentLink->getUpperLimit();
-    //                float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
-
-    //                //translational unit: meter
-    //                //rotary unit: degree
-    //                voxelizer.setTransformationMatrix(MT, linkType1,motionRange1);
-    //                voxelizer.Voxelize(*currentLink, true);
+    //        for (QVector<Link>::iterator loop = MT.LinkVector.begin(); loop != MT.LinkVector.end(); loop++){
+    //            if(loop->ParentLink == nullptr)
+    //            {
+    //                baseLink = loop;
+    //                voxelizer.Voxelize(*baseLink, true);
 
     //                //reset bounding index for next component
     //                voxelizer.reset_bounding_index();
 
-    //                currentLink = currentLink->ChildLink;
+    //                break;
+    //            }
+    //        }
 
-    //                for(int j = 0; j < samplingNumber; ++j){
-    //                    char linkType2 = currentLink->getLinkType();
-    //                    float lowerLimit2 = currentLink->getLowerLimit();
-    //                    float upperLimit2 = currentLink->getUpperLimit();
-    //                    float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
+    //        // only works for 50 configuration type
+    //        Link* currentLink = baseLink->ChildLink;
+
+    //        while(currentLink->ChildLink != nullptr){
+    //            char linkType = currentLink->getLinkType();
+
+    //            if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
+    //                int samplingNumber = 3;
+
+    //                for(int i = 0; i < samplingNumber; ++i){
+    //                    char linkType1 = currentLink->getLinkType();
+    //                    float lowerLimit1 = currentLink->getLowerLimit();
+    //                    float upperLimit1 = currentLink->getUpperLimit();
+    //                    float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
 
     //                    //translational unit: meter
     //                    //rotary unit: degree
-    //                    voxelizer.setTransformationMatrix(MT, linkType2, motionamount2);
+    //                    voxelizer.setTransformationMatrix(MT, linkType1,motionRange1);
     //                    voxelizer.Voxelize(*currentLink, true);
 
     //                    //reset bounding index for next component
     //                    voxelizer.reset_bounding_index();
 
-    //                    if(j == samplingNumber-1)
-    //                        currentLink = currentLink->ParentLink;
+    //                    currentLink = currentLink->ChildLink;
+
+    //                    for(int j = 0; j < samplingNumber; ++j){
+    //                        char linkType2 = currentLink->getLinkType();
+    //                        float lowerLimit2 = currentLink->getLowerLimit();
+    //                        float upperLimit2 = currentLink->getUpperLimit();
+    //                        float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
+
+    //                        //translational unit: meter
+    //                        //rotary unit: degree
+    //                        voxelizer.setTransformationMatrix(MT, linkType2, motionamount2);
+    //                        voxelizer.Voxelize(*currentLink, true);
+
+    //                        //reset bounding index for next component
+    //                        voxelizer.reset_bounding_index();
+
+    //                        if(j == samplingNumber-1)
+    //                            currentLink = currentLink->ParentLink;
+    //                    }
+    //                    if(i == samplingNumber-1)
+    //                        break;
     //                }
-    //                if(i == samplingNumber-1)
-    //                    break;
+    //                break;
+
+    //            }else{
+    //                voxelizer.Voxelize(*currentLink, true);
+
+    //                //reset bounding index for next component
+    //                voxelizer.reset_bounding_index();
+    //                currentLink = currentLink->ChildLink;
     //            }
-    //            break;
-
-    //        }else{
-    //            voxelizer.Voxelize(*currentLink, true);
-
-    //            //reset bounding index for next component
-    //            voxelizer.reset_bounding_index();
-    //            currentLink = currentLink->ChildLink;
     //        }
-    //    }
 
 
     // create parent voxel models  ----------------------------------------------------------------------
@@ -167,12 +167,16 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //timer
     QElapsedTimer timer1;
     timer1.start();
-    //    voxelizer.translateVoxelModel(MT, 'Z', -0.1f, 0,0);
-    voxelizer.translateVoxelModel(MT, 'Y', 0.135f, 0,0);
-    //    voxelizer.translateVoxelModel(MT, 'Z', -0.1f, 1, 4);
-    //    voxelizer.translateVoxelModel(MT, 'X', 0.1f, 1, 4);
+    //        voxelizer.translateVoxelModel(MT, 'X', -0.2f, 0,0);
+        QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.4f, 0,0);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
+
+        if(totalCollisionSet.empty()){
+            qDebug()<<"No collision occurs"<<endl;
+        }else{
+            qDebug()<<"Collision pairs for this configuration"<<totalCollisionSet<<endl;
+        }
 
     // check if visualization is necessary     ===========================================================
     if(ifNeedVisualization){
@@ -181,7 +185,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
             //timer
             QElapsedTimer timer;
             timer.start();
-            drawVoxelforMT(*loop,1,4);
+            drawVoxelforMT(*loop,0,0);
             qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }
@@ -198,23 +202,23 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
     //            for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index() + 1; ++number_y) {
     //                for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index() + 1; ++number_z) {
 
-    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
+    //    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
+    //        int number_x = i->x();
+    //        int number_y = i->y();
+    //        int number_z = i->z();
+    int index = 0;
+
+    if(link.getLinkType() == 'C')
+        index = ind1;
+
+    if(link.getLinkType() == 'A')
+        index = ind2;
+
+    for (QList<QVector3D>::iterator i = link.MTVoxelIndicesListVector[index].begin();
+         i != link.MTVoxelIndicesListVector[index].end(); ++i){
         int number_x = i->x();
         int number_y = i->y();
         int number_z = i->z();
-        int index = 0;
-
-        if(link.getLinkType() == 'C')
-            index = ind1;
-
-        if(link.getLinkType() == 'A')
-            index = ind2;
-
-        //    for (QList<QVector3D>::iterator i = link.MTOutterVoxelIndicesListVector[index].begin();
-        //         i != link.MTOutterVoxelIndicesListVector[index].end(); ++i){
-        //        int number_x = i->x();
-        //        int number_y = i->y();
-        //        int number_z = i->z();
 
         //        if voxel is empty, jump to next iteration
         //                if(link.linkVoxelspace[number_x][number_y][number_z].getOutterShellLinkType() != linkType)
@@ -252,9 +256,9 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
         for (int i = 0; i < 6; ++i) {
             normal = setNormal(i);
 
-            //            ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
-            //            if(ifDuplicate)
-            //                continue;
+            ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
+            if(ifDuplicate)
+                continue;
 
             // insert vertex position into m_data for creating VBO
 
@@ -354,24 +358,24 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
 
     //        switch (linkType) {
     //        case 'X':
-    //            loop->setLowerLimit(-0.1f);
+    //            loop->setLowerLimit(0.0f);
     //            loop->setUpperLimit(0.1f);
     //            break;
     //        case 'Y':
-    //            loop->setLowerLimit(-0.1f);
-    //            loop->setUpperLimit(0.1f);
+    //            loop->setLowerLimit(-0.0f);
+    //            loop->setUpperLimit(0.2f);
     //            break;
     //        case 'Z':
-    //            loop->setLowerLimit(-0.1f);
+    //            loop->setLowerLimit(-0.0f);
     //            loop->setUpperLimit(0.1f);
     //            break;
     //        case 'A':
     //            loop->setLowerLimit(0.0f);
-    //            loop->setUpperLimit(90.0f);
+    //            loop->setUpperLimit(60.0f);
     //            break;
     //        case 'C':
     //            loop->setLowerLimit(0.0f);
-    //            loop->setUpperLimit(90.0f);
+    //            loop->setUpperLimit(60.0f);
     //            break;
     //        }
     //    }
@@ -452,36 +456,94 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
 
     //    // create parent voxel models  ----------------------------------------------------------------------
 
-    //    Link* link1 = baseLink;
+    //    Link* link1 = baseLink->ChildLink;
+    //    Link* link2 = link1->ChildLink;
+    //    Link* link3 = link2->ChildLink;
+    //    Link* link4  = link3->ChildLink;
+    //    Link* link5 = link4->ChildLink;
 
-    //    for (int ind_1 = 1; ind_1 < samplingNumber + 1; ind_1++ ){
-    //        float motion1 = link1->getLowerLimit() +
+    //    char linkType1 = link1->getLinkType();
+    //    char linkType2 = link2->getLinkType();
+    //    char linkType3 = link3->getLinkType();
+    //    char linkType4 = link4->getLinkType();
+    //    char linkType5 = link5->getLinkType();
+
+    //    float motion1 = link1->getLowerLimit()+
+    //            (link1->getUpperLimit() - link1->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion2 = link2->getLowerLimit()+
+    //            (link2->getUpperLimit() - link2->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion3 = link3->getLowerLimit()+
+    //            (link3->getUpperLimit() - link3->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion4 = link4->getLowerLimit()+
+    //            (link4->getUpperLimit() - link4->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion5 = link5->getLowerLimit()+
+    //            (link5->getUpperLimit() - link5->getLowerLimit()) * 0 / samplingNumber;
+
+
+    //    for (int ind_1 = 0; ind_1 < samplingNumber + 1; ind_1++ ){
+    //        motion1 = link1->getLowerLimit() +
     //                (link1->getUpperLimit() - link1->getLowerLimit()) * ind_1 / samplingNumber;
-    //        voxelizer.translateVoxelModel(MT, baseLink->getLinkType(), motion1, 0, 0);
-    //        Link* link2 = link1->ChildLink;
+
+    //        QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, linkType1, motion1, 0, 0);
+    //        if(totalCollisionSet.empty()){
+    //            qDebug()<<"No collision at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                   <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<endl;
+    //        }else{
+    //            qDebug()<<"Collision pairs at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                   <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<":"<<totalCollisionSet<<endl;
+    //        }
 
     //        for (int ind_2 = 1; ind_2 < samplingNumber + 1; ind_2++ ){
-    //            float motion2 = link2->getLowerLimit() +
+    //            motion2 = link2->getLowerLimit() +
     //                    (link2->getUpperLimit() - link2->getLowerLimit()) * ind_2 / samplingNumber;
-    //            voxelizer.translateVoxelModel(MT, baseLink->getLinkType(), motion2, 0, 0);
-    //            Link* link3 = link2->ChildLink;
+
+    //            QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, linkType2, motion2, 0, 0);
+    //            if(totalCollisionSet.empty()){
+    //                qDebug()<<"No collision at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                       <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<endl;
+    //            }else{
+    //                qDebug()<<"Collision pairs at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                       <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<":"<<totalCollisionSet<<endl;
+    //            }
 
     //            for (int ind_3 = 1; ind_3 < samplingNumber + 1; ind_3++ ){
-    //                float motion3 = link3->getLowerLimit() +
+    //                motion3 = link3->getLowerLimit() +
     //                        (link3->getUpperLimit() - link3->getLowerLimit()) * ind_3 / samplingNumber;
-    //                voxelizer.translateVoxelModel(MT, baseLink->getLinkType(), motion3, 0, 0);
-    //                Link* link4  = link3->ChildLink;
 
-    //                for (int ind_4 = 0; ind_4<samplingNumber + 1; ind_4++ ){
-    //                    float motion4 = link4->getLowerLimit() +
+    //                QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, linkType3, motion3, 0, 0);
+    //                if(totalCollisionSet.empty()){
+    //                    qDebug()<<"No collision at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                           <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<endl;
+    //                }else{
+    //                    qDebug()<<"Collision pairs at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                           <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<":"<<totalCollisionSet<<endl;
+    //                }
+
+    //                for (int ind_4 = 1; ind_4<samplingNumber + 1; ind_4++ ){
+    //                    motion4 = link4->getLowerLimit() +
     //                            (link4->getUpperLimit() - link4->getLowerLimit()) * ind_4 / samplingNumber;
-    //                    voxelizer.translateVoxelModel(MT, baseLink->getLinkType(), motion4, ind_4, 0);
-    //                    Link* link5 = link4->ChildLink;
+
+    //                    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, linkType4, motion4, ind_4, 0);
+    //                    if(totalCollisionSet.empty()){
+    //                        qDebug()<<"No collision at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                               <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<endl;
+    //                    }else{
+    //                        qDebug()<<"Collision pairs at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                               <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<":"<<totalCollisionSet<<endl;
+    //                    }
 
     //                    for (int ind_5 = 1; ind_5<samplingNumber + 1; ind_5++ ){
-    //                        float motion5 = link5->getLowerLimit() +
+    //                        motion5 = link5->getLowerLimit() +
     //                                (link5->getUpperLimit() - link5->getLowerLimit()) * ind_5 / samplingNumber;
-    //                        voxelizer.translateVoxelModel(MT, baseLink->getLinkType(), motion5, ind_4, ind_4 * samplingNumber + ind_5);
+
+    //                        QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, linkType5, motion5, ind_4, ind_4 * samplingNumber + ind_5);
+    //                        if(totalCollisionSet.empty()){
+    //                            qDebug()<<"No collision at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                                   <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<endl;
+    //                        }else{
+    //                            qDebug()<<"Collision pairs at"<<linkType1<<"="<<motion1<<linkType2<<"="<<motion2<<linkType3<<"="<<motion3
+    //                                   <<linkType4<<"="<<motion4<<linkType5<<"="<<motion5<<":"<<totalCollisionSet<<endl;
+    //                        }
     //                    }
     //                }
     //            }
@@ -492,13 +554,16 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //timer
     QElapsedTimer timer1;
     timer1.start();
-    //    voxelizer.translateVoxelModel(MT, 'Z', -0.1f, 0,0);
-    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.135f, 0,0);
-
-    qDebug()<<"Collision pairs for this configuration"<<totalCollisionSet<<endl;
-
+    //    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Z', -0.2f, 0,0);
+    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.9f, 0,0);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
+
+    if(totalCollisionSet.empty()){
+        qDebug()<<"No collision occurs"<<endl;
+    }else{
+        qDebug()<<"Collision pairs for this configuration"<<totalCollisionSet<<endl;
+    }
 
     // check if visualization is necessary     ===========================================================
     if(ifNeedVisualization){
@@ -507,15 +572,15 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
             //timer
             QElapsedTimer timer;
             timer.start();
-            drawVoxelforCollision(*loop);
-            qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
+            drawVoxelforCollision(*loop,0,0);
+            //            qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }
     //check if visualization is necessary     =======================================================
 }
 
 
-void CreateCubes::drawVoxelforCollision(Link& link)
+void CreateCubes::drawVoxelforCollision(Link& link, int ind1, int ind2)
 {
     //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
     for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() +1; ++number_x) {
@@ -623,37 +688,37 @@ bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int numb
 
     // number_z - 1 has overlapping face
     if (i==0 && number_z > 0){
-        if(linkVS[number_x][number_y][number_z - 1].getOutterShellLinkType() != 'E'){
+        if(linkVS[number_x][number_y][number_z - 1].getVoxelLinkType() != 'E'){
             return true;
         }
     }
     // number_y + 1 has overlapping face
     else if (i==1 && number_y < n_voxel_in_axis - 1){
-        if(linkVS[number_x][number_y + 1][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y + 1][number_z].getVoxelLinkType()!= 'E'){
             return true;
         }
     }
     // number_x + 1 has overlapping face
     else if (i==2 && number_x < n_voxel_in_axis - 1){
-        if(linkVS[number_x + 1][number_y][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x + 1][number_y][number_z].getVoxelLinkType()!= 'E'){
             return true;
         }
     }
     // number_x - 1 has overlapping face
     else if (i==3 && number_x > 0){
-        if(linkVS[number_x - 1][number_y][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x - 1][number_y][number_z].getVoxelLinkType()!= 'E'){
             return true;
         }
     }
     // number_y - 1 has overlapping face
     else if (i==4 && number_y > 0){
-        if(linkVS[number_x][number_y - 1][number_z].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y - 1][number_z].getVoxelLinkType()!= 'E'){
             return true;
         }
     }
     // number_z + 1 has overlapping face
     else if (i==5 && number_z < n_voxel_in_axis - 1){
-        if(linkVS[number_x][number_y][number_z + 1].getOutterShellLinkType()!= 'E'){
+        if(linkVS[number_x][number_y][number_z + 1].getVoxelLinkType()!= 'E'){
             return true;
         }
     }

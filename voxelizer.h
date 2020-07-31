@@ -65,9 +65,7 @@ public:
     void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
     QSet<QString> translateVoxelModel(MachineTool &MT, char linkType, float amount, int ind1, int ind2);
 
-
 private:
-    void fillInnerShell(char linkType, int indexX, int indexY, int indexZ, const float* normalArray);
     void parentModelVoxelization(Link& link, bool needVisualization);
     QSet<QString> translateVoxels(Link *link, char linkType, int voxelNumberDistance, int ind1, int ind2);
     float spaceLength;
@@ -80,7 +78,6 @@ private:
     vx_vertex_t p1;
     vx_vertex_t p2;
     vx_vertex_t p3;
-    QVector < QVector < QVector<int> > > shellMap;
 
     int bounding_x_min_index = std::numeric_limits<int>::max();
     int bounding_x_max_index = 0;
