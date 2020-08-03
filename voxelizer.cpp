@@ -307,10 +307,10 @@ void Voxelizer::parentModelVoxelization(Link& link, bool needVisualization)
                         boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
                         if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
 
-                            if(voxelLinkType != 'E' && voxelLinkType != linkType){
-                                voxel.collide();
-                                link.MTCollidedVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
-                            }
+//                            if(voxelLinkType != 'E' && voxelLinkType != linkType){
+//                                voxel.collide();
+//                                link.MTCollidedVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
+//                            }
 
                             voxel.setVoxelLinkType(linkType);
                             voxel.setComponentNumber(mesh_ind + 1);
@@ -331,7 +331,6 @@ void Voxelizer::parentModelVoxelization(Link& link, bool needVisualization)
 
     //update voxel space assigned to voxel space
     link.linkVoxelspace = voxelspace;
-
 }
 
 void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max)
