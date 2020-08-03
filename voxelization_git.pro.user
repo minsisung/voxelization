@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.12.4, 2020-07-30T16:54:04. -->
+<!-- Written by QtCreator 4.12.4, 2020-08-02T21:43:44. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -185,7 +185,7 @@
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.2">
     <value type="bool">true</value>
     <value type="int" key="EnableQmlDebugging">2</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:/Users/simon/Dropbox/voxelization/build-voxelization_git-Desktop_Qt_5_13_2_MSVC2017_64bit-Profile</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:\Users\simon\Dropbox\voxelization\build-voxelization_git-Desktop_Qt_5_13_2_MSVC2017_64bit-Profile</value>
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">C:/Users/simon/Dropbox/voxelization/build-voxelization_git-Desktop_Qt_5_13_2_MSVC2017_64bit-Profile</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">

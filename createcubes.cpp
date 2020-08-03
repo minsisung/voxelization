@@ -17,7 +17,7 @@ void CreateCubes::setupInitialTransformation(MachineTool &MT)
     voxelizer.setupInitialTransformationMatrix(MT, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-void CreateCubes::setupTransformation(MachineTool &MT, char linkType, float amount)
+void CreateCubes::setupTransformation(MachineTool &MT, QChar linkType, float amount)
 {
     voxelizer.setTransformationMatrix(MT, linkType, amount);
 }
@@ -63,7 +63,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //        //set joint limit
 
     //        for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++){
-    //            char linkType = loop->getChildLink()->getLinkType();
+    //            QChar linkType = loop->getChildLink()->getLinkType();
 
     //            switch (linkType) {
     //            case 'X':
@@ -109,13 +109,13 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //        Link* currentLink = baseLink->ChildLink;
 
     //        while(currentLink->ChildLink != nullptr){
-    //            char linkType = currentLink->getLinkType();
+    //            QChar linkType = currentLink->getLinkType();
 
     //            if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
     //                int samplingNumber = 3;
 
     //                for(int i = 0; i < samplingNumber; ++i){
-    //                    char linkType1 = currentLink->getLinkType();
+    //                    QChar linkType1 = currentLink->getLinkType();
     //                    float lowerLimit1 = currentLink->getLowerLimit();
     //                    float upperLimit1 = currentLink->getUpperLimit();
     //                    float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
@@ -131,7 +131,7 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     //                    currentLink = currentLink->ChildLink;
 
     //                    for(int j = 0; j < samplingNumber; ++j){
-    //                        char linkType2 = currentLink->getLinkType();
+    //                        QChar linkType2 = currentLink->getLinkType();
     //                        float lowerLimit2 = currentLink->getLowerLimit();
     //                        float upperLimit2 = currentLink->getUpperLimit();
     //                        float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
@@ -168,15 +168,15 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
     QElapsedTimer timer1;
     timer1.start();
     //        voxelizer.translateVoxelModel(MT, 'X', -0.2f, 0,0);
-        QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.4f, 0,0);
+    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.52f, 0,0);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
 
-        if(totalCollisionSet.empty()){
-            qDebug()<<"No collision occurs"<<endl;
-        }else{
-            qDebug()<<"Collision pairs for this configuration"<<totalCollisionSet<<endl;
-        }
+    if(totalCollisionSet.empty()){
+        qDebug()<<"No collision occurs"<<endl;
+    }else{
+        qDebug()<<"Collision pairs for this configuration"<<totalCollisionSet<<endl;
+    }
 
     // check if visualization is necessary     ===========================================================
     if(ifNeedVisualization){
@@ -194,18 +194,12 @@ void CreateCubes::createMTVoxelspace(float spaceLength, float vSize, MachineTool
 
 
 void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
-{
-    char linkType = link.getLinkType();
-
+{    
     //    loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
     //        for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() + 1; ++number_x) {
     //            for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index() + 1; ++number_y) {
     //                for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index() + 1; ++number_z) {
 
-    //    for (QList<QVector3D>::iterator i = link.MTInnerVoxelIndicesList.begin(); i != link.MTInnerVoxelIndicesList.end(); ++i){
-    //        int number_x = i->x();
-    //        int number_y = i->y();
-    //        int number_z = i->z();
     int index = 0;
 
     if(link.getLinkType() == 'C')
@@ -214,104 +208,102 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
     if(link.getLinkType() == 'A')
         index = ind2;
 
-    for (QList<QVector3D>::iterator i = link.MTVoxelIndicesListVector[index].begin();
-         i != link.MTVoxelIndicesListVector[index].end(); ++i){
-        int number_x = i->x();
-        int number_y = i->y();
-        int number_z = i->z();
+    for(int mesh_ind = 0; mesh_ind < link.MTVoxelIndicesListVector.size(); ++mesh_ind){
+        for (QList<QVector3D>::iterator i = link.MTVoxelIndicesListVector[mesh_ind][index].begin();
+             i != link.MTVoxelIndicesListVector[mesh_ind][index].end(); ++i){
+            int number_x = i->x();
+            int number_y = i->y();
+            int number_z = i->z();
 
-        //        if voxel is empty, jump to next iteration
-        //                if(link.linkVoxelspace[number_x][number_y][number_z].getOutterShellLinkType() != linkType)
-        //                continue;
+            //        if voxel is empty, jump to next iteration
+            //                if(link.linkVoxelspace[number_x][number_y][number_z].getOutterShellLinkType() != linkType)
+            //                continue;
 
+            GLfloat offset_y = voxelSize * number_y;
+            GLfloat offset_x = voxelSize * number_x;
+            GLfloat offset_z = voxelSize * number_z;
+            GLfloat x_right = mostLeftBottom + voxelSize + offset_x;
+            GLfloat x_left = mostLeftBottom + offset_x;
+            GLfloat y_up = mostLeftBottom + voxelSize + offset_y;
+            GLfloat y_down = mostLeftBottom + offset_y;
+            GLfloat z_futher = mostLeftBottom + offset_z;
+            GLfloat z_closer = mostLeftBottom + voxelSize + offset_z;
 
-        //        if(link.linkVoxelspace[number_x][number_y][number_z].getInnerShellLinkType() != linkType)
-        //            continue;
+            //coordinates of triangles forming faces of cubes
+            //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
+            GLfloat coords[6][4][3] = {
+                { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
+                { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
+                { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
+                { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
+                { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
+                { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
+            };
 
-        GLfloat offset_y = voxelSize * number_y;
-        GLfloat offset_x = voxelSize * number_x;
-        GLfloat offset_z = voxelSize * number_z;
-        GLfloat x_right = mostLeftBottom + voxelSize + offset_x;
-        GLfloat x_left = mostLeftBottom + offset_x;
-        GLfloat y_up = mostLeftBottom + voxelSize + offset_y;
-        GLfloat y_down = mostLeftBottom + offset_y;
-        GLfloat z_futher = mostLeftBottom + offset_z;
-        GLfloat z_closer = mostLeftBottom + voxelSize + offset_z;
+            QVector3D normal;
+            bool ifDuplicate = false;
 
-        //coordinates of triangles forming faces of cubes
-        //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
-        GLfloat coords[6][4][3] = {
-            { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
-            { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
-            { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
-            { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
-            { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
-            { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
-        };
+            // Draw6 different normal direction and avoid overlapping face for each face
+            for (int i = 0; i < 6; ++i) {
+                normal = setNormal(i);
 
-        QVector3D normal;
-        bool ifDuplicate = false;
+                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
+                if(ifDuplicate)
+                    continue;
 
-        // Draw6 different normal direction and avoid overlapping face for each face
-        for (int i = 0; i < 6; ++i) {
-            normal = setNormal(i);
+                // insert vertex position into m_data for creating VBO
 
-            ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z, link);
-            if(ifDuplicate)
-                continue;
+                //first triangle in the face
+                m_data.resize(m_totalCount+36);
+                GLfloat *p = m_data.data() + m_totalCount;
+                *p++ = coords[i][0][0];
+                *p++ = coords[i][0][1];
+                *p++ = coords[i][0][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][1][0];
+                *p++ = coords[i][1][1];
+                *p++ = coords[i][1][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][2][0];
+                *p++ = coords[i][2][1];
+                *p++ = coords[i][2][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
 
-            // insert vertex position into m_data for creating VBO
+                /////////////////////////////////////////////
+                //second triangle in the face
+                *p++ = coords[i][0][0];
+                *p++ = coords[i][0][1];
+                *p++ = coords[i][0][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][2][0];
+                *p++ = coords[i][2][1];
+                *p++ = coords[i][2][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][3][0];
+                *p++ = coords[i][3][1];
+                *p++ = coords[i][3][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                m_totalCount += 36;
 
-            //first triangle in the face
-            m_data.resize(m_totalCount+36);
-            GLfloat *p = m_data.data() + m_totalCount;
-            *p++ = coords[i][0][0];
-            *p++ = coords[i][0][1];
-            *p++ = coords[i][0][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-            //---------------------------------
-            *p++ = coords[i][1][0];
-            *p++ = coords[i][1][1];
-            *p++ = coords[i][1][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-            //---------------------------------
-            *p++ = coords[i][2][0];
-            *p++ = coords[i][2][1];
-            *p++ = coords[i][2][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-
-            /////////////////////////////////////////////
-            //second triangle in the face
-            *p++ = coords[i][0][0];
-            *p++ = coords[i][0][1];
-            *p++ = coords[i][0][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-            //---------------------------------
-            *p++ = coords[i][2][0];
-            *p++ = coords[i][2][1];
-            *p++ = coords[i][2][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-            //---------------------------------
-            *p++ = coords[i][3][0];
-            *p++ = coords[i][3][1];
-            *p++ = coords[i][3][2];
-            *p++ = normal[0];
-            *p++ = normal[1];
-            *p++ = normal[2];
-            m_totalCount += 36;
-
-            //update number of vertices
-            link.numberOfVertex += 6;
+                //update number of vertices
+                link.numberOfVertex += 6;
+            }
         }
     }
 }
@@ -354,7 +346,7 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //set joint limit
 
     //    for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++){
-    //        char linkType = loop->getChildLink()->getLinkType();
+    //        QChar linkType = loop->getChildLink()->getLinkType();
 
     //        switch (linkType) {
     //        case 'X':
@@ -401,13 +393,13 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //    int samplingNumber = 3;
 
     //    while(currentLink->ChildLink != nullptr){
-    //        char linkType = currentLink->getLinkType();
+    //        QChar linkType = currentLink->getLinkType();
 
     //        if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
 
 
     //            for(int i = 0; i < samplingNumber; ++i){
-    //                char linkType1 = currentLink->getLinkType();
+    //                QChar linkType1 = currentLink->getLinkType();
     //                float lowerLimit1 = currentLink->getLowerLimit();
     //                float upperLimit1 = currentLink->getUpperLimit();
     //                float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
@@ -423,7 +415,7 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //                currentLink = currentLink->ChildLink;
 
     //                for(int j = 0; j < samplingNumber; ++j){
-    //                    char linkType2 = currentLink->getLinkType();
+    //                    QChar linkType2 = currentLink->getLinkType();
     //                    float lowerLimit2 = currentLink->getLowerLimit();
     //                    float upperLimit2 = currentLink->getUpperLimit();
     //                    float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
@@ -462,11 +454,11 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     //    Link* link4  = link3->ChildLink;
     //    Link* link5 = link4->ChildLink;
 
-    //    char linkType1 = link1->getLinkType();
-    //    char linkType2 = link2->getLinkType();
-    //    char linkType3 = link3->getLinkType();
-    //    char linkType4 = link4->getLinkType();
-    //    char linkType5 = link5->getLinkType();
+    //    QChar linkType1 = link1->getLinkType();
+    //    QChar linkType2 = link2->getLinkType();
+    //    QChar linkType3 = link3->getLinkType();
+    //    QChar linkType4 = link4->getLinkType();
+    //    QChar linkType5 = link5->getLinkType();
 
     //    float motion1 = link1->getLowerLimit()+
     //            (link1->getUpperLimit() - link1->getLowerLimit()) * 0 / samplingNumber;
@@ -555,7 +547,7 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
     QElapsedTimer timer1;
     timer1.start();
     //    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Z', -0.2f, 0,0);
-    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.9f, 0,0);
+    QSet<QString> totalCollisionSet = voxelizer.translateVoxelModel(MT, 'Y', 0.52f, 0,0);
 
     qDebug() << "Translate voxels took" << timer1.elapsed() << "milliseconds"<<endl;
 
@@ -572,7 +564,7 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
             //timer
             QElapsedTimer timer;
             timer.start();
-            drawVoxelforCollision(*loop,0,0);
+            drawVoxelforCollision(*loop);
             //            qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }
@@ -580,106 +572,112 @@ void CreateCubes::createCollisionVoxelspace(float spaceLength, float vSize, Mach
 }
 
 
-void CreateCubes::drawVoxelforCollision(Link& link, int ind1, int ind2)
+void CreateCubes::drawVoxelforCollision(Link& link)
 {
-    //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
-    for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() +1; ++number_x) {
-        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
-            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
+    //    //loop through voxel space to plot occupied voxels (only loop through the bounding voxel space from voxelizer)
+    //    for (int number_x = link.get_x_min_index(); number_x < link.get_x_max_index() +1; ++number_x) {
+    //        for (int number_y = link.get_y_min_index(); number_y < link.get_y_max_index()+1; ++number_y) {
+    //            for (int number_z = link.get_z_min_index(); number_z < link.get_z_max_index()+1; ++number_z) {
 
-                //if voxel is empty, jump to next iteration
-                if(!link.linkVoxelspace[number_x][number_y][number_z].isCollide())
-                    continue;
+    //                //if voxel is empty, jump to next iteration
+    //                if(!link.linkVoxelspace[number_x][number_y][number_z].isCollide())
+    //                    continue;
 
-                GLfloat offset_y = voxelSize * number_y;
-                GLfloat offset_x = voxelSize * number_x;
-                GLfloat offset_z = voxelSize * number_z;
-                GLfloat x_right = mostLeftBottom + voxelSize/2 + offset_x;
-                GLfloat x_left = mostLeftBottom - voxelSize/2 + offset_x;
-                GLfloat y_up = mostLeftBottom + voxelSize/2 + offset_y;
-                GLfloat y_down = mostLeftBottom - voxelSize/2 + offset_y;
-                GLfloat z_futher = mostLeftBottom - voxelSize/2 + offset_z;
-                GLfloat z_closer = mostLeftBottom + voxelSize/2 + offset_z;
+    for (QList<QVector3D>::iterator i = link.MTCollidedVoxelIndicesList.begin();
+         i != link.MTCollidedVoxelIndicesList.end(); ++i){
+        int number_x = i->x();
+        int number_y = i->y();
+        int number_z = i->z();
 
-                //coordinates of triangles forming faces of cubes
-                //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
-                GLfloat coords[6][4][3] = {
-                    { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
-                    { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
-                    { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
-                    { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
-                    { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
-                    { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
-                };
+        GLfloat offset_y = voxelSize * number_y;
+        GLfloat offset_x = voxelSize * number_x;
+        GLfloat offset_z = voxelSize * number_z;
+        GLfloat x_right = mostLeftBottom + voxelSize/2 + offset_x;
+        GLfloat x_left = mostLeftBottom - voxelSize/2 + offset_x;
+        GLfloat y_up = mostLeftBottom + voxelSize/2 + offset_y;
+        GLfloat y_down = mostLeftBottom - voxelSize/2 + offset_y;
+        GLfloat z_futher = mostLeftBottom - voxelSize/2 + offset_z;
+        GLfloat z_closer = mostLeftBottom + voxelSize/2 + offset_z;
 
-                QVector3D normal;
-                bool ifDuplicate = false;
+        //coordinates of triangles forming faces of cubes
+        //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
+        GLfloat coords[6][4][3] = {
+            { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
+            { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
+            { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
+            { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
+            { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
+            { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
+        };
 
-                // Draw6 different normal direction and avoid overlapping face for each face
-                for (int i = 0; i < 6; ++i) {
-                    normal = setNormal(i);
+        QVector3D normal;
+        bool ifDuplicate = false;
 
-                    ifDuplicate = checkDuplicateFaceforCollision(i, number_x, number_y, number_z);
-                    if(ifDuplicate)
-                        continue;
+        // Draw6 different normal direction and avoid overlapping face for each face
+        for (int i = 0; i < 6; ++i) {
+            normal = setNormal(i);
 
-                    // insert vertex position into m_data for creating VBO
+            ifDuplicate = checkDuplicateFaceforCollision(i, number_x, number_y, number_z);
+            if(ifDuplicate)
+                continue;
 
-                    //first triangle in the face
-                    m_data.resize(m_totalCount+36);
-                    GLfloat *p = m_data.data() + m_totalCount;
-                    *p++ = coords[i][0][0];
-                    *p++ = coords[i][0][1];
-                    *p++ = coords[i][0][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
-                    //---------------------------------
-                    *p++ = coords[i][1][0];
-                    *p++ = coords[i][1][1];
-                    *p++ = coords[i][1][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
-                    //---------------------------------
-                    *p++ = coords[i][2][0];
-                    *p++ = coords[i][2][1];
-                    *p++ = coords[i][2][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
+            // insert vertex position into m_data for creating VBO
 
-                    /////////////////////////////////////////////
-                    //second triangle in the face
-                    *p++ = coords[i][0][0];
-                    *p++ = coords[i][0][1];
-                    *p++ = coords[i][0][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
-                    //---------------------------------
-                    *p++ = coords[i][2][0];
-                    *p++ = coords[i][2][1];
-                    *p++ = coords[i][2][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
-                    //---------------------------------
-                    *p++ = coords[i][3][0];
-                    *p++ = coords[i][3][1];
-                    *p++ = coords[i][3][2];
-                    *p++ = normal[0];
-                    *p++ = normal[1];
-                    *p++ = normal[2];
-                    m_totalCount += 36;
+            //first triangle in the face
+            m_data.resize(m_totalCount+36);
+            GLfloat *p = m_data.data() + m_totalCount;
+            *p++ = coords[i][0][0];
+            *p++ = coords[i][0][1];
+            *p++ = coords[i][0][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
+            //---------------------------------
+            *p++ = coords[i][1][0];
+            *p++ = coords[i][1][1];
+            *p++ = coords[i][1][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
+            //---------------------------------
+            *p++ = coords[i][2][0];
+            *p++ = coords[i][2][1];
+            *p++ = coords[i][2][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
 
-                    //update number of vertices
-                    link.numberOfVertex += 6;
-                }
-            }
+            /////////////////////////////////////////////
+            //second triangle in the face
+            *p++ = coords[i][0][0];
+            *p++ = coords[i][0][1];
+            *p++ = coords[i][0][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
+            //---------------------------------
+            *p++ = coords[i][2][0];
+            *p++ = coords[i][2][1];
+            *p++ = coords[i][2][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
+            //---------------------------------
+            *p++ = coords[i][3][0];
+            *p++ = coords[i][3][1];
+            *p++ = coords[i][3][2];
+            *p++ = normal[0];
+            *p++ = normal[1];
+            *p++ = normal[2];
+            m_totalCount += 36;
+
+            //update number of vertices
+            link.numberOfVertex += 6;
         }
     }
 }
+//    }
+//}
 
 
 bool CreateCubes::checkDuplicateFace(int i, int number_x, int number_y, int number_z, Link& link)

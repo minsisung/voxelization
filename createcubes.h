@@ -31,11 +31,11 @@ private:
     QVector<int> vertices_number_vector;
     float voxelSize;
     float mostLeftBottom;
-    void drawVoxelforCollision(Link& link, int ind1, int ind2);
+    void drawVoxelforCollision(Link& link);
     void drawVoxelforMT(Link& link, int ind1, int ind2);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
     void setupInitialTransformation(MachineTool& MT);
-    void setupTransformation(MachineTool& MT, char linkType, float amount);
+    void setupTransformation(MachineTool& MT, QChar linkType, float amount);
 };
 
 

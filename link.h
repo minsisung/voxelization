@@ -6,6 +6,7 @@
 #include <stl_reader.h>
 #include "voxel.h"
 
+
 class Link
 {
 private:
@@ -14,7 +15,7 @@ private:
     Vector3 m_origin_rpy;
     std::string m_meshfile;
     VectorRGBA m_rgba;
-    stl_reader::StlMesh <float, unsigned int> m_STLMesh;
+    QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
     char linkType = 'b';
 
     int bounding_x_min_index;
@@ -41,14 +42,14 @@ public:
     Vector3 getOrigin_xyz() const{return m_origin_xyz;}
     Vector3 getOrigin_rpy() const{return m_origin_rpy;}
     VectorRGBA getRGBA() const{return m_rgba;}
-    std::string getMeshFile()const;
+    QStringList getMeshFile()const;
     std::string getName() const{return m_name;}
     int numberOfVertex = 0;
     QMatrix4x4 m_TransformMatrix;
     Link *m_parent_link;
     Link *m_child_link;
     void setSTLMesh();
-    stl_reader::StlMesh <float, unsigned int>  getSTLMesh(){return m_STLMesh;}
+    QVector<stl_reader::StlMesh <float, unsigned int>>  getSTLMesh(){return m_STLMeshVector;}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}
 
@@ -66,9 +67,8 @@ public:
                              int z_min_index, int z_max_index);
 
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
-    QList<QVector3D> MTVoxelIndicesList;
-
-    QVector<QList<QVector3D>> MTVoxelIndicesListVector;
+    QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVector; //[component][mother model][indies]
+    QList<QVector3D> MTCollidedVoxelIndicesList;
 };
 
 #endif // LINK_H

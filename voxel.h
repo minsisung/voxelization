@@ -1,19 +1,24 @@
 #ifndef VOXEL_H
 #define VOXEL_H
+#include <QChar>
 
 class Voxel
 {
 public:
     Voxel();
-    void setVoxelLinkType(char type){VoxelLinkType = type;}
-    char getVoxelLinkType(){return VoxelLinkType;}
+    void setVoxelLinkType(QChar type){VoxelLinkType = type;}
+    QChar getVoxelLinkType(){return VoxelLinkType;}
+
+    void setComponentNumber(int number){componentNumber = number;}
+    int getComponentNumber(){return componentNumber;}
 
     void collide(){collisionStatus = true;}
     bool isCollide(){return collisionStatus;}
 
 private:
-    char VoxelLinkType = 'E';   //E: empty
+    QChar VoxelLinkType = 'E';   //E: empty
     bool collisionStatus = false;
+    int componentNumber = 0;
 
 };
 #endif // VOXEL_H

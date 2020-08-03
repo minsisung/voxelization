@@ -184,12 +184,7 @@ QDebug operator<<(QDebug stream, const MachineTool &MT)
         stream<<"Name of the link: "<<QString::fromStdString(loop->getName())<<endl;
         stream<<"xyz:  "<<loop->getOrigin_xyz().x<<" "<<loop->getOrigin_xyz().y<<" "<<loop->getOrigin_xyz().z<<endl;
         stream<<"rpy:  "<<loop->getOrigin_rpy().x<<" "<<loop->getOrigin_rpy().y<<" "<<loop->getOrigin_rpy().z<<endl;
-        stream<<"STL file Name:"<<QString::fromStdString(loop->getMeshFile())<<endl<<endl;
+        stream<<"STL file Names:"<<loop->getMeshFile()<<endl<<endl;
     }
     return stream;
 }
-
-
-
-
-

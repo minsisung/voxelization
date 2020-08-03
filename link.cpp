@@ -1,5 +1,6 @@
 #include "link.h"
 #include<iostream>
+#include <QDir>
 
 Link::Link(){}
 Link::Link(std::string name):m_name(name){}
@@ -15,25 +16,40 @@ Link::Link(std::string name, Vector3 origin_xyz,Vector3 origin_rpy, std::string 
     QList<int> Z_index;
 }
 
-std::string Link::getMeshFile()const {
+QStringList Link::getMeshFile()const {
 
     std::size_t pos = m_meshfile.find("meshes/");
-    std::string short_meshfile = m_meshfile.substr(pos+7);   //only return name of the stl file
+    std::size_t pos2 = m_meshfile.find(".STL");
+    std::string short_meshfile = m_meshfile.substr(pos+7 , pos2-(pos+7));   //only return name of the stl file
 
-    return short_meshfile;
+    //store all .stl with the same first name
+    QDir directory = QDir::current();
+    QStringList STLList = directory.entryList(QStringList() << "*.STL" << "*.stl",QDir::Files);
+    QStringList meshList = STLList.filter(QString::fromStdString(short_meshfile), Qt::CaseInsensitive);
+
+    return meshList;
 }
 
 void Link::setSTLMesh()
 {
-    try {
+    //store all mesh in a vector for this link from meshlist
+    QStringList meshList = this->getMeshFile();
+
+    for(int i = 0; i< meshList.size(); i++)
+        try {
         //read STL file for each file
-        stl_reader::StlMesh <float, unsigned int> mesh(this->getMeshFile());
-        m_STLMesh = mesh;
-        std::cout << "Finish setting mesh for " <<this->m_name << std::endl;
+        stl_reader::StlMesh <float, unsigned int> mesh(meshList[i].toStdString());
+        m_STLMeshVector.append(mesh);
+        std::cout << "Finish setting mesh for" <<meshList[i].toStdString()<< std::endl;
     }
     catch (std::exception& e) {
         std::cout << e.what() << std::endl;
     }
+
+    //setup MTVoxelIndicesListVector depends on the size of meshlist
+    QVector<QList<QVector3D>> correctsize_MTVoxelIndicesList;
+    QVector<QVector<QList<QVector3D>>> correctsize_MTVoxelIndicesListVector(meshList.size(), correctsize_MTVoxelIndicesList);
+    MTVoxelIndicesListVector = correctsize_MTVoxelIndicesListVector;
 }
 
 void Link::setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,

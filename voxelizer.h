@@ -40,7 +40,7 @@ public:
     Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
 
-    //Component       Char
+    //Component       QChar
     //    Base         'b'
     //    X            'X'
     //    Y            'Y'
@@ -62,12 +62,12 @@ public:
     void reset_bounding_index();
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
-    void setTransformationMatrix(MachineTool& MT, char linkType, float amount);
-    QSet<QString> translateVoxelModel(MachineTool &MT, char linkType, float amount, int ind1, int ind2);
+    void setTransformationMatrix(MachineTool& MT, QChar linkType, float amount);
+    QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int ind1, int ind2);
 
 private:
     void parentModelVoxelization(Link& link, bool needVisualization);
-    QSet<QString> translateVoxels(Link *link, char linkType, int voxelNumberDistance, int ind1, int ind2);
+    QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int ind1, int ind2);
     float spaceLength;
     float voxelSize;
     int voxelSpaceSize;
