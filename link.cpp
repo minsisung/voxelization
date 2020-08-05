@@ -39,6 +39,7 @@ void Link::setSTLMesh()
         try {
         //read STL file for each file
         stl_reader::StlMesh <float, unsigned int> mesh(meshList[i].toStdString());
+
         m_STLMeshVector.append(mesh);
         std::cout << "Finish setting mesh for" <<meshList[i].toStdString()<< std::endl;
     }

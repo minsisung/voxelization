@@ -15,7 +15,7 @@ private:
     Vector3 m_origin_rpy;
     std::string m_meshfile;
     VectorRGBA m_rgba;
-    QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
+
     char linkType = 'b';
 
     int bounding_x_min_index;
@@ -66,6 +66,8 @@ public:
     void setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,
                              int z_min_index, int z_max_index);
 
+
+    QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
     QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVector; //[component][mother model][indies]
     QList<QVector3D> MTCollidedVoxelIndicesList;

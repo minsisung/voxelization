@@ -63,6 +63,14 @@ int MachineTool::readURDF(const char* filename){
 
     XMLElement *link_count = MT->FirstChildElement("link");
 
+    QList<double> mtBoundingBox_X_min;
+    QList<double> mtBoundingBox_X_max;
+    QList<double> mtBoundingBox_Y_min;
+    QList<double> mtBoundingBox_Y_max;
+    QList<double> mtBoundingBox_Z_min;
+    QList<double> mtBoundingBox_Z_max;
+
+
     while (link_count)
     {
         const XMLAttribute *nameOfLink = link_count->FirstAttribute();
@@ -103,10 +111,36 @@ int MachineTool::readURDF(const char* filename){
 
         // read STL and store in each link
         link_reading.setSTLMesh();
-        LinkVector.push_back(link_reading);                                    //push link into the vector
+        LinkVector.push_back(link_reading);
+        //push link into the vector
+
+        //append all bounding box coordinates of each link
+        QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector = link_reading.m_STLMeshVector;
+        for(int i = 0; i < STLMeshVector.size(); i++){
+        mtBoundingBox_X_min.append(STLMeshVector[i].getBoundingBox_X_min());
+        mtBoundingBox_X_max.append(STLMeshVector[i].getBoundingBox_X_max());
+        mtBoundingBox_Y_min.append(STLMeshVector[i].getBoundingBox_Y_min());
+        mtBoundingBox_Y_max.append(STLMeshVector[i].getBoundingBox_Y_max());
+        mtBoundingBox_Z_min.append(STLMeshVector[i].getBoundingBox_Z_min());
+        mtBoundingBox_Z_max.append(STLMeshVector[i].getBoundingBox_Z_max());
+        }
 
         link_count = link_count->NextSiblingElement("link");                  //move to next sibling element
     }
+
+    //Get bounding box coordinates for whole machine tool
+    qSort(mtBoundingBox_X_min.begin(), mtBoundingBox_X_min.end());
+    qSort(mtBoundingBox_X_max.begin(), mtBoundingBox_X_max.end());
+    qSort(mtBoundingBox_Y_min.begin(), mtBoundingBox_Y_min.end());
+    qSort(mtBoundingBox_Y_max.begin(), mtBoundingBox_Y_max.end());
+    qSort(mtBoundingBox_Z_min.begin(), mtBoundingBox_Z_min.end());
+    qSort(mtBoundingBox_Z_max.begin(), mtBoundingBox_Z_max.end());
+    bounding_x_min = mtBoundingBox_X_min.first();
+    bounding_x_max = mtBoundingBox_X_max.last();
+    bounding_y_min = mtBoundingBox_Y_min.first();
+    bounding_y_max = mtBoundingBox_Y_max.last();
+    bounding_z_min = mtBoundingBox_Z_min.first();
+    bounding_z_max = mtBoundingBox_Z_max.last();
 
     XMLElement *joint = MT->FirstChildElement("joint");
 

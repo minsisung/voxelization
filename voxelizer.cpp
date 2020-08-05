@@ -227,36 +227,54 @@ Voxelizer::Voxelizer()
 
 }
 
-void Voxelizer::setupSize(float s_Length, float v_Size)
+void Voxelizer::setupSize(float v_Size, MachineTool& MT)
 {
     voxelSize = v_Size;
-    spaceLength = s_Length;
+    VSEnglargeRatio = 1.4f;
+    spaceLength_X = (MT.getBoundingBox_X_max() - MT.getBoundingBox_X_min()) * VSEnglargeRatio * 1000;
+    spaceLength_Y = (MT.getBoundingBox_Y_max() - MT.getBoundingBox_Y_min()) * VSEnglargeRatio* 1000;
+    spaceLength_Z = (MT.getBoundingBox_Z_max() - MT.getBoundingBox_Z_min()) * VSEnglargeRatio * 1000;
+
     halfboxsize.x = voxelSize/2;
     halfboxsize.y = voxelSize/2;
     halfboxsize.z = voxelSize/2;
-    voxelSpaceSize = static_cast<int>(spaceLength/voxelSize);
+    voxelSpaceSize_X = static_cast<int>(spaceLength_X/voxelSize);
+    voxelSpaceSize_Y = static_cast<int>(spaceLength_Y/voxelSize);
+    voxelSpaceSize_Z = static_cast<int>(spaceLength_Z/voxelSize);
+
+    qDebug()<<"Voxel number of Voxel Space in X:"<<voxelSpaceSize_X
+           <<"Voxel number of Voxel Space in Y:"<<voxelSpaceSize_Y
+          <<"Voxel number of Voxel Space in Z:"<<voxelSpaceSize_Z<<endl;
+
+    voxelStarting_X = (MT.getBoundingBox_X_min() - (MT.getBoundingBox_X_max() - MT.getBoundingBox_X_min())
+                       * (VSEnglargeRatio-1)/2) * 1000;
+    voxelStarting_Y = (MT.getBoundingBox_Y_min() - (MT.getBoundingBox_Y_max() - MT.getBoundingBox_Y_min())
+                       * (VSEnglargeRatio-1)/2) * 1000;
+    voxelStarting_Z = (MT.getBoundingBox_Z_min() - (MT.getBoundingBox_Z_max() - MT.getBoundingBox_Z_min())
+                       * (VSEnglargeRatio-1)/2) * 1000;
 
     //setup size for voxelspace
-    QVector < QVector < QVector< Voxel > > > correctSizeVS(voxelSpaceSize, QVector < QVector< Voxel > >(voxelSpaceSize, QVector<Voxel>(voxelSpaceSize)));
+    QVector < QVector < QVector< Voxel > > > correctSizeVS
+            (voxelSpaceSize_X, QVector < QVector< Voxel > >(voxelSpaceSize_Y,QVector<Voxel>(voxelSpaceSize_Z)));
     voxelspace = correctSizeVS;
 }
 
-void Voxelizer::Voxelize(Link& link, bool needVisualization)
+void Voxelizer::Voxelize(Link& link)
 {
     if(link.ParentLink != nullptr)
         voxelspace = link.ParentLink->linkVoxelspace;
 
-    parentModelVoxelization(link, needVisualization);
+    parentModelVoxelization(link);
 }
 
-void Voxelizer::parentModelVoxelization(Link& link, bool needVisualization)
+void Voxelizer::parentModelVoxelization(Link& link)
 {
     //create empty voxelIndicesList to store parent voxel model of this link
     QList<QVector3D> newParentMTVoxelIndicesList;
 
     float min_x, max_x, min_y, max_y, min_z, max_z;
     QChar linkType = link.getLinkType();
-    float voxelStartingCenter = (-spaceLength/2) + (voxelSize/2);
+
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector = link.getSTLMesh();
     QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
 
@@ -279,38 +297,35 @@ void Voxelizer::parentModelVoxelization(Link& link, bool needVisualization)
                     VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
                     //get voxel indices of bounding box of triangle
-                    int index_x_min = floor((min_x - (-spaceLength/2))/voxelSize);
-            int index_x_max = floor((max_x - (-spaceLength/2))/voxelSize);
-            int index_y_min = floor((min_y - (-spaceLength/2))/voxelSize);
-            int index_y_max = floor((max_y - (-spaceLength/2))/voxelSize);
-            int index_z_min = floor((min_z - (-spaceLength/2))/voxelSize);
-            int index_z_max = floor((max_z - (-spaceLength/2))/voxelSize);
+                    int index_x_min = floor((min_x - (voxelStarting_X))/voxelSize);
+            int index_x_max = floor((max_x - (voxelStarting_X))/voxelSize);
+            int index_y_min = floor((min_y - (voxelStarting_Y))/voxelSize);
+            int index_y_max = floor((max_y - (voxelStarting_Y))/voxelSize);
+            int index_z_min = floor((min_z - (voxelStarting_Z))/voxelSize);
+            int index_z_max = floor((max_z - (voxelStarting_Z))/voxelSize);
 
             // bounding box of triangle can't be outside of voxelspace
-            Q_ASSERT_X((max_x < spaceLength/2 && max_y < spaceLength/2 && max_z < spaceLength/2 &&
-                        min_x > -spaceLength/2 && min_y > -spaceLength/2 && min_z > -spaceLength/2), "voxelizer", "part of geometry is outside of voxelspace");
-
-            //setup the bounding voxel index of the geometry to speed up cubes creation when visualization is necessary
-            //(index_z_min for z component is smaller for swept volume)
-            if(needVisualization)
-                set_bounding_voxel_index(index_x_min, index_x_max, index_y_min, index_y_max, index_z_min, index_z_max);
+            Q_ASSERT_X((max_x < voxelStarting_X + voxelSpaceSize_X * voxelSize &&
+                        max_y < voxelStarting_Y + voxelSpaceSize_Y * voxelSize &&
+                        max_z < voxelStarting_Z + voxelSpaceSize_Z * voxelSize &&
+                        min_x > voxelStarting_X && min_y > voxelStarting_Y && min_z > voxelStarting_Z), "voxelizer", "part of geometry is outside of voxelspace");
 
             //Check intersection between triangle and voxels in the bounding boxes of triangle
             for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++){
                 for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
                         Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                        QChar voxelLinkType = voxel.getVoxelLinkType();
+                        //                        QChar voxelLinkType = voxel.getVoxelLinkType();
 
-                        boxcenter.x = voxelStartingCenter + voxelSize*ind_x;
-                        boxcenter.y = voxelStartingCenter + voxelSize*ind_y;
-                        boxcenter.z = voxelStartingCenter + voxelSize*ind_z;
+                        boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
+                        boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
+                        boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
                         if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
 
-//                            if(voxelLinkType != 'E' && voxelLinkType != linkType){
-//                                voxel.collide();
-//                                link.MTCollidedVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
-//                            }
+                            //                            if(voxelLinkType != 'E' && voxelLinkType != linkType){
+                            //                                voxel.collide();
+                            //                                link.MTCollidedVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
+                            //                            }
 
                             voxel.setVoxelLinkType(linkType);
                             voxel.setComponentNumber(mesh_ind + 1);
@@ -325,43 +340,8 @@ void Voxelizer::parentModelVoxelization(Link& link, bool needVisualization)
                  << "took" << timer.elapsed() << "milliseconds"<<endl;
     }
 
-    //set bounding box for link
-    link.setBoundingBoxIndex(bounding_x_min_index, bounding_x_max_index, bounding_y_min_index,bounding_y_max_index,
-                             bounding_z_min_index, bounding_z_max_index);
-
     //update voxel space assigned to voxel space
     link.linkVoxelspace = voxelspace;
-}
-
-void Voxelizer::set_bounding_voxel_index(int index_x_min, int index_x_max, int index_y_min, int index_y_max, int index_z_min, int index_z_max)
-{
-    if(index_x_min < bounding_x_min_index)
-        bounding_x_min_index = index_x_min;
-
-    if(index_x_max > bounding_x_max_index)
-        bounding_x_max_index = index_x_max;
-
-    if(index_y_min < bounding_y_min_index)
-        bounding_y_min_index = index_y_min;
-
-    if(index_y_max > bounding_y_max_index)
-        bounding_y_max_index = index_y_max;
-
-    if(index_z_min < bounding_z_min_index)
-        bounding_z_min_index = index_z_min;
-
-    if(index_z_max > bounding_z_max_index)
-        bounding_z_max_index = index_z_max;
-}
-
-void Voxelizer::reset_bounding_index()
-{
-    bounding_x_min_index = std::numeric_limits<int>::max();
-    bounding_x_max_index = 0;
-    bounding_y_min_index = std::numeric_limits<int>::max();
-    bounding_y_max_index = 0;
-    bounding_z_min_index = std::numeric_limits<int>::max();
-    bounding_z_max_index = 0;
 }
 
 void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix)
@@ -520,8 +500,7 @@ QSet<QString> Voxelizer::translateVoxelModel(MachineTool &MT, QChar movingLinkTy
                     totalCollisionSet.unite(translateVoxels(tralatedLink, movingLinkType, voxelNumberDistance,ind1, ind2));
 
                     qDebug() << "Translating"<<tralatedLink->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
-                    //                    qDebug() <<tralatedLink->getLinkType()  << " link contains" << tralatedLink->MTOutterVoxelIndicesList.size() << " shell voxels"<<endl;
-                    //                    qDebug() <<tralatedLink->getLinkType()  << " link contains" << tralatedLink->MTInnerVoxelIndicesList.size() << " inner shell voxels"<<endl;
+                    // qDebug() <<tralatedLink->getLinkType()  << " link contains" << tralatedLink->MTVoxelIndicesList.size() << " shell voxels"<<endl;
 
                     //move pointer to childLink
                     tralatedLink = tralatedLink->ChildLink;
@@ -550,12 +529,6 @@ QSet<QString> Voxelizer::translateVoxels(Link *link, QChar movingLinkType, int v
     }else{
         voxelNumberDistanceZ = voxelNumberDistance;
     }
-
-    // can not translate to outside of voxelspace
-    Q_ASSERT_X(((link->get_x_min_index() + voxelNumberDistanceX) > 0) && ((link->get_x_max_index() + voxelNumberDistanceX) < voxelSpaceSize) &&
-               ((link->get_y_min_index() + voxelNumberDistanceY) > 0) && ((link->get_y_max_index() + voxelNumberDistanceY) < voxelSpaceSize) &&
-               ((link->get_z_min_index() + voxelNumberDistanceZ) > 0) && ((link->get_z_max_index() + voxelNumberDistanceZ) < voxelSpaceSize),
-               "translateVoxels", "translate to outside of voxelspace");
 
     QVector < QVector < QVector< Voxel > > > newVS = link->ParentLink->linkVoxelspace;
 
@@ -591,10 +564,8 @@ QSet<QString> Voxelizer::translateVoxels(Link *link, QChar movingLinkType, int v
 
                 QString collisionPair;
 
-                collisionPair.append(currentLinkType);
-                collisionPair.append(QString::number(voxel.getComponentNumber()));
-                collisionPair.append(ShellType);
-                collisionPair.append(componentNumber);
+                collisionPair.append(currentLinkType + QString::number(voxel.getComponentNumber()) +
+                                     ShellType + componentNumber);
 
                 if(!collisionSet.contains(collisionPair))
                     collisionSet.insert(collisionPair);
@@ -619,4 +590,3 @@ QSet<QString> Voxelizer::translateVoxels(Link *link, QChar movingLinkType, int v
 
     return collisionSet;
 }
-

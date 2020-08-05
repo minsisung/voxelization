@@ -119,12 +119,10 @@ void MyOpenGLWidget::initializeGL()
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //m_geometry.readSTL(m_filepath);
-    //    m_cubeGemoetry.createMTVoxelspace(4400.0f, 10.0f, m_filepathes, true);  //UMC-750
-    //                    m_cubeGemoetry.createCollisionVoxelspace(4401.0f, 2.0f, MT, true);  //UMC-750
-        m_cubeGemoetry.createMTVoxelspace(4500.0f, 4.0f, MT, true); //VF-2
+
+        m_cubeGemoetry.createMTVoxelspace(4.0f, MT, true); //VF-2
 //    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);  //VF-2
-    //            m_cubeGemoetry.createMTVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
-    //    m_cubeGemoetry.createCollisionVoxelspace(3495.0f, 1.5f, MT, true); //UMC-500
+
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
