@@ -197,7 +197,7 @@ int MachineTool::readURDF(const char* filename){
                             find_link(parent->Value(),LinkVector),find_link(child->Value(),LinkVector));
         JointVector.push_back(joint_reading);                           //push into the joint vector
 
-        joint_reading.getParentLink()->ChildLink = joint_reading.getChildLink();
+        joint_reading.getParentLink()->ChildLink.append(joint_reading.getChildLink());
         //assign child link to the parent link
 
         joint_reading.getChildLink()->ParentLink = joint_reading.getParentLink();

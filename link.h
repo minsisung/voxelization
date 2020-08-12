@@ -37,7 +37,8 @@ public:
     ~Link(){}
 
     Link *ParentLink = nullptr;
-    Link *ChildLink = nullptr;
+//    Link *ChildLink = nullptr;
+    QVector<Link*> ChildLink;
     bool isTranslational = false;
     bool isRotaitonal = false;
 

@@ -506,7 +506,7 @@ QSet<QString> Voxelizer::translateVoxelModel(MachineTool &MT, QChar movingLinkTy
                     // qDebug() <<tralatedLink->getLinkType()  << " link contains" << tralatedLink->MTVoxelIndicesList.size() << " shell voxels"<<endl;
 
                     //move pointer to childLink
-                    tralatedLink = tralatedLink->ChildLink;
+                    tralatedLink = tralatedLink->ChildLink[0];
 
                     //                    ifEnd = ((tralatedLink->getLinkType() == 'A') | (tralatedLink->getLinkType() == 'B') | (tralatedLink->getLinkType() == 'C'));
                 }
@@ -599,7 +599,7 @@ void Voxelizer::shiftVoxelModel(MachineTool &MT,float amountX, float amountY, fl
     bool switchY = false;
     bool switchZ = false;
 
-    Link *currentLink = MT.baseLink->ChildLink;
+    Link *currentLink = MT.baseLink->ChildLink[0];
 
     while(currentLink != nullptr){
         QSet<QString> collisionSet;
@@ -630,7 +630,7 @@ void Voxelizer::shiftVoxelModel(MachineTool &MT,float amountX, float amountY, fl
                 }
             }
         }
-        currentLink = currentLink->ChildLink;
+        currentLink = currentLink->ChildLink[0];
     }
 }
 
@@ -640,7 +640,7 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
 
     QVector < QVector < QVector< Voxel > > > newVS = MT.baseLink->linkVoxelspace;
 
-    Link *currentLink = MT.baseLink->ChildLink;
+    Link *currentLink = MT.baseLink->ChildLink[0];
 
     while(currentLink != nullptr){
         QSet<QString> collisionSet;
@@ -686,7 +686,7 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
         }
         totalCollisionSet.unite(collisionSet);
 
-        currentLink = currentLink->ChildLink;
+        currentLink = currentLink->ChildLink[0];
     }
 
     return totalCollisionSet;

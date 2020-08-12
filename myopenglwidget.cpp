@@ -22,9 +22,9 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     //create machine tool by reading urdf
     //            MT.readURDF("VF-2.urdf");
     //        MT.readURDF("umc500.urdf");
-    //    MT.readURDF("UMC-750.urdf");
+        MT.readURDF("UMC-750.urdf");
 //    MT.readURDF("UMC-750_short.urdf");
-        MT.readURDF("50machineTool.urdf");
+//        MT.readURDF("50machineTool.urdf");
 //        MT.readURDF("50machineTool_short.urdf");
 
     Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");

@@ -98,51 +98,54 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
     QElapsedTimer parentModelstimer;
     parentModelstimer.start();
 
+    int samplingNumber = 2;
 
-    // only works for 50 configuration type
-    Link* currentLink = baseLink->ChildLink;
-    int samplingNumber = 5;
-    while(currentLink != nullptr){
-        QChar linkType = currentLink->getLinkType();
+    for(int Number = 0; Number < baseLink->ChildLink.size(); Number++){
+        Link* currentLink = baseLink->ChildLink[Number];
 
-        if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
+        while(currentLink != nullptr){
 
-            for(int i = 0; i < samplingNumber; ++i){
-                QChar linkType1 = currentLink->getLinkType();
-                float lowerLimit1 = currentLink->getLowerLimit();
-                float upperLimit1 = currentLink->getUpperLimit();
-                float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
+            if(currentLink->isRotaitonal){
+                // voxelize rotary links
 
-                //translational unit: meter
-                //rotary unit: degree
-                voxelizer.setTransformationMatrix(MT, linkType1,motionRange1);
-                voxelizer.Voxelize(*currentLink);
-
-                currentLink = currentLink->ChildLink;
-
-                for(int j = 0; j < samplingNumber; ++j){
-                    QChar linkType2 = currentLink->getLinkType();
-                    float lowerLimit2 = currentLink->getLowerLimit();
-                    float upperLimit2 = currentLink->getUpperLimit();
-                    float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
+                for(int i = 0; i < samplingNumber; ++i){
+                    QChar linkType1 = currentLink->getLinkType();
+                    float lowerLimit1 = currentLink->getLowerLimit();
+                    float upperLimit1 = currentLink->getUpperLimit();
+                    float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
 
                     //translational unit: meter
                     //rotary unit: degree
-                    voxelizer.setTransformationMatrix(MT, linkType2, motionamount2);
+                    voxelizer.setTransformationMatrix(MT, linkType1,motionRange1);
                     voxelizer.Voxelize(*currentLink);
 
-                    if(j == samplingNumber-1)
-                        currentLink = currentLink->ParentLink;
+                    if(!currentLink->ChildLink.isEmpty()){
+                        currentLink = currentLink->ChildLink[0];
+                        for(int j = 0; j < samplingNumber; ++j){
+                            QChar linkType2 = currentLink->getLinkType();
+                            float lowerLimit2 = currentLink->getLowerLimit();
+                            float upperLimit2 = currentLink->getUpperLimit();
+                            float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
+
+                            //translational unit: meter
+                            //rotary unit: degree
+                            voxelizer.setTransformationMatrix(MT, linkType2, motionamount2);
+                            voxelizer.Voxelize(*currentLink);
+
+                            if(j == samplingNumber-1)
+                                currentLink = currentLink->ParentLink;
+                        }
+                    }
+                    if(i == samplingNumber-1)
+                        break;
                 }
-                if(i == samplingNumber-1)
-                    break;
+                break;
+            }else{
+                // voxelize translational links
+                voxelizer.Voxelize(*currentLink);
+
+                currentLink = currentLink->ChildLink[0];
             }
-            break;
-
-        }else{
-            voxelizer.Voxelize(*currentLink);
-
-            currentLink = currentLink->ChildLink;
         }
     }
 
@@ -185,7 +188,7 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
         for(int samplingY = 0; samplingY < samplingNumber; samplingY++){
             for(int samplingZ = 0; samplingZ < samplingNumber; samplingZ++){
 
-                voxelizer.shiftVoxelModel(MT, 0.05 * samplingX, 0.05 *samplingY, 0.05 *samplingZ);
+                voxelizer.shiftVoxelModel(MT, 0.1 * samplingX, 0.1 *samplingY, 0.1 *samplingZ);
 
                 for(int firstRotarySamplingNumber = 0; firstRotarySamplingNumber < samplingNumber; firstRotarySamplingNumber++){
                     for(int secondRotarySamplingNumber = 0; secondRotarySamplingNumber < samplingNumber; secondRotarySamplingNumber++){
@@ -407,9 +410,9 @@ void CreateCubes::createCollisionVoxelspace(float vSize, MachineTool& MT ,bool n
     }
 
     // only works for 50 configuration type
-    Link* currentLink = baseLink->ChildLink;
+    Link* currentLink = baseLink->ChildLink[0];
     int samplingNumber = 3;
-    while(currentLink->ChildLink != nullptr){
+    while(currentLink->ChildLink[0] != nullptr){
         QChar linkType = currentLink->getLinkType();
 
         if(linkType == 'A' |linkType == 'B' | linkType == 'C'){
@@ -425,7 +428,7 @@ void CreateCubes::createCollisionVoxelspace(float vSize, MachineTool& MT ,bool n
                 voxelizer.Voxelize(*currentLink);
 
 
-                currentLink = currentLink->ChildLink;
+                currentLink = currentLink->ChildLink[0];
 
                 for(int j = 0; j < samplingNumber; ++j){
                     QChar linkType2 = currentLink->getLinkType();
@@ -449,34 +452,34 @@ void CreateCubes::createCollisionVoxelspace(float vSize, MachineTool& MT ,bool n
 
         }else{
             voxelizer.Voxelize(*currentLink);
-            currentLink = currentLink->ChildLink;
+            currentLink = currentLink->ChildLink[0];
         }
     }
 
     // create parent voxel models  ----------------------------------------------------------------------
 
-    Link* link1 = baseLink->ChildLink;
-    Link* link2 = link1->ChildLink;
-    Link* link3 = link2->ChildLink;
-    Link* link4  = link3->ChildLink;
-    Link* link5 = link4->ChildLink;
+    //    Link* link1 = baseLink->ChildLink[0];
+    //    Link* link2 = link1->ChildLink[0];
+    //    Link* link3 = link2->ChildLink[0];
+    //    Link* link4  = link3->ChildLink[0];
+    //    Link* link5 = link4->ChildLink[0];
 
-    QChar linkType1 = link1->getLinkType();
-    QChar linkType2 = link2->getLinkType();
-    QChar linkType3 = link3->getLinkType();
-    QChar linkType4 = link4->getLinkType();
-    QChar linkType5 = link5->getLinkType();
+    //    QChar linkType1 = link1->getLinkType();
+    //    QChar linkType2 = link2->getLinkType();
+    //    QChar linkType3 = link3->getLinkType();
+    //    QChar linkType4 = link4->getLinkType();
+    //    QChar linkType5 = link5->getLinkType();
 
-    float motion1 = link1->getLowerLimit()+
-            (link1->getUpperLimit() - link1->getLowerLimit()) * 0 / samplingNumber;
-    float motion2 = link2->getLowerLimit()+
-            (link2->getUpperLimit() - link2->getLowerLimit()) * 0 / samplingNumber;
-    float motion3 = link3->getLowerLimit()+
-            (link3->getUpperLimit() - link3->getLowerLimit()) * 0 / samplingNumber;
-    float motion4 = link4->getLowerLimit()+
-            (link4->getUpperLimit() - link4->getLowerLimit()) * 0 / samplingNumber;
-    float motion5 = link5->getLowerLimit()+
-            (link5->getUpperLimit() - link5->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion1 = link1->getLowerLimit()+
+    //            (link1->getUpperLimit() - link1->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion2 = link2->getLowerLimit()+
+    //            (link2->getUpperLimit() - link2->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion3 = link3->getLowerLimit()+
+    //            (link3->getUpperLimit() - link3->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion4 = link4->getLowerLimit()+
+    //            (link4->getUpperLimit() - link4->getLowerLimit()) * 0 / samplingNumber;
+    //    float motion5 = link5->getLowerLimit()+
+    //            (link5->getUpperLimit() - link5->getLowerLimit()) * 0 / samplingNumber;
 
 
     //        for (int ind_1 = 0; ind_1 < samplingNumber + 1; ind_1++ ){
