@@ -15,6 +15,7 @@ public:
     QVector<Link> LinkVector;                 // create a vector for links
     QVector<Joint> JointVector;               // create a vector for joints
     QString m_name;
+    Link* baseLink;
     friend QDebug operator<<(QDebug stream, const MachineTool& MT);   //overloading operator <<
 
     static inline double strToDouble(const char *in)

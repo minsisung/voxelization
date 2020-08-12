@@ -64,11 +64,14 @@ public:
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, QChar linkType, float amount);
-    QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int ind1, int ind2);
+    QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int samplingNumber);
+    void shiftVoxelModel(MachineTool &MT,float amountX, float amountY, float amountZ);
+    QSet<QString> collisionDetection(MachineTool &MT, int ind1, int ind2);
 
 private:
     void parentModelVoxelization(Link& link);
-    QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int ind1, int ind2);
+    QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int samplingNumber, bool ifEnd);
+
     float spaceLength_X;
     float spaceLength_Y;
     float spaceLength_Z;

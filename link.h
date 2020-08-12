@@ -38,6 +38,8 @@ public:
 
     Link *ParentLink = nullptr;
     Link *ChildLink = nullptr;
+    bool isTranslational = false;
+    bool isRotaitonal = false;
 
     Vector3 getOrigin_xyz() const{return m_origin_xyz;}
     Vector3 getOrigin_rpy() const{return m_origin_rpy;}
@@ -46,8 +48,6 @@ public:
     std::string getName() const{return m_name;}
     int numberOfVertex = 0;
     QMatrix4x4 m_TransformMatrix;
-    Link *m_parent_link;
-    Link *m_child_link;
     void setSTLMesh();
     QVector<stl_reader::StlMesh <float, unsigned int>>  getSTLMesh(){return m_STLMeshVector;}
     char getLinkType(){return linkType;}
@@ -69,7 +69,8 @@ public:
 
     QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
-    QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVector; //[component][mother model][indies]
+    QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVector; //[component][parent model][indies]
+    QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVectorUpdate; //[component][parent model][indies]
     QList<QVector3D> MTCollidedVoxelIndicesList;
 };
 

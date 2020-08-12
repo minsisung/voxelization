@@ -28,6 +28,8 @@ Link* MachineTool::find_link(std::string linkName, QVector<Link> &myVector)
 void MachineTool::assignLinkType(Joint &joint)
 {
     if(joint.getType() == "revolute"){
+        joint.getChildLink()->isRotaitonal = true;
+
         if(abs(joint.getAxis().x - 1.0) < 0.0001)
             joint.getChildLink()->setLinkType('A');
         if(abs(joint.getAxis().y - 1.0) < 0.0001)
@@ -37,6 +39,8 @@ void MachineTool::assignLinkType(Joint &joint)
     }
 
     if(joint.getType() == "prismatic"){
+        joint.getChildLink()->isTranslational = true;
+
         if(joint.getAxis().x == 1.0)
             joint.getChildLink()->setLinkType('X');
         if(joint.getAxis().y == 1.0)
@@ -206,6 +210,18 @@ int MachineTool::readURDF(const char* filename){
     }
 
     qDebug()<<"Finish creating kinematic chain by reading URDF"<<endl;
+
+
+
+    //find and voxelize base link
+
+    for (QVector<Link>::iterator loop = this->LinkVector.begin(); loop != this->LinkVector.end(); loop++){
+        if(loop->ParentLink == nullptr)
+        {
+            baseLink = loop;
+            break;
+        }
+    }
     return 0;
 }
 
