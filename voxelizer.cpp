@@ -595,42 +595,48 @@ void Voxelizer::shiftVoxelModel(MachineTool &MT,float amountX, float amountY, fl
     int voxelNumberDistanceY = amountY * 1000.0f / voxelSize;
     int voxelNumberDistanceZ = amountZ * 1000.0f / voxelSize;
 
-    bool switchX = false;
-    bool switchY = false;
-    bool switchZ = false;
+    for(int Number = 0; Number < MT.baseLink->ChildLink.size(); Number++){
+        bool switchX = false;
+        bool switchY = false;
+        bool switchZ = false;
+        Link* currentLink = MT.baseLink->ChildLink[Number];
 
-    Link *currentLink = MT.baseLink->ChildLink[0];
+        while(currentLink != nullptr){
+            QSet<QString> collisionSet;
+            currentLink->MTCollidedVoxelIndicesList.clear();
+            QChar currentLinkType = currentLink->getLinkType();
+            if (currentLinkType == 'X')
+                switchX = true;
+            if (currentLinkType == 'Y')
+                switchY = true;
+            if (currentLinkType == 'Z')
+                switchZ = true;
 
-    while(currentLink != nullptr){
-        QSet<QString> collisionSet;
-        currentLink->MTCollidedVoxelIndicesList.clear();
-        QChar currentLinkType = currentLink->getLinkType();
-        if (currentLinkType == 'X')
-            switchX = true;
-        if (currentLinkType == 'Y')
-            switchY = true;
-        if (currentLinkType == 'Z')
-            switchZ = true;
+            //reset MTVoxelIndicesListVectorUpdate to original position
+            currentLink->MTVoxelIndicesListVectorUpdate = currentLink->MTVoxelIndicesListVector;
 
-        currentLink->MTVoxelIndicesListVectorUpdate = currentLink->MTVoxelIndicesListVector;
+            for(int mesh_ind = 0; mesh_ind < currentLink->MTVoxelIndicesListVector.size(); ++mesh_ind){
+                for(int parentVoxel_ind = 0; parentVoxel_ind < currentLink->MTVoxelIndicesListVector[mesh_ind].size(); ++parentVoxel_ind){
 
-        for(int mesh_ind = 0; mesh_ind < currentLink->MTVoxelIndicesListVector.size(); ++mesh_ind){
-            for(int parentVoxel_ind = 0; parentVoxel_ind < currentLink->MTVoxelIndicesListVector[mesh_ind].size(); ++parentVoxel_ind){
+                    for (QList<QVector3D>::iterator i = currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][parentVoxel_ind].begin();
+                         i != currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][parentVoxel_ind].end(); ++i){
 
-                for (QList<QVector3D>::iterator i = currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][parentVoxel_ind].begin();
-                     i != currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][parentVoxel_ind].end(); ++i){
-
-                    //update MTVoxelIndiciesList of the link
-                    if(switchX)
-                        i->setX(i->x() + voxelNumberDistanceX);
-                    if(switchY)
-                        i->setY(i->y() + voxelNumberDistanceY);
-                    if(switchZ)
-                        i->setZ(i->z() + voxelNumberDistanceZ);
+                        //update MTVoxelIndiciesList of the link
+                        if(switchX)
+                            i->setX(i->x() + voxelNumberDistanceX);
+                        if(switchY)
+                            i->setY(i->y() + voxelNumberDistanceY);
+                        if(switchZ)
+                            i->setZ(i->z() + voxelNumberDistanceZ);
+                    }
                 }
             }
+            if(!currentLink->ChildLink.isEmpty()){
+                currentLink = currentLink->ChildLink[0];
+            }else{
+                break;
+            }
         }
-        currentLink = currentLink->ChildLink[0];
     }
 }
 
@@ -640,53 +646,60 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
 
     QVector < QVector < QVector< Voxel > > > newVS = MT.baseLink->linkVoxelspace;
 
-    Link *currentLink = MT.baseLink->ChildLink[0];
 
-    while(currentLink != nullptr){
-        QSet<QString> collisionSet;
-        currentLink->MTCollidedVoxelIndicesList.clear();
-        QChar currentLinkType = currentLink->getLinkType();
-        int index = 0;
+    for(int Number = 0; Number < MT.baseLink->ChildLink.size(); Number++){
+        Link *currentLink = MT.baseLink->ChildLink[Number];
 
-        if(currentLink->getLinkType() == 'C')
-            index = ind1;
+        while(currentLink != nullptr){
+            QSet<QString> collisionSet;
+            currentLink->MTCollidedVoxelIndicesList.clear();
+            QChar currentLinkType = currentLink->getLinkType();
+            int index = 0;
 
-        if(currentLink->getLinkType() == 'A')
-            index = ind2;
+            if(currentLink->getLinkType() == 'B')
+                index = ind1;
 
-        for(int mesh_ind = 0; mesh_ind < currentLink->MTVoxelIndicesListVector.size(); ++mesh_ind){
+            if(currentLink->getLinkType() == 'C')
+                index = ind2;
 
-            for (QList<QVector3D>::iterator i = currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][index].begin();
-                 i != currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][index].end(); ++i){
-                int number_x = i->x();
-                int number_y = i->y();
-                int number_z = i->z();
+            for(int mesh_ind = 0; mesh_ind < currentLink->MTVoxelIndicesListVector.size(); ++mesh_ind){
 
-                Voxel& voxel = newVS[number_x][number_y][number_z];
+                for (QList<QVector3D>::iterator i = currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][index].begin();
+                     i != currentLink->MTVoxelIndicesListVectorUpdate[mesh_ind][index].end(); ++i){
+                    int number_x = i->x();
+                    int number_y = i->y();
+                    int number_z = i->z();
 
-                QChar ShellType = voxel.getVoxelLinkType();
-                QString componentNumber = QString::number(voxel.getComponentNumber());
+                    Voxel& voxel = newVS[number_x][number_y][number_z];
 
-                voxel.setVoxelLinkType(currentLinkType);
-                voxel.setComponentNumber(mesh_ind + 1);
+                    QChar ShellType = voxel.getVoxelLinkType();
+                    QString componentNumber = QString::number(voxel.getComponentNumber());
 
-                if(ShellType != 'E' && ShellType != currentLinkType){
-                    voxel.collide();
-                    currentLink->MTCollidedVoxelIndicesList.append(QVector3D(number_x, number_y, number_z));
+                    voxel.setVoxelLinkType(currentLinkType);
+                    voxel.setComponentNumber(mesh_ind + 1);
 
-                    QString collisionPair;
+                    if(ShellType != 'E' && ShellType != currentLinkType){
+                        voxel.collide();
+                        currentLink->MTCollidedVoxelIndicesList.append(QVector3D(number_x, number_y, number_z));
 
-                    collisionPair.append(currentLinkType + QString::number(voxel.getComponentNumber()) +
-                                         ShellType + componentNumber);
+                        QString collisionPair;
 
-                    if(!collisionSet.contains(collisionPair))
-                        collisionSet.insert(collisionPair);
+                        collisionPair.append(currentLinkType + QString::number(voxel.getComponentNumber()) +
+                                             ShellType + componentNumber);
+
+                        if(!collisionSet.contains(collisionPair))
+                            collisionSet.insert(collisionPair);
+                    }
                 }
             }
-        }
-        totalCollisionSet.unite(collisionSet);
+            totalCollisionSet.unite(collisionSet);
 
-        currentLink = currentLink->ChildLink[0];
+            if(!currentLink->ChildLink.isEmpty()){
+                currentLink = currentLink->ChildLink[0];
+            }else{
+                break;
+            }
+        }
     }
 
     return totalCollisionSet;

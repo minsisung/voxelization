@@ -122,7 +122,7 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
 
-    m_cubeGemoetry.createMTVoxelspace(4.0f, MT, true);
+    m_cubeGemoetry.createMTVoxelspace(10.0f, MT, true);
     //    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
     m_program = new QOpenGLShaderProgram;

@@ -81,6 +81,10 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
             loop->setLowerLimit(-45.0f);
             loop->setUpperLimit(45.0f);
             break;
+        case 'B':
+            loop->setLowerLimit(-45.0f);
+            loop->setUpperLimit(45.0f);
+            break;
         case 'C':
             loop->setLowerLimit(-45.0f);
             loop->setUpperLimit(45.0f);
@@ -112,7 +116,7 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
                     QChar linkType1 = currentLink->getLinkType();
                     float lowerLimit1 = currentLink->getLowerLimit();
                     float upperLimit1 = currentLink->getUpperLimit();
-                    float motionRange1 = (upperLimit1 - lowerLimit1)/samplingNumber * i + lowerLimit1;
+                    float motionRange1 = (upperLimit1 - lowerLimit1)/(samplingNumber - 1)* i + lowerLimit1;
 
                     //translational unit: meter
                     //rotary unit: degree
@@ -125,7 +129,7 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
                             QChar linkType2 = currentLink->getLinkType();
                             float lowerLimit2 = currentLink->getLowerLimit();
                             float upperLimit2 = currentLink->getUpperLimit();
-                            float motionamount2 = (upperLimit2 - lowerLimit2)/samplingNumber * j + lowerLimit2;
+                            float motionamount2 = (upperLimit2 - lowerLimit2)/(samplingNumber - 1) * j + lowerLimit2;
 
                             //translational unit: meter
                             //rotary unit: degree
@@ -144,7 +148,11 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
                 // voxelize translational links
                 voxelizer.Voxelize(*currentLink);
 
-                currentLink = currentLink->ChildLink[0];
+                if(!currentLink->ChildLink.isEmpty()){
+                    currentLink = currentLink->ChildLink[0];
+                }else{
+                    break;
+                }
             }
         }
     }
@@ -178,43 +186,60 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
     //            (link5->getUpperLimit() - link5->getLowerLimit()) * 0/ (samplingNumber - 1);
 
 
-    QSet<QString> totalCollisionSet;
+        QSet<QString> totalCollisionSet;
 
-    //timer
-    QElapsedTimer collisionDetectiontimer;
-    collisionDetectiontimer.start();
+        //timer
+        QElapsedTimer collisionDetectiontimer;
+        collisionDetectiontimer.start();
 
-    for(int samplingX = 0; samplingX < samplingNumber; samplingX++){
-        for(int samplingY = 0; samplingY < samplingNumber; samplingY++){
-            for(int samplingZ = 0; samplingZ < samplingNumber; samplingZ++){
+        for(int samplingX = 0; samplingX < samplingNumber; samplingX++){
+            for(int samplingY = 0; samplingY < samplingNumber; samplingY++){
+                for(int samplingZ = 0; samplingZ < samplingNumber; samplingZ++){
 
-                voxelizer.shiftVoxelModel(MT, 0.1 * samplingX, 0.1 *samplingY, 0.1 *samplingZ);
+                    voxelizer.shiftVoxelModel(MT, 0.3 * samplingX, 0.2 *samplingY, -0.2 *samplingZ);
 
-                for(int firstRotarySamplingNumber = 0; firstRotarySamplingNumber < samplingNumber; firstRotarySamplingNumber++){
-                    for(int secondRotarySamplingNumber = 0; secondRotarySamplingNumber < samplingNumber; secondRotarySamplingNumber++){
-                        totalCollisionSet +=
-                                voxelizer.collisionDetection(MT, firstRotarySamplingNumber,
-                                                             firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber);
+                    for(int firstRotarySamplingNumber = 0; firstRotarySamplingNumber < samplingNumber; firstRotarySamplingNumber++){
+                        for(int secondRotarySamplingNumber = 0; secondRotarySamplingNumber < samplingNumber; secondRotarySamplingNumber++){
+                            totalCollisionSet +=
+                                    voxelizer.collisionDetection(MT, firstRotarySamplingNumber,
+                                                                 firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber);
 
-                        if(totalCollisionSet.empty()){
-                            qDebug()<<"No collision occurs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
-                                   <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
-                                     " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<endl;
-                        }else{
-                            qDebug()<<"Collision pairs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
-                                   <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
-                                     " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<":"
-                                  <<totalCollisionSet<<endl;
+                            if(totalCollisionSet.empty()){
+                                qDebug()<<"No collision occurs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
+                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
+                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<endl;
+                            }else{
+                                qDebug()<<"Collision pairs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
+                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
+                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<":"
+                                      <<totalCollisionSet<<endl;
+                            }
+                            totalCollisionSet.clear();
                         }
-                        totalCollisionSet.clear();
                     }
                 }
             }
         }
-    }
-    qDebug() << "Collision detection with"<<samplingNumber<<"sampling point for each axis took"
-             << collisionDetectiontimer.elapsed() << "milliseconds"<<endl;
+        qDebug() << "Collision detection with"<<samplingNumber<<"sampling point for each axis took"
+                 << collisionDetectiontimer.elapsed() << "milliseconds"<<endl;
 
+//    voxelizer.shiftVoxelModel(MT, 0.3 * 1, 0.3 *1, -0.3 *1);
+//    QSet<QString> totalCollisionSet;
+//    totalCollisionSet +=
+//            voxelizer.collisionDetection(MT, 0,
+//                                         0 * samplingNumber + 0);
+
+//    if(totalCollisionSet.empty()){
+//        qDebug()<<"No collision occurs at X:"<<1 + 1<<" Y:"<<1 + 1
+//               <<" Z:"<<1 + 1<<" C:"<<0 + 1<<
+//                 " A:"<<0 * samplingNumber + 0 + 1<<endl;
+//    }else{
+//        qDebug()<<"Collision pairs at X:"<<1 + 1<<" Y:"<<1 + 1
+//               <<" Z:"<<1 + 1<<" C:"<<0 + 1<<
+//                 " A:"<<0 * samplingNumber + 2 + 0<<":"
+//              <<totalCollisionSet<<endl;
+//    }
+//    totalCollisionSet.clear();
 
     // check if visualization is necessary     ===========================================================
     if(ifNeedVisualization){
@@ -223,7 +248,7 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
             //timer
             QElapsedTimer timer;
             timer.start();
-            drawVoxelforMT(*loop,0,1);
+            drawVoxelforMT(*loop,1,2);
             qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }
@@ -233,10 +258,10 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
 {
     int index = 0;
 
-    if(link.getLinkType() == 'C')
+    if(link.getLinkType() == 'B')
         index = ind1;
 
-    if(link.getLinkType() == 'A')
+    if(link.getLinkType() == 'C')
         index = ind2;
 
     for(int mesh_ind = 0; mesh_ind < link.MTVoxelIndicesListVector.size(); ++mesh_ind){
