@@ -162,66 +162,42 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
 
     // create parent voxel models  ---------------------------------------------------------------------
 
-    //    Link* linkZ = baseLink->ChildLink; //Z
-    //    Link* linkX = linkZ->ChildLink;  //X
-    //    Link* linkY = linkX->ChildLink;  //Y
-    //    Link* link4  = link3->ChildLink;
-    //    Link* link5 = link4->ChildLink;
+//        QSet<QString> totalCollisionSet;
 
-    //    QChar linkType1 = link1->getLinkType();
-    //    QChar linkType2 = link2->getLinkType();
-    //    QChar linkType3 = link3->getLinkType();
-    //    QChar linkType4 = link4->getLinkType();
-    //    QChar linkType5 = link5->getLinkType();
+//        //timer
+//        QElapsedTimer collisionDetectiontimer;
+//        collisionDetectiontimer.start();
 
-    //    float motion1 = link1->getLowerLimit()+
-    //            (link1->getUpperLimit() - link1->getLowerLimit()) * 0 / samplingNumber;
-    //    float motion2 = link2->getLowerLimit()+
-    //            (link2->getUpperLimit() - link2->getLowerLimit()) * 0 / samplingNumber;
-    //    float motion3 = link3->getLowerLimit()+
-    //            (link3->getUpperLimit() - link3->getLowerLimit()) * 0 / samplingNumber;
-    //    float motion4 = link4->getLowerLimit()+
-    //            (link4->getUpperLimit() - link4->getLowerLimit()) * 0 / samplingNumber;
-    //    float motion5 = link5->getLowerLimit()+
-    //            (link5->getUpperLimit() - link5->getLowerLimit()) * 0/ (samplingNumber - 1);
+//        for(int samplingX = 0; samplingX < samplingNumber; samplingX++){
+//            for(int samplingY = 0; samplingY < samplingNumber; samplingY++){
+//                for(int samplingZ = 0; samplingZ < samplingNumber; samplingZ++){
 
+//                    voxelizer.shiftVoxelModel(MT, 0.05 * samplingX, 0.03 *samplingY, -0.05 *samplingZ);
 
-        QSet<QString> totalCollisionSet;
+//                    for(int firstRotarySamplingNumber = 0; firstRotarySamplingNumber < samplingNumber; firstRotarySamplingNumber++){
+//                        for(int secondRotarySamplingNumber = 0; secondRotarySamplingNumber < samplingNumber; secondRotarySamplingNumber++){
+//                            totalCollisionSet +=
+//                                    voxelizer.collisionDetection(MT, firstRotarySamplingNumber,
+//                                                                 firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber);
 
-        //timer
-        QElapsedTimer collisionDetectiontimer;
-        collisionDetectiontimer.start();
-
-        for(int samplingX = 0; samplingX < samplingNumber; samplingX++){
-            for(int samplingY = 0; samplingY < samplingNumber; samplingY++){
-                for(int samplingZ = 0; samplingZ < samplingNumber; samplingZ++){
-
-                    voxelizer.shiftVoxelModel(MT, 0.3 * samplingX, 0.2 *samplingY, -0.2 *samplingZ);
-
-                    for(int firstRotarySamplingNumber = 0; firstRotarySamplingNumber < samplingNumber; firstRotarySamplingNumber++){
-                        for(int secondRotarySamplingNumber = 0; secondRotarySamplingNumber < samplingNumber; secondRotarySamplingNumber++){
-                            totalCollisionSet +=
-                                    voxelizer.collisionDetection(MT, firstRotarySamplingNumber,
-                                                                 firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber);
-
-                            if(totalCollisionSet.empty()){
-                                qDebug()<<"No collision occurs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
-                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
-                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<endl;
-                            }else{
-                                qDebug()<<"Collision pairs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
-                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
-                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<":"
-                                      <<totalCollisionSet<<endl;
-                            }
-                            totalCollisionSet.clear();
-                        }
-                    }
-                }
-            }
-        }
-        qDebug() << "Collision detection with"<<samplingNumber<<"sampling point for each axis took"
-                 << collisionDetectiontimer.elapsed() << "milliseconds"<<endl;
+//                            if(totalCollisionSet.empty()){
+//                                qDebug()<<"No collision occurs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
+//                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
+//                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<endl;
+//                            }else{
+//                                qDebug()<<"Collision pairs at X:"<<samplingX + 1<<" Y:"<<samplingY + 1
+//                                       <<" Z:"<<samplingZ + 1<<" C:"<<firstRotarySamplingNumber + 1<<
+//                                         " A:"<<firstRotarySamplingNumber * samplingNumber + secondRotarySamplingNumber + 1<<":"
+//                                      <<totalCollisionSet<<endl;
+//                            }
+//                            totalCollisionSet.clear();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        qDebug() << "Collision detection with"<<samplingNumber<<"sampling point for each axis took"
+//                 << collisionDetectiontimer.elapsed() << "milliseconds"<<endl;
 
 //    voxelizer.shiftVoxelModel(MT, 0.3 * 1, 0.3 *1, -0.3 *1);
 //    QSet<QString> totalCollisionSet;
@@ -248,7 +224,7 @@ void CreateCubes::createMTVoxelspace(float vSize, MachineTool& MT, bool needVisu
             //timer
             QElapsedTimer timer;
             timer.start();
-            drawVoxelforMT(*loop,1,2);
+            drawVoxelforMT(*loop,0,0);
             qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
         }
     }

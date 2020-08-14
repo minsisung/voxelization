@@ -663,8 +663,39 @@ public:
 
             for(size_t ivrt = 1; ivrt < 4; ++ivrt){
                 CoordWithIndex <number_t, index_t> c;
-                for(size_t i = 0; i < 3; ++i)
+                for(size_t i = 0; i < 3; ++i){
                     c[i] = d[ivrt * 3 + i];
+                    switch (i) {
+                    //X CASE:
+                    case 0:
+                        if(d[ivrt * 3 + i] < bounding_x_min)
+                            bounding_x_min = d[ivrt * 3 + i];
+
+                        if(d[ivrt * 3 + i] > bounding_x_max)
+                            bounding_x_max = d[ivrt * 3 + i];
+
+                        break;
+
+                        //Y CASE:
+                    case 1:
+                        if(d[ivrt * 3 + i] < bounding_y_min)
+                            bounding_y_min = d[ivrt * 3 + i];
+
+                        if(d[ivrt * 3 + i] > bounding_y_max)
+                            bounding_y_max = d[ivrt * 3 + i];
+                        break;
+
+                        //Z CASE:
+                    case 2:
+                        if(d[ivrt * 3 + i] < bounding_z_min)
+                            bounding_z_min = d[ivrt * 3 + i];
+
+                        if(d[ivrt * 3 + i] > bounding_z_max)
+                            bounding_z_max = d[ivrt * 3 + i];
+                        break;
+                    }
+
+                }
                 c.index = static_cast<index_t>(coordsWithIndex.size());
                 coordsWithIndex.push_back(c);
             }

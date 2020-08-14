@@ -128,7 +128,6 @@ int MachineTool::readURDF(const char* filename){
         mtBoundingBox_Z_min.append(STLMeshVector[i].getBoundingBox_Z_min());
         mtBoundingBox_Z_max.append(STLMeshVector[i].getBoundingBox_Z_max());
         }
-
         link_count = link_count->NextSiblingElement("link");                  //move to next sibling element
     }
 
