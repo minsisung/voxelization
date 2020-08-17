@@ -20,12 +20,12 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 
     //create machine tool by reading urdf
-//                MT.readURDF("VF-2.urdf");
-            MT.readURDF("UMC-500.urdf");
-//        MT.readURDF("UMC-750.urdf");
-//    MT.readURDF("UMC-750_short.urdf");
-//        MT.readURDF("50machineTool.urdf");
-//        MT.readURDF("50machineTool_short.urdf");
+//    MT.readURDF("VF-2.urdf");
+//                MT.readURDF("UMC-500.urdf");
+            MT.readURDF("UMC-750.urdf");
+    //    MT.readURDF("UMC-750_short.urdf");
+    //        MT.readURDF("50machineTool.urdf");
+    //        MT.readURDF("50machineTool_short.urdf");
 
     Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
@@ -122,7 +122,7 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
 
-    m_cubeGemoetry.createMTVoxelspace(10.0f, MT, true);
+    m_cubeGemoetry.createMTVoxelspace(5.0f, MT, true);
     //    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
     m_program = new QOpenGLShaderProgram;

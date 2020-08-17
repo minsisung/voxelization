@@ -28,25 +28,43 @@ Link* MachineTool::find_link(std::string linkName, QVector<Link> &myVector)
 void MachineTool::assignLinkType(Joint &joint)
 {
     if(joint.getType() == "revolute"){
-        joint.getChildLink()->isRotaitonal = true;
+        Link* childLink = joint.getChildLink();
+        childLink->isRotaitonal = true;
+
+        if(!hasAssignFirstRotaryLink){
+            childLink->isFirstRotational = true;
+            hasAssignFirstRotaryLink = true;
+            firstRotaryLink = childLink;
+        }else{
+            childLink->isFirstRotational = false;
+            childLink->isSecondRotational = true;
+            secondRotaryLink = childLink;
+        }
 
         if(abs(joint.getAxis().x - 1.0) < 0.0001)
-            joint.getChildLink()->setLinkType('A');
+            childLink->setLinkType('A');
         if(abs(joint.getAxis().y - 1.0) < 0.0001)
-            joint.getChildLink()->setLinkType('B');
+            childLink->setLinkType('B');
         if(abs(joint.getAxis().z - 1.0) < 0.0001)
-            joint.getChildLink()->setLinkType('C');
+            childLink->setLinkType('C');
     }
 
     if(joint.getType() == "prismatic"){
-        joint.getChildLink()->isTranslational = true;
+        Link* childLink = joint.getChildLink();
+        childLink->isTranslational = true;
 
-        if(joint.getAxis().x == 1.0)
-            joint.getChildLink()->setLinkType('X');
-        if(joint.getAxis().y == 1.0)
-            joint.getChildLink()->setLinkType('Y');
-        if(joint.getAxis().z == 1.0)
-            joint.getChildLink()->setLinkType('Z');
+        if(joint.getAxis().x == 1.0){
+            childLink->setLinkType('X');
+            xLink = childLink;
+        }
+        if(joint.getAxis().y == 1.0){
+            childLink->setLinkType('Y');
+            yLink = childLink;
+        }
+        if(joint.getAxis().z == 1.0){
+            childLink->setLinkType('Z');
+            zLink = childLink;
+        }
     }
 
 }
@@ -121,12 +139,12 @@ int MachineTool::readURDF(const char* filename){
         //append all bounding box coordinates of each link
         QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector = link_reading.m_STLMeshVector;
         for(int i = 0; i < STLMeshVector.size(); i++){
-        mtBoundingBox_X_min.append(STLMeshVector[i].getBoundingBox_X_min());
-        mtBoundingBox_X_max.append(STLMeshVector[i].getBoundingBox_X_max());
-        mtBoundingBox_Y_min.append(STLMeshVector[i].getBoundingBox_Y_min());
-        mtBoundingBox_Y_max.append(STLMeshVector[i].getBoundingBox_Y_max());
-        mtBoundingBox_Z_min.append(STLMeshVector[i].getBoundingBox_Z_min());
-        mtBoundingBox_Z_max.append(STLMeshVector[i].getBoundingBox_Z_max());
+            mtBoundingBox_X_min.append(STLMeshVector[i].getBoundingBox_X_min());
+            mtBoundingBox_X_max.append(STLMeshVector[i].getBoundingBox_X_max());
+            mtBoundingBox_Y_min.append(STLMeshVector[i].getBoundingBox_Y_min());
+            mtBoundingBox_Y_max.append(STLMeshVector[i].getBoundingBox_Y_max());
+            mtBoundingBox_Z_min.append(STLMeshVector[i].getBoundingBox_Z_min());
+            mtBoundingBox_Z_max.append(STLMeshVector[i].getBoundingBox_Z_max());
         }
         link_count = link_count->NextSiblingElement("link");                  //move to next sibling element
     }

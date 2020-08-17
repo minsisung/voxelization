@@ -41,6 +41,8 @@ public:
     QVector<Link*> ChildLink;
     bool isTranslational = false;
     bool isRotaitonal = false;
+    bool isFirstRotational = false;
+    bool isSecondRotational = false;
 
     Vector3 getOrigin_xyz() const{return m_origin_xyz;}
     Vector3 getOrigin_rpy() const{return m_origin_rpy;}

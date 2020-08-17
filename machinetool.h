@@ -16,6 +16,11 @@ public:
     QVector<Joint> JointVector;               // create a vector for joints
     QString m_name;
     Link* baseLink;
+    Link* xLink;
+    Link* yLink;
+    Link* zLink;
+    Link* firstRotaryLink;
+    Link* secondRotaryLink;
     friend QDebug operator<<(QDebug stream, const MachineTool& MT);   //overloading operator <<
 
     static inline double strToDouble(const char *in)
@@ -63,6 +68,7 @@ private:
     double bounding_y_max;
     double bounding_z_min;
     double bounding_z_max;
+    bool hasAssignFirstRotaryLink = false;
 
 };
 #endif

@@ -439,14 +439,11 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, QChar linkType, float a
         Link *ChildLink = loop->getChildLink();
 
         if(ChildLink->getLinkType() == linkType){
-            if(linkType == 'A' | linkType == 'B' | linkType == 'C'){
+            if(ChildLink->isRotaitonal){
                 loop->rotational_motion = amount;
             }
-            else if(linkType == 'X' | linkType == 'Y' | linkType == 'Z'){
+            else{
                 loop->translational_motion = amount;
-            }else{
-                qDebug()<<"There is no such linkType"<<endl;
-                break;
             }
         }
 
@@ -656,10 +653,10 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
             QChar currentLinkType = currentLink->getLinkType();
             int index = 0;
 
-            if(currentLink->getLinkType() == 'B')
+            if(currentLink->isFirstRotational)
                 index = ind1;
 
-            if(currentLink->getLinkType() == 'C')
+            if(currentLink->isSecondRotational)
                 index = ind2;
 
             for(int mesh_ind = 0; mesh_ind < currentLink->MTVoxelIndicesListVector.size(); ++mesh_ind){
