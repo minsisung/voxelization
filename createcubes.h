@@ -16,7 +16,7 @@ public:
     int totocalVertexCount() const { return m_totalCount / 6; }
     void createMTVoxelspace(float voxelSize, MachineTool& MT, bool needVisualization);
     void createCollisionVoxelspace(float vSize, MachineTool& MT, bool needVisualization);
-    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z, Link& link);
+    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     QVector<int> get_vertices_numbers(){return vertices_number_vector;}
@@ -33,6 +33,7 @@ private:
     float voxelSpace_X_min;
     float voxelSpace_Y_min;
     float voxelSpace_Z_min;
+    MachineTool* machineTool;
     void drawVoxelforCollision(Link& link);
     void drawVoxelforMT(Link& link, int ind1, int ind2);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;

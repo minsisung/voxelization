@@ -41,7 +41,7 @@ void Link::setSTLMesh()
         stl_reader::StlMesh <float, unsigned int> mesh(meshList[i].toStdString());
 
         m_STLMeshVector.append(mesh);
-        std::cout << "Finish setting mesh for" <<meshList[i].toStdString()<< std::endl;
+        qDebug() << "Finish setting mesh for " <<meshList[i]<< endl;
     }
     catch (std::exception& e) {
         std::cout << e.what() << std::endl;

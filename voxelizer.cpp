@@ -269,8 +269,7 @@ void Voxelizer::Voxelize(Link& link)
 
 void Voxelizer::parentModelVoxelization(Link& link)
 {
-    //create empty voxelIndicesList to store parent voxel model of this link
-    QList<QVector3D> newParentMTVoxelIndicesList;
+
 
     float min_x, max_x, min_y, max_y, min_z, max_z;
     QChar linkType = link.getLinkType();
@@ -283,6 +282,9 @@ void Voxelizer::parentModelVoxelization(Link& link)
 
     //go through all components of this link
     for(int mesh_ind = 0; mesh_ind < meshVector.size(); ++mesh_ind) {
+        //create empty voxelIndicesList to store parent voxel model of this link
+        QList<QVector3D> newParentMTVoxelIndicesList;
+
         qDebug() <<"Number"<< mesh_ind + 1 << "of the mesh of "<<link.getLinkType()<< "link contains"
                 << meshVector[mesh_ind].num_tris() << " triangles."<<endl;
 
@@ -641,7 +643,7 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
 {
     QSet<QString> totalCollisionSet;
 
-    QVector < QVector < QVector< Voxel > > > newVS = MT.baseLink->linkVoxelspace;
+    voxelspace = MT.baseLink->linkVoxelspace;
 
 
     for(int Number = 0; Number < MT.baseLink->ChildLink.size(); Number++){
@@ -667,7 +669,7 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
                     int number_y = i->y();
                     int number_z = i->z();
 
-                    Voxel& voxel = newVS[number_x][number_y][number_z];
+                    Voxel& voxel = voxelspace[number_x][number_y][number_z];
 
                     QChar ShellType = voxel.getVoxelLinkType();
                     QString componentNumber = QString::number(voxel.getComponentNumber());
