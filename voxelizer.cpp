@@ -227,13 +227,47 @@ Voxelizer::Voxelizer()
 
 }
 
-void Voxelizer::setupSize(float v_Size, MachineTool& MT)
+void Voxelizer::setupSize(float v_Size, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
 {
+    //get bounding box for each STL
+    QList<double> mtBoundingBox_X_min;
+    QList<double> mtBoundingBox_X_max;
+    QList<double> mtBoundingBox_Y_min;
+    QList<double> mtBoundingBox_Y_max;
+    QList<double> mtBoundingBox_Z_min;
+    QList<double> mtBoundingBox_Z_max;
+    for(int i = 0; i < STLMeshVector.size(); i++){
+        mtBoundingBox_X_min.append(STLMeshVector[i].getBoundingBox_X_min());
+        mtBoundingBox_X_max.append(STLMeshVector[i].getBoundingBox_X_max());
+        mtBoundingBox_Y_min.append(STLMeshVector[i].getBoundingBox_Y_min());
+        mtBoundingBox_Y_max.append(STLMeshVector[i].getBoundingBox_Y_max());
+        mtBoundingBox_Z_min.append(STLMeshVector[i].getBoundingBox_Z_min());
+        mtBoundingBox_Z_max.append(STLMeshVector[i].getBoundingBox_Z_max());
+    }
+
+    //Get bounding box coordinates for whole machine tool
+    qSort(mtBoundingBox_X_min.begin(), mtBoundingBox_X_min.end());
+    qSort(mtBoundingBox_X_max.begin(), mtBoundingBox_X_max.end());
+    qSort(mtBoundingBox_Y_min.begin(), mtBoundingBox_Y_min.end());
+    qSort(mtBoundingBox_Y_max.begin(), mtBoundingBox_Y_max.end());
+    qSort(mtBoundingBox_Z_min.begin(), mtBoundingBox_Z_min.end());
+    qSort(mtBoundingBox_Z_max.begin(), mtBoundingBox_Z_max.end());
+
+    double bounding_x_min = mtBoundingBox_X_min.first();
+    double bounding_x_max = mtBoundingBox_X_max.last();
+    double bounding_y_min = mtBoundingBox_Y_min.first();
+    double bounding_y_max = mtBoundingBox_Y_max.last();
+    double bounding_z_min = mtBoundingBox_Z_min.first();
+    double bounding_z_max = mtBoundingBox_Z_max.last();
+
+
+
+    //setup voxel size from the bounding box of whole machine tool
     voxelSize = v_Size;
     VSEnglargeRatio = 1.4f;
-    spaceLength_X = (MT.getBoundingBox_X_max() - MT.getBoundingBox_X_min()) * VSEnglargeRatio * 1000;
-    spaceLength_Y = (MT.getBoundingBox_Y_max() - MT.getBoundingBox_Y_min()) * VSEnglargeRatio* 1000;
-    spaceLength_Z = (MT.getBoundingBox_Z_max() - MT.getBoundingBox_Z_min()) * VSEnglargeRatio * 1000;
+    spaceLength_X = (bounding_x_max - bounding_x_min) * VSEnglargeRatio * 1000;
+    spaceLength_Y = (bounding_y_max - bounding_y_min) * VSEnglargeRatio* 1000;
+    spaceLength_Z = (bounding_z_max - bounding_z_min) * VSEnglargeRatio * 1000;
 
     halfboxsize.x = voxelSize/2;
     halfboxsize.y = voxelSize/2;
@@ -246,31 +280,21 @@ void Voxelizer::setupSize(float v_Size, MachineTool& MT)
            <<"Voxel number of Voxel Space in Y:"<<voxelSpaceSize_Y
           <<"Voxel number of Voxel Space in Z:"<<voxelSpaceSize_Z<<endl;
 
-    voxelStarting_X = (MT.getBoundingBox_X_min() - (MT.getBoundingBox_X_max() - MT.getBoundingBox_X_min())
-                       * (VSEnglargeRatio-1)/2) * 1000;
-    voxelStarting_Y = (MT.getBoundingBox_Y_min() - (MT.getBoundingBox_Y_max() - MT.getBoundingBox_Y_min())
-                       * (VSEnglargeRatio-1)/2) * 1000;
-    voxelStarting_Z = (MT.getBoundingBox_Z_min() - (MT.getBoundingBox_Z_max() - MT.getBoundingBox_Z_min())
-                       * (VSEnglargeRatio-1)/2) * 1000;
+    voxelStarting_X = (bounding_x_min - (bounding_x_max - bounding_x_min) * (VSEnglargeRatio-1)/2) * 1000;
+    voxelStarting_Y = (bounding_y_min - (bounding_y_max - bounding_y_min) * (VSEnglargeRatio-1)/2) * 1000;
+    voxelStarting_Z = (bounding_z_min - (bounding_z_max - bounding_z_min) * (VSEnglargeRatio-1)/2) * 1000;
+}
 
+void Voxelizer::createVoxelSapce()
+{
     //setup size for voxelspace
     QVector < QVector < QVector< Voxel > > > correctSizeVS
             (voxelSpaceSize_X, QVector < QVector< Voxel > >(voxelSpaceSize_Y,QVector<Voxel>(voxelSpaceSize_Z)));
     voxelspace = correctSizeVS;
 }
 
-void Voxelizer::Voxelize(Link& link)
-{
-    if(link.ParentLink != nullptr)
-        voxelspace = link.ParentLink->linkVoxelspace;
-
-    parentModelVoxelization(link);
-}
-
 void Voxelizer::parentModelVoxelization(Link& link)
-{
-
-
+{    
     float min_x, max_x, min_y, max_y, min_z, max_z;
     QChar linkType = link.getLinkType();
 
@@ -344,7 +368,9 @@ void Voxelizer::parentModelVoxelization(Link& link)
     link.MTVoxelIndicesListVectorUpdate = link.MTVoxelIndicesListVector;
 
     //update voxel space assigned to voxel space
-    link.linkVoxelspace = voxelspace;
+
+    if(link.getLinkType() == 'b')
+        link.linkVoxelspace = voxelspace;
 }
 
 void Voxelizer::loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix)
@@ -639,7 +665,7 @@ void Voxelizer::shiftVoxelModel(MachineTool &MT,float amountX, float amountY, fl
     }
 }
 
-QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
+QSet<QString> Voxelizer::collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2)
 {
     QSet<QString> totalCollisionSet;
 
@@ -700,8 +726,14 @@ QSet<QString> Voxelizer::collisionDetection(MachineTool &MT, int ind1, int ind2)
             }
         }
     }
-
     return totalCollisionSet;
+}
+
+QSet<QString> Voxelizer::collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
+{
+    //setup size for voxelspace for finding contact-components pairs
+    QVector < QVector < QVector< Voxel > > > contactComponentsPairsVS
+            (voxelSpaceSize_X, QVector < QVector< Voxel > >(voxelSpaceSize_Y,QVector<Voxel>(voxelSpaceSize_Z)));
 }
 
 

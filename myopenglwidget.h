@@ -10,6 +10,8 @@
 #include <createcubes.h>
 #include <voxelizer.h>
 #include "machinetool.h"
+#include <QDir>
+#include<iostream>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -51,6 +53,7 @@ protected:
 private:
     void setupVertexAttribs();
     void drawComponents();
+    QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
 
     bool m_core;
     int m_xRot;

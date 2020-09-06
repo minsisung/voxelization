@@ -19,6 +19,18 @@ private:
     QChar VoxelLinkType = 'E';   //E: empty
     bool collisionStatus = false;
     int componentNumber = 0;
+};
 
+class VoxelforCCP
+{
+public:
+    VoxelforCCP();
+    void setVoxelLinkType(QChar type){VoxelLinkType = type;}
+    QChar getVoxelLinkType(){return VoxelLinkType;}
+
+private:
+    QChar VoxelLinkType = 'E';   //E: empty
+    bool collisionStatus = false;
+    int componentNumber = 0;
 };
 #endif // VOXEL_H

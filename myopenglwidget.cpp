@@ -18,16 +18,6 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
       m_program(nullptr)
 {
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-
-    //create machine tool by reading urdf
-//    MT.readURDF("VF-2.urdf");
-                MT.readURDF("UMC-500.urdf");
-//            MT.readURDF("UMC-750.urdf");
-    //    MT.readURDF("UMC-750_short.urdf");
-    //        MT.readURDF("50machineTool.urdf");
-    //        MT.readURDF("50machineTool_short.urdf");
-
-    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
 }
 
 MyOpenGLWidget::~MyOpenGLWidget()
@@ -122,8 +112,35 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
 
-    m_cubeGemoetry.createMTVoxelspace(4.0f, MT, true);
-    //    m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
+    //**Step 1: Find contact-components pairs
+
+    //read stl files
+    QString machineToolName = "UMC-500";
+    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
+            readSTLFiles(machineToolName);
+
+    //setup voxel space
+    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
+        m_cubeGemoetry.findContactComponentsPairs(MT);
+
+    //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
+
+    //create machine tool by reading urdf
+//    QString urdfName = machineToolName + ".urdf";
+//        MT.readURDF(urdfName);
+
+
+    //    MT.readURDF("VF-2.urdf");
+    //    MT.readURDF("UMC-750.urdf");
+    //    MT.readURDF("UMC-750_short.urdf");
+    //    MT.readURDF("50machineTool.urdf");
+    //    MT.readURDF("50machineTool_short.urdf");
+
+
+    //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
+//            m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
+
+//        m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -288,6 +305,29 @@ void MyOpenGLWidget::drawComponents()
         //update starting number of each component
         startNumber += loop->numberOfVertex;
     }
+}
+
+QVector<stl_reader::StlMesh <float, unsigned int>> MyOpenGLWidget::readSTLFiles(QString mtName)
+{
+    QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
+
+    //store all .stl that contain the name of machine tool
+    QDir directory = QDir::current();
+    QStringList STLList = directory.entryList(QStringList() << "*.STL" << "*.stl",QDir::Files);
+    QStringList mtSTLList = STLList.filter(mtName, Qt::CaseInsensitive);
+
+    for(int i = 0; i< mtSTLList.size(); i++)
+        try {
+        //read STL file for each file
+        stl_reader::StlMesh <float, unsigned int> mesh(mtSTLList[i].toStdString());
+
+        m_STLMeshVector.append(mesh);
+        qDebug() << "Finish setting mesh for" <<mtSTLList[i]<< endl;
+    }
+    catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    return m_STLMeshVector;
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)
