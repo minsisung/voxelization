@@ -114,14 +114,22 @@ void MyOpenGLWidget::initializeGL()
 
     //**Step 1: Find contact-components pairs
 
-    //read stl files
+    //read stl files (correct one!!)-------------------------
     QString machineToolName = "UMC-500";
     QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
             readSTLFiles(machineToolName);
+    //----------------------------------------------------------
+    //temporarily used to get relative position for each components from pre-defined urdf
+        QString urdfName = machineToolName + ".urdf";
+            MT.readURDF(urdfName);
 
     //setup voxel space
-    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-        m_cubeGemoetry.findContactComponentsPairs(MT);
+    m_cubeGemoetry.createMTVoxelspace(10.0f, stlMeshVector);
+//        m_cubeGemoetry.findContactComponentsPairs(stlMeshVector);
+
+    //temporary one
+    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
+
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
 

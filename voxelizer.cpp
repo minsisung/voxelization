@@ -729,11 +729,119 @@ QSet<QString> Voxelizer::collisionDetectionForGroups(MachineTool &MT, int ind1, 
     return totalCollisionSet;
 }
 
-QSet<QString> Voxelizer::collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
+void Voxelizer::collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
 {
     //setup size for voxelspace for finding contact-components pairs
     QVector < QVector < QVector< Voxel > > > contactComponentsPairsVS
             (voxelSpaceSize_X, QVector < QVector< Voxel > >(voxelSpaceSize_Y,QVector<Voxel>(voxelSpaceSize_Z)));
+}
+
+void Voxelizer::collisionDetectionForComponentsFromURDF(MachineTool &MT)
+{
+
+    qDebug()<<"collisionDetectionForComponentsFromURDF-------------------------------"<<endl;
+
+    QSet<QString> contactComponentsPairsSet;
+    //setup size for voxelspace for finding contact-components pairs
+    QVector < QVector < QVector< voxelForCCP > > > contactComponentsPairsVS
+            (voxelSpaceSize_X, QVector < QVector< voxelForCCP > >(voxelSpaceSize_Y,QVector<voxelForCCP>(voxelSpaceSize_Z)));
+    float min_x, max_x, min_y, max_y, min_z, max_z;
+
+    //collision detection for each link
+    for(int link_ind = 0; link_ind < MT.LinkVector.size(); ++link_ind){
+        Link& link = MT.LinkVector[link_ind];
+        QVector<stl_reader::StlMesh <float, unsigned int>> meshVector = link.getSTLMesh();
+        QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
+
+        //go through all components of this link
+        for(int mesh_ind = 0; mesh_ind < meshVector.size(); ++mesh_ind) {
+
+            //create empty voxelIndicesList to store parent voxel model of this link
+            QList<QVector3D> newParentMTVoxelIndicesList;
+
+            QString componentName = QString(QChar::fromLatin1(link.getLinkType())) + QString::number(mesh_ind + 1);
+
+            qDebug()<<componentName<<endl;
+
+            qDebug() <<"Number"<< mesh_ind + 1 << "of the mesh of "<<link.getLinkType()<< "link contains"
+                    << meshVector[mesh_ind].num_tris() << " triangles."<<endl;
+
+            for (size_t itri = 0; itri < meshVector[mesh_ind].num_tris(); ++itri){
+
+                //Load and transform triangles from mesh
+                loadAndTransform(itri, meshVector[mesh_ind], TransformMatrix);
+
+                //find bounding box of triangle
+                VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                        VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                        VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                        //get voxel indices of bounding box of triangle
+                        int index_x_min = floor((min_x - (voxelStarting_X))/voxelSize);
+                int index_x_max = floor((max_x - (voxelStarting_X))/voxelSize);
+                int index_y_min = floor((min_y - (voxelStarting_Y))/voxelSize);
+                int index_y_max = floor((max_y - (voxelStarting_Y))/voxelSize);
+                int index_z_min = floor((min_z - (voxelStarting_Z))/voxelSize);
+                int index_z_max = floor((max_z - (voxelStarting_Z))/voxelSize);
+
+                // bounding box of triangle can't be outside of voxelspace
+                Q_ASSERT_X((max_x < voxelStarting_X + voxelSpaceSize_X * voxelSize &&
+                            max_y < voxelStarting_Y + voxelSpaceSize_Y * voxelSize &&
+                            max_z < voxelStarting_Z + voxelSpaceSize_Z * voxelSize &&
+                            min_x > voxelStarting_X && min_y > voxelStarting_Y && min_z > voxelStarting_Z), "voxelizer", "part of geometry is outside of voxelspace");
+
+                //Check intersection between triangle and voxels in the bounding boxes of triangle
+                for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++){
+                    for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
+                        for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
+                            voxelForCCP& voxelForCpp = contactComponentsPairsVS[ind_x][ind_y][ind_z];
+
+                            boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
+                            boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
+                            boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
+
+                            // for voxel that intersect with 3d model
+                            if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+
+                                newParentMTVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
+
+                                if(voxelForCpp.componentsSet.isEmpty()){
+                                    //if there is no component assigned to this voxel
+
+                                    voxelForCpp.componentsSet.insert(componentName);
+                                }else{
+                                    if(!voxelForCpp.componentsSet.contains(componentName)){
+                                        //if this component hasn't assigned to this voxel
+
+
+
+                                        QSet<QString>::iterator i;
+                                        for (i = voxelForCpp.componentsSet.begin(); i != voxelForCpp.componentsSet.end(); ++i){
+
+                                            QString contactComponentsPairs;
+                                            contactComponentsPairs.append(componentName + *i);
+
+                                            if(!contactComponentsPairsSet.contains(contactComponentsPairs))
+                                                contactComponentsPairsSet.insert(contactComponentsPairs);
+                                        }
+                                        voxelForCpp.componentsSet.insert(componentName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            link.MTVoxelIndicesListVector[mesh_ind].append(newParentMTVoxelIndicesList);
+        }
+        link.MTVoxelIndicesListVectorUpdate = link.MTVoxelIndicesListVector;
+    }
+
+    QList<QString> CCPList = contactComponentsPairsSet.toList();
+    qSort(CCPList.begin() , CCPList.end());
+
+    qDebug()<<"All contact-components pairs:"<<CCPList<<endl;
+    qDebug()<<"CCP has"<<CCPList.size()<<"pairs"<<endl;
 }
 
 

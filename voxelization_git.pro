@@ -27,6 +27,7 @@ SOURCES += \
     myopenglwidget.cpp \
     tinyxml2.cpp \
     voxel.cpp \
+    voxelforccp.cpp \
     voxelizer.cpp
 
 HEADERS += \
@@ -42,6 +43,7 @@ HEADERS += \
     stl_reader.h \
     tinyxml2.h \
     voxel.h \
+    voxelforccp.h \
     voxelizer.h
 
 FORMS += \

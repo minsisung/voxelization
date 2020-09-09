@@ -17,6 +17,8 @@ public:
     void createMTVoxelspace(float voxelSize, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
     void createCollisionVoxelspace(float vSize, MachineTool& MT, bool needVisualization);
     void findContactComponentsPairs(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
+    void findContactComponentsPairsFromURDF(MachineTool& MT);
+
     void collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);

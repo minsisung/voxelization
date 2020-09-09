@@ -7,6 +7,7 @@
 #include <QtGlobal>
 #include <QMatrix4x4>
 #include "machinetool.h"
+#include <voxelforccp.h>
 
 typedef struct vx_vertex {
     union {
@@ -66,7 +67,8 @@ public:
     QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int samplingNumber);
     void shiftVoxelModel(MachineTool &MT,float amountX, float amountY, float amountZ);
     QSet<QString> collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2);
-    QSet<QString> collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
+    void collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
+    void collisionDetectionForComponentsFromURDF(MachineTool &MT);
 
 private:
     QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int samplingNumber, bool ifEnd);
