@@ -2,13 +2,13 @@
 #define VOXELFORCCP_H
 
 #include <QSet>
+#include <stl_reader.h>
 
 class voxelForCCP
 {
 public:
     voxelForCCP();
-    QSet<QString> componentsSet;
-
+    QVector<QString> componentsVector;
 private:
 
 };

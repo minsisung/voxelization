@@ -52,7 +52,7 @@ public:
     int numberOfVertex = 0;
     QMatrix4x4 m_TransformMatrix;
     void setSTLMesh();
-    QVector<stl_reader::StlMesh <float, unsigned int>>  getSTLMesh(){return m_STLMeshVector;}
+    QVector<stl_reader::StlMesh <float, unsigned int>> getSTLMesh(){return m_STLMeshVector;}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}
 

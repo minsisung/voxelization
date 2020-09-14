@@ -8,6 +8,8 @@
 #include <QMatrix4x4>
 #include "machinetool.h"
 #include <voxelforccp.h>
+#include <contactcomponentspair.h>
+#include <component.h>
 
 typedef struct vx_vertex {
     union {
@@ -61,18 +63,20 @@ public:
     void createVoxelSapce();
     void parentModelVoxelization(Link& link);
     void setupSize(float voxelSize, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
+    void setupSize(float v_Size, QVector<component>& componentVector);
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, QChar linkType, float amount);
     QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int samplingNumber);
     void shiftVoxelModel(MachineTool &MT,float amountX, float amountY, float amountZ);
     QSet<QString> collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2);
-    void collisionDetectionForComponents(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
-    void collisionDetectionForComponentsFromURDF(MachineTool &MT);
-
+    QVector<contactComponentsPair> collisionDetectionForComponents(QVector<component>& STLMeshVector);
+    QVector<contactComponentsPair> collisionDetectionForComponentsFromURDF(MachineTool &MT);
+    void updateCCPVector(QVector<contactComponentsPair>& ccpVector);
+    bool collisionDetectionForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix);
 private:
     QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int samplingNumber, bool ifEnd);
-
+    int indexOfCompVector(QString compName,QVector<component>& compVector);
     float spaceLength_X;
     float spaceLength_Y;
     float spaceLength_Z;
@@ -85,6 +89,8 @@ private:
     vx_vertex_t p1;
     vx_vertex_t p2;
     vx_vertex_t p3;
+
+    QHash<QString, stl_reader::StlMesh <float, unsigned int>> meshHash;
 };
 
 #endif // VOXELIZER_H

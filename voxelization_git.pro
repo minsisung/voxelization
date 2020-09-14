@@ -17,6 +17,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    component.cpp \
+    contactcomponentspair.cpp \
     createcubes.cpp \
     creategeometry.cpp \
     joint.cpp \
@@ -32,6 +34,8 @@ SOURCES += \
 
 HEADERS += \
     Vector3.h \
+    component.h \
+    contactcomponentspair.h \
     createcubes.h \
     creategeometry.h \
     joint.h \

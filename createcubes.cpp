@@ -5,6 +5,7 @@
 #include <math.h>
 
 
+
 CreateCubes::CreateCubes():
     m_totalCount(0)
 {
@@ -32,11 +33,20 @@ void CreateCubes::createMTVoxelspace(float vSize, QVector<stl_reader::StlMesh <f
     voxelizer.setupSize(voxelSize, STLMeshVector);
 }
 
-void CreateCubes::findContactComponentsPairs(QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
+void CreateCubes::createMTVoxelspace(float vSize, QVector<component> &componentVector)
+{
+    //setup voxelsize
+    voxelSize = vSize;
+
+    //initialize voxel space and voxel size
+    voxelizer.setupSize(voxelSize, componentVector);
+}
+
+void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
 {
 
-    voxelizer.collisionDetectionForComponents(STLMeshVector);
-
+    QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
+    voxelizer.updateCCPVector(ccpVector);
     //    if(totalCollisionSet.empty()){
     //        qDebug()<<"There is no Contact-components pairs"<<endl;
     //    }else{
@@ -50,17 +60,17 @@ void CreateCubes::findContactComponentsPairsFromURDF(MachineTool &MT)
     //setup transformation matrix for each component
     setupInitialTransformation(MT);
 
-    voxelizer.collisionDetectionForComponentsFromURDF(MT);
+    QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponentsFromURDF(MT);
+    voxelizer.updateCCPVector(ccpVector);
 
+    //    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
 
-    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
-
-        //timer
-        QElapsedTimer timer;
-        timer.start();
-        drawVoxelforMT(*loop,0,0);
-        qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
-    }
+    //        //timer
+    //        QElapsedTimer timer;
+    //        timer.start();
+    //        drawVoxelforMT(*loop,0,0);
+    //        qDebug() << "The creation of cubes for"<<loop->getLinkType()<< "took" << timer.elapsed() << "milliseconds"<<endl;
+    //    }
 }
 
 void CreateCubes::collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization)
@@ -352,9 +362,9 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
             for (int i = 0; i < 6; ++i) {
                 normal = setNormal(i);
 
-//                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
-//                if(ifDuplicate)
-//                    continue;
+                //                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
+                //                if(ifDuplicate)
+                //                    continue;
 
                 // insert vertex position into m_data for creating VBO
 

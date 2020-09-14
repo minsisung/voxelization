@@ -8,6 +8,7 @@
 
 
 
+
 bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -116,26 +117,28 @@ void MyOpenGLWidget::initializeGL()
 
     //read stl files (correct one!!)-------------------------
     QString machineToolName = "UMC-500";
-    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
-            readSTLFiles(machineToolName);
+//    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
+//            readSTLFiles(machineToolName);
+
+        QVector<component> compVector = readCompSTL(machineToolName);
+
     //----------------------------------------------------------
     //temporarily used to get relative position for each components from pre-defined urdf
-        QString urdfName = machineToolName + ".urdf";
-            MT.readURDF(urdfName);
+//    QString urdfName = machineToolName + ".urdf";
+//    MT.readURDF(urdfName);
 
     //setup voxel space
-    m_cubeGemoetry.createMTVoxelspace(10.0f, stlMeshVector);
-//        m_cubeGemoetry.findContactComponentsPairs(stlMeshVector);
-
-    //temporary one
-    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
+//    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
+        m_cubeGemoetry.createMTVoxelspace(5.0f, compVector);
+//    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
+        m_cubeGemoetry.findContactComponentsPairs(compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
 
     //create machine tool by reading urdf
-//    QString urdfName = machineToolName + ".urdf";
-//        MT.readURDF(urdfName);
+    //    QString urdfName = machineToolName + ".urdf";
+    //        MT.readURDF(urdfName);
 
 
     //    MT.readURDF("VF-2.urdf");
@@ -146,9 +149,9 @@ void MyOpenGLWidget::initializeGL()
 
 
     //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
-//            m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
+    //            m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
 
-//        m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
+    //        m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -336,6 +339,59 @@ QVector<stl_reader::StlMesh <float, unsigned int>> MyOpenGLWidget::readSTLFiles(
         std::cout << e.what() << std::endl;
     }
     return m_STLMeshVector;
+}
+
+QVector<component> MyOpenGLWidget::readCompSTL(QString mtName)
+{
+    QVector<component> m_compVector;
+
+    //store all .stl that contain the name of machine tool
+    QString path = QDir::current().path() + "/" + mtName + "_Origin";
+    QDir directory(path);
+
+    QStringList STLList = directory.entryList(QStringList() << "*.STL" << "*.stl",QDir::Files);
+    QStringList nonOffsetSTLList;
+    foreach (const QString &str, STLList) {
+        if (!str.contains("_offset"))
+            nonOffsetSTLList += str;
+    }
+
+    for(int i = 0; i< nonOffsetSTLList.size(); i++){
+        stl_reader::StlMesh <float, unsigned int> nonOffestMesh;
+        try {
+            //read STL file for each file
+            nonOffestMesh.read_file((path + "/" + nonOffsetSTLList[i]).toStdString());
+            qDebug() << "Finish setting mesh for" <<nonOffsetSTLList[i];
+        }
+        catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+        }
+
+        //create component
+        QString componentName = nonOffsetSTLList[i].left(nonOffsetSTLList[i].size() - 4);
+        component comp(componentName, nonOffestMesh);
+
+        QString offsetMeshName = nonOffsetSTLList[i].insert(nonOffsetSTLList[i].size() - 4,"_offset");
+        //if offset mesh exists
+        if(STLList.contains(offsetMeshName)){
+            stl_reader::StlMesh <float, unsigned int> offestMesh;
+            try {
+                //read offset STL file
+                offestMesh.read_file((path + "/" + offsetMeshName).toStdString());
+                qDebug() << "Finish setting mesh for" <<offsetMeshName;
+            }
+            catch (std::exception& e) {
+                std::cout << e.what() << std::endl;
+            }
+
+            comp.setOffsetMesh(offestMesh);
+            comp.setContainsOffsetMesh();
+        }
+        qDebug()<<endl;
+        m_compVector.append(comp);
+    }
+
+    return m_compVector;
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)

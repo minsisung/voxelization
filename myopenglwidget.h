@@ -54,7 +54,7 @@ private:
     void setupVertexAttribs();
     void drawComponents();
     QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
-
+    QVector<component> readCompSTL(QString mtName);
     bool m_core;
     int m_xRot;
     int m_yRot;

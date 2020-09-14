@@ -21,23 +21,26 @@ public:
     Link* zLink;
     Link* firstRotaryLink;
     Link* secondRotaryLink;
+    QHash<QString, stl_reader::StlMesh <float, unsigned int>> componentsHash;
+    QHash<QString, QMatrix4x4> tranMatrixHash;
+
     friend QDebug operator<<(QDebug stream, const MachineTool& MT);   //overloading operator <<
 
     static inline double strToDouble(const char *in)
     {
-      std::stringstream ss;
-      ss.imbue(std::locale::classic());
+        std::stringstream ss;
+        ss.imbue(std::locale::classic());
 
-      ss << in;
+        ss << in;
 
-      double out;
-      ss >> out;
+        double out;
+        ss >> out;
 
-      if (ss.fail() || !ss.eof()) {
-        throw std::runtime_error("Failed converting string to double");
-      }
+        if (ss.fail() || !ss.eof()) {
+            throw std::runtime_error("Failed converting string to double");
+        }
 
-      return out;
+        return out;
     }
 
 private:

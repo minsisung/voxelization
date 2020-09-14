@@ -131,7 +131,6 @@ int MachineTool::readURDF(QString filename){
         LinkVector.push_back(link_reading);
         //push link into the vector
 
-
         link_count = link_count->NextSiblingElement("link");                  //move to next sibling element
     }
     XMLElement *joint = MT->FirstChildElement("joint");
@@ -198,6 +197,15 @@ int MachineTool::readURDF(QString filename){
     }
 
     qDebug()<<"Finish creating kinematic chain by reading URDF"<<endl;
+
+
+    //create hash table for components
+    for(int link_ind = 0; link_ind < LinkVector.size(); ++link_ind){
+        for(int mesh_ind = 0; mesh_ind < LinkVector[link_ind].m_STLMeshVector.size(); ++mesh_ind){
+            QString componentName = QString(QChar::fromLatin1(LinkVector[link_ind].getLinkType())) + QString::number(mesh_ind + 1);
+            componentsHash[componentName] = LinkVector[link_ind].m_STLMeshVector[mesh_ind];
+        }
+    }
 
 
 
