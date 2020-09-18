@@ -73,7 +73,8 @@ public:
     QVector<contactComponentsPair> collisionDetectionForComponents(QVector<component>& STLMeshVector);
     QVector<contactComponentsPair> collisionDetectionForComponentsFromURDF(MachineTool &MT);
     void updateCCPVector(QVector<contactComponentsPair>& ccpVector);
-    bool collisionDetectionForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix);
+    bool translationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix);
+    bool rotationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix, int commonAxis_ind);
 private:
     QSet<QString> translateVoxels(Link *link, QChar linkType, int voxelNumberDistance, int samplingNumber, bool ifEnd);
     int indexOfCompVector(QString compName,QVector<component>& compVector);

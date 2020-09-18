@@ -117,21 +117,24 @@ void MyOpenGLWidget::initializeGL()
 
     //read stl files (correct one!!)-------------------------
     QString machineToolName = "UMC-500";
-//    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
-//            readSTLFiles(machineToolName);
+    //    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
+    //            readSTLFiles(machineToolName);
 
-        QVector<component> compVector = readCompSTL(machineToolName);
+    //rotary axes of machine tool (A,B,C)
+    QVector3D mtRotaryAxes(0,1,1);
+
+    QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
     //----------------------------------------------------------
     //temporarily used to get relative position for each components from pre-defined urdf
-//    QString urdfName = machineToolName + ".urdf";
-//    MT.readURDF(urdfName);
+    //    QString urdfName = machineToolName + ".urdf";
+    //    MT.readURDF(urdfName);
 
     //setup voxel space
-//    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-        m_cubeGemoetry.createMTVoxelspace(5.0f, compVector);
-//    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
-        m_cubeGemoetry.findContactComponentsPairs(compVector);
+    //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
+    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
+    //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
+    m_cubeGemoetry.findContactComponentsPairs(compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
@@ -341,7 +344,7 @@ QVector<stl_reader::StlMesh <float, unsigned int>> MyOpenGLWidget::readSTLFiles(
     return m_STLMeshVector;
 }
 
-QVector<component> MyOpenGLWidget::readCompSTL(QString mtName)
+QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotaryAxes)
 {
     QVector<component> m_compVector;
 
@@ -355,6 +358,9 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName)
         if (!str.contains("_offset"))
             nonOffsetSTLList += str;
     }
+
+    if(nonOffsetSTLList.empty())
+        qDebug()<<"No STL files detected"<<endl;
 
     for(int i = 0; i< nonOffsetSTLList.size(); i++){
         stl_reader::StlMesh <float, unsigned int> nonOffestMesh;
@@ -388,6 +394,28 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName)
             comp.setContainsOffsetMesh();
         }
         qDebug()<<endl;
+
+
+        // Manually  input rotary axis!!!!!!!!!!!!!
+
+        if(mtRotaryAxes == QVector3D(0,0,0)){
+            comp.m_mtRotaryAxes = QVector3D(0,0,0);
+        }else{
+
+            //B
+            if(comp.getName() == "UMC-500_B_Link_1" | comp.getName() == "UMC-500_B_Link_3"
+                    | comp.getName() == "UMC-500_Base_Link_1"){
+                comp.setRotaryAxisPoint1(0.0f, -0.53336f, 0.0f);
+                comp.setContainsRotaryAxis1();
+
+            }
+            //C
+            if(comp.getName() == "UMC-500_C_Link_2" | comp.getName() == "UMC-500_B_Link_1"){
+                comp.setRotaryAxisPoint2(0.0f, -0.53336f, 0.0f);
+                comp.setContainsRotaryAxis2();
+            }
+            comp.m_mtRotaryAxes = mtRotaryAxes;
+        }
         m_compVector.append(comp);
     }
 

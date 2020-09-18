@@ -423,6 +423,109 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
     }
 }
 
+void CreateCubes::drawVoxelforCCP(QVector<contactComponentsPair> &CCPVector)
+{
+//    float voxelSpace_X_min = voxelizer.voxelStarting_X;
+//    float voxelSpace_Y_min = voxelizer.voxelStarting_Y;
+//    float voxelSpace_Z_min = voxelizer.voxelStarting_Z;
+
+//    for(int ccp_ind = 0; ccp_ind < CCPVector.size(); ++ccp_ind){
+//        for (QList<QVector3D>::iterator i = link.MTVoxelIndicesListVectorUpdate[mesh_ind][index].begin();
+//             i != link.MTVoxelIndicesListVectorUpdate[mesh_ind][index].end(); ++i){
+
+//            int number_x = i->x();
+//            int number_y = i->y();
+//            int number_z = i->z();
+
+//            GLfloat offset_y = voxelSize * number_y;
+//            GLfloat offset_x = voxelSize * number_x;
+//            GLfloat offset_z = voxelSize * number_z;
+//            GLfloat x_right = voxelSpace_X_min + voxelSize + offset_x;
+//            GLfloat x_left = voxelSpace_X_min + offset_x;
+//            GLfloat y_up = voxelSpace_Y_min + voxelSize + offset_y;
+//            GLfloat y_down = voxelSpace_Y_min + offset_y;
+//            GLfloat z_futher = voxelSpace_Z_min + offset_z;
+//            GLfloat z_closer = voxelSpace_Z_min + voxelSize + offset_z;
+
+//            //coordinates of triangles forming faces of cubes
+//            //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
+//            GLfloat coords[6][4][3] = {
+//                { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
+//                { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
+//                { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
+//                { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
+//                { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
+//                { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
+//            };
+
+//            QVector3D normal;
+//            bool ifDuplicate = false;
+
+//            // Draw6 different normal direction and avoid overlapping face for each face
+//            for (int i = 0; i < 6; ++i) {
+//                normal = setNormal(i);
+
+//                //                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
+//                //                if(ifDuplicate)
+//                //                    continue;
+
+//                // insert vertex position into m_data for creating VBO
+
+//                //first triangle in the face
+//                m_data.resize(m_totalCount+36);
+//                GLfloat *p = m_data.data() + m_totalCount;
+//                *p++ = coords[i][0][0];
+//                *p++ = coords[i][0][1];
+//                *p++ = coords[i][0][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+//                //---------------------------------
+//                *p++ = coords[i][1][0];
+//                *p++ = coords[i][1][1];
+//                *p++ = coords[i][1][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+//                //---------------------------------
+//                *p++ = coords[i][2][0];
+//                *p++ = coords[i][2][1];
+//                *p++ = coords[i][2][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+
+//                /////////////////////////////////////////////
+//                //second triangle in the face
+//                *p++ = coords[i][0][0];
+//                *p++ = coords[i][0][1];
+//                *p++ = coords[i][0][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+//                //---------------------------------
+//                *p++ = coords[i][2][0];
+//                *p++ = coords[i][2][1];
+//                *p++ = coords[i][2][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+//                //---------------------------------
+//                *p++ = coords[i][3][0];
+//                *p++ = coords[i][3][1];
+//                *p++ = coords[i][3][2];
+//                *p++ = normal[0];
+//                *p++ = normal[1];
+//                *p++ = normal[2];
+//                m_totalCount += 36;
+
+//                //update number of vertices
+//                link.numberOfVertex += 6;
+//            }
+//        }
+//    }
+}
+
 
 void CreateCubes::createCollisionVoxelspace(float vSize, MachineTool& MT ,bool needVisualization)
 {

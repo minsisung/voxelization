@@ -18,12 +18,16 @@ public:
     void collided_Negative_Y(){negative_Y = true;}
     void collided_Positive_Z(){positive_Z = true;}
     void collided_Negative_Z(){negative_Z = true;}
+    void not_collided_FirstAxis(){rotary_first = false;}
+    void not_collided_SecondAxis(){rotary_second = false;}
     bool isCollided_Positive_X(){return positive_X;}
     bool isCollided_Negative_X(){return negative_X;}
     bool isCollided_Positive_Y(){return positive_Y;}
     bool isCollided_Negative_Y(){return negative_Y;}
     bool isCollided_Positive_Z(){return positive_Z;}
     bool isCollided_Negative_Z(){return negative_Z;}
+    bool isCollided_FirstAxis(){return rotary_first;}
+    bool isCollided_SecondAxis(){return rotary_second;}
 
     stl_reader::StlMesh <float, unsigned int> getFirstMesh(){return firstMesh;}
     void setFirstMesh(stl_reader::StlMesh <float, unsigned int> mesh){firstMesh = mesh;}
@@ -40,6 +44,10 @@ public:
     component getSecondComp(){return secondComp;}
     QMatrix4x4 firstTransformMatrix;
     QMatrix4x4 secondTransformMatrix;
+    void setContainsCommonRotaryAxis1(){m_containsCommonRotaryAxis1 = true;}
+    bool containsCommonRotaryAxis1(){return m_containsCommonRotaryAxis1;}
+    void setContainsCommonRotaryAxis2(){m_containsCommonRotaryAxis2 = true;}
+    bool containsCommonRotaryAxis2(){return m_containsCommonRotaryAxis2;}
 
 private:
     QString name;
@@ -56,11 +64,12 @@ private:
     bool negative_Y = false;
     bool positive_Z = false;
     bool negative_Z = false;
-    bool rotary_first = false;
-    bool rotary_second = false;
+    bool rotary_first = true;
+    bool rotary_second = true;
     QString firstMeshName;
     QString secondMeshName;
-
+    bool m_containsCommonRotaryAxis1 = false;
+    bool m_containsCommonRotaryAxis2 = false;
 };
 
 #endif // CONTACTCOMPONENTSPAIR_H

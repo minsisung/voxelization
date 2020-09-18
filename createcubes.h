@@ -36,6 +36,7 @@ private:
     float voxelSize;
     void drawVoxelforCollision(Link& link);
     void drawVoxelforMT(Link& link, int ind1, int ind2);
+    void drawVoxelforCCP(QVector<contactComponentsPair>& CCPVector);
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector;
     void setupInitialTransformation(MachineTool& MT);
     void setupTransformation(MachineTool& MT, QChar linkType, float amount);
