@@ -49,6 +49,9 @@ public:
     void setContainsCommonRotaryAxis2(){m_containsCommonRotaryAxis2 = true;}
     bool containsCommonRotaryAxis2(){return m_containsCommonRotaryAxis2;}
 
+    QString firstAxis;
+    QString secondAxis;
+
 private:
     QString name;
     //    QVector<stl_reader::StlMesh <float, unsigned int>> CCP;
