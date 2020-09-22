@@ -75,7 +75,8 @@ public:
     void updateCCPVector(QVector<contactComponentsPair>& ccpVector);
     bool translationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix,
                                bool getVoxelIndcies = false);
-    bool rotationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix, int commonAxis_ind);
+    bool rotationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix, int commonAxis_ind,
+                            bool getVoxelIndcies = false);
     QList<QVector3D> compVoxelIndicesList1;
     QList<QVector3D> compVoxelIndicesList2;
 
@@ -97,6 +98,7 @@ private:
     vx_vertex_t p3;
 
     QHash<QString, stl_reader::StlMesh <float, unsigned int>> meshHash;
+    QString drawingCCPName;
 };
 
 #endif // VOXELIZER_H
