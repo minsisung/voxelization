@@ -220,7 +220,8 @@ void MyOpenGLWidget::paintGL()
 
     //check if visualization is necessary
     if(m_cubeGemoetry.ifNeedVisualization){
-        drawComponents();
+//        drawMTComponents();
+        drawCCPComponents();
     }
 
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
@@ -291,7 +292,7 @@ void MyOpenGLWidget::setupVertexAttribs()
     m_geometryVbo.release();
 }
 
-void MyOpenGLWidget::drawComponents()
+void MyOpenGLWidget::drawMTComponents()
 {
     //QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
     m_program->bind();
@@ -313,11 +314,47 @@ void MyOpenGLWidget::drawComponents()
                                                          static_cast<float>(loop->getRGBA().g),
                                                          static_cast<float>(loop->getRGBA().b)));
 
-
         //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, loop->numberOfVertex);
         //update starting number of each component
         startNumber += loop->numberOfVertex;
+    }
+}
+
+void MyOpenGLWidget::drawCCPComponents()
+{
+    //QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    m_program->bind();
+    m_program->setUniformValue(m_projMatrixLoc, m_proj);
+    m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
+    QMatrix3x3 normalMatrix = m_world.normalMatrix();
+    m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
+
+    QVector<int> totalVerticesVector = m_cubeGemoetry.get_vertices_numbers();
+    int startNumber = 0;
+
+    for (int comp_ind = 0; comp_ind < 2; comp_ind++){
+
+
+        // only draw skeleton of each triangle
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(0.37647f * (comp_ind + 1)),
+                                                         static_cast<float>(0.75294f / (comp_ind + 1)),
+                                                         static_cast<float>(0.37647f * (comp_ind + 1))));
+
+        if(comp_ind ==0){
+            //draw triangles
+            glDrawArrays(GL_TRIANGLES, startNumber, m_cubeGemoetry.numberOfVertex_comp1);
+            //update starting number of each component
+            startNumber += m_cubeGemoetry.numberOfVertex_comp1;
+        }else{
+            //draw triangles
+            glDrawArrays(GL_TRIANGLES, startNumber, m_cubeGemoetry.numberOfVertex_comp2);
+            //update starting number of each component
+            startNumber += m_cubeGemoetry.numberOfVertex_comp2;
+        }
+
     }
 }
 

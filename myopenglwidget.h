@@ -52,7 +52,8 @@ protected:
 
 private:
     void setupVertexAttribs();
-    void drawComponents();
+    void drawMTComponents();
+    void drawCCPComponents();
     QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
     QVector<component> readCompSTL(QString mtName, QVector3D mtRotaryAxes);
     bool m_core;

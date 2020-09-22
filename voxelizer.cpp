@@ -1173,215 +1173,345 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponentsFromURD
 
 void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 {
+    float CD_distance_offoff = 0.015f;
+    float CD_distance_offnon = 0.007f;
+
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
     transformMatrix_X_Positive.setToIdentity();
-    transformMatrix_X_Positive.translate(0.015f,0.0f,0.0f);
 
     for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+        bool isCollided = false;
         qDebug()<<"colliion detection in X positive for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive);
+
+        //offset offset CD
+        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+            transformMatrix_X_Positive.translate(CD_distance_offoff,0.0f,0.0f);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive, true);
+            qDebug()<<"offset offset CD"<<endl;
+
+            //non-offset offset CD
+        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+            transformMatrix_X_Positive.translate(CD_distance_offnon,0.0f,0.0f);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive, true);
+            qDebug()<<"offset non-offset CD"<<endl;
+
+            //non-offset non-offset CD
+        }else{
+            transformMatrix_X_Positive.translate(CD_distance_offnon,0.0f,0.0f);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive, true);
+            qDebug()<<"non-offset non-offset CD"<<endl;
+        }
 
         if(isCollided)
             ccpVector[ccp_ind].collided_Positive_X();
     }
 
-    //check x negative
-    QMatrix4x4 transformMatrix_X_Negative;
-    transformMatrix_X_Negative.setToIdentity();
-    transformMatrix_X_Negative.translate(-0.015f,0.0f,0.0f);
+    //    //check x negative
+    //    QMatrix4x4 transformMatrix_X_Negative;
+    //    transformMatrix_X_Negative.setToIdentity();
 
-    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-        qDebug()<<"colliion detection in X negative for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
+    //    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //        bool isCollided = false;
+    //        qDebug()<<"colliion detection in X negative for"<<ccpVector[ccp_ind].getName();
 
-        if(isCollided)
-            ccpVector[ccp_ind].collided_Negative_X();
-    }
+    //        //offset offset CD
+    //        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+    //            transformMatrix_X_Negative.translate(-CD_distance_offoff,0.0f,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
+    //            qDebug()<<"offset offset CD"<<endl;
 
-    //check y positive
-    QMatrix4x4 transformMatrix_Y_Positive;
-    transformMatrix_Y_Positive.setToIdentity();
-    transformMatrix_Y_Positive.translate(0.0f,0.015f,0.0f);
+    //            //non-offset offset CD
+    //        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+    //                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+    //            transformMatrix_X_Negative.translate(-CD_distance_offnon,0.0f,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
+    //            qDebug()<<"offset non-offset CD"<<endl;
 
-    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-        qDebug()<<"colliion detection in Y positive for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+    //            //non-offset non-offset CD
+    //        }else{
+    //            transformMatrix_X_Negative.translate(-CD_distance_offnon,0.0f,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
+    //            qDebug()<<"non-offset non-offset CD"<<endl;
+    //        }
+    //        if(isCollided)
+    //            ccpVector[ccp_ind].collided_Negative_X();
+    //    }
 
-        if(isCollided)
-            ccpVector[ccp_ind].collided_Positive_Y();
-    }
+    //    //check y positive
+    //    QMatrix4x4 transformMatrix_Y_Positive;
+    //    transformMatrix_Y_Positive.setToIdentity();
 
-    //check y negative
-    QMatrix4x4 transformMatrix_Y_Negative;
-    transformMatrix_Y_Negative.setToIdentity();
-    transformMatrix_Y_Negative.translate(0.0f,-0.015f,0.0f);
+    //    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //        bool isCollided = false;
+    //        qDebug()<<"colliion detection in Y positive for"<<ccpVector[ccp_ind].getName();
 
-    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-        qDebug()<<"colliion detection in Y negative for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
+    //        //offset offset CD
+    //        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+    //            transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+    //            qDebug()<<"offset offset CD"<<endl;
 
-        if(isCollided)
-            ccpVector[ccp_ind].collided_Negative_Y();
-    }
+    //            //non-offset offset CD
+    //        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+    //                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+    //            transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+    //            qDebug()<<"offset non-offset CD"<<endl;
 
-    //check z positive
-    QMatrix4x4 transformMatrix_Z_Positive;
-    transformMatrix_Z_Positive.setToIdentity();
-    transformMatrix_Z_Positive.translate(0.0f,0.0f,0.015f);
+    //            //non-offset non-offset CD
+    //        }else{
+    //            transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+    //            qDebug()<<"non-offset non-offset CD"<<endl;
+    //        }
+    //        if(isCollided)
+    //            ccpVector[ccp_ind].collided_Positive_Y();
+    //    }
 
-    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-        qDebug()<<"colliion detection in Z positive for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
+    //    //check y negative
+    //    QMatrix4x4 transformMatrix_Y_Negative;
+    //    transformMatrix_Y_Negative.setToIdentity();
 
-        if(isCollided)
-            ccpVector[ccp_ind].collided_Positive_Z();
-    }
+    //    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //        bool isCollided = false;
+    //        qDebug()<<"colliion detection in Y negative for"<<ccpVector[ccp_ind].getName();
 
-    //check z negative
-    QMatrix4x4 transformMatrix_Z_Negative;
-    transformMatrix_Z_Negative.setToIdentity();
-    transformMatrix_Z_Negative.translate(0.0f,0.0f,-0.015f);
+    //        //offset offset CD
+    //        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+    //            transformMatrix_Y_Negative.translate(0.0f,-CD_distance_offoff,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
+    //            qDebug()<<"offset offset CD"<<endl;
 
-    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-        qDebug()<<"colliion detection in Z negative for"<<ccpVector[ccp_ind].getName();
-        bool isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
+    //            //non-offset offset CD
+    //        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+    //                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+    //            transformMatrix_Y_Negative.translate(0.0f,-CD_distance_offnon,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
+    //            qDebug()<<"offset non-offset CD"<<endl;
 
-        if(isCollided)
-            ccpVector[ccp_ind].collided_Negative_Z();
-    }
+    //            //non-offset non-offset CD
+    //        }else{
+    //            transformMatrix_Y_Negative.translate(0.0f,-CD_distance_offnon,0.0f);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
+    //            qDebug()<<"non-offset non-offset CD"<<endl;
+    //        }
+    //        if(isCollided)
+    //            ccpVector[ccp_ind].collided_Negative_Y();
+    //    }
 
-    //Collision detecytion for rotary axis
+    //    //check z positive
+    //    QMatrix4x4 transformMatrix_Z_Positive;
+    //    transformMatrix_Z_Positive.setToIdentity();
 
-    //Transformation Matrix in A axis
-    QMatrix4x4 transformMatrix_A;
-    transformMatrix_A.setToIdentity();
-    transformMatrix_A.rotate(3, 1.0, 0.0, 0.0);
+    //    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //        bool isCollided = false;
+    //        qDebug()<<"colliion detection in Z positive for"<<ccpVector[ccp_ind].getName();
 
-    //Transformation Matrix in B axis
-    QMatrix4x4 transformMatrix_B;
-    transformMatrix_B.setToIdentity();
-    transformMatrix_B.rotate(3, 0.0, 1.0, 0.0);
+    //        //offset offset CD
+    //        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+    //            transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offoff);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
+    //            qDebug()<<"offset offset CD"<<endl;
 
-    //Transformation Matrix in C axis
-    QMatrix4x4 transformMatrix_C;
-    transformMatrix_C.setToIdentity();
-    transformMatrix_C.rotate(3, 0.0, 0.0, 1.0);
+    //            //non-offset offset CD
+    //        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+    //                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+    //            transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offnon);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
+    //            qDebug()<<"offset non-offset CD"<<endl;
 
-    //get machine tool type
-    QVector3D mtRotaryAxes = ccpVector[0].getFirstComp().m_mtRotaryAxes;
+    //            //non-offset non-offset CD
+    //        }else{
+    //            transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offnon);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
+    //            qDebug()<<"non-offset non-offset CD"<<endl;
+    //        }
+    //        if(isCollided)
+    //            ccpVector[ccp_ind].collided_Positive_Z();
+    //    }
 
-    //AB 5-axis Machine
-    if(mtRotaryAxes == QVector3D(1,1,0)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //    //check z negative
+    //    QMatrix4x4 transformMatrix_Z_Negative;
+    //    transformMatrix_Z_Negative.setToIdentity();
 
-            //if components has common rotary axis in A, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
+    //    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //        bool isCollided = false;
+    //        qDebug()<<"colliion detection in Z negative for"<<ccpVector[ccp_ind].getName();
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
+    //        //offset offset CD
+    //        if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+    //            transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offoff);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
+    //            qDebug()<<"offset offset CD"<<endl;
 
-            //if components has common rotary axis in B, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 2);
+    //            //non-offset offset CD
+    //        }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  !ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()) |
+    //                 (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
+    //                  ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
+    //            transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
+    //            qDebug()<<"offset non-offset CD"<<endl;
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_SecondAxis();
-            }
-        }
-    }
+    //            //non-offset non-offset CD
+    //        }else{
+    //            transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
+    //            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
+    //            qDebug()<<"non-offset non-offset CD"<<endl;
+    //        }
+    //        if(isCollided)
+    //            ccpVector[ccp_ind].collided_Negative_Z();
+    //    }
 
-    //BC 5-axis Machine
-    if(mtRotaryAxes == QVector3D(0,1,1)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-            //if components has common rotary axis in B, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
+    //    //Collision detecytion for rotary axis
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
+    //    //Transformation Matrix in A axis
+    //    QMatrix4x4 transformMatrix_A;
+    //    transformMatrix_A.setToIdentity();
+    //    transformMatrix_A.rotate(3, 1.0, 0.0, 0.0);
 
-            //if components has common rotary axis in C, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
+    //    //Transformation Matrix in B axis
+    //    QMatrix4x4 transformMatrix_B;
+    //    transformMatrix_B.setToIdentity();
+    //    transformMatrix_B.rotate(3, 0.0, 1.0, 0.0);
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_SecondAxis();
-            }
-        }
-    }
+    //    //Transformation Matrix in C axis
+    //    QMatrix4x4 transformMatrix_C;
+    //    transformMatrix_C.setToIdentity();
+    //    transformMatrix_C.rotate(3, 0.0, 0.0, 1.0);
 
-    //AC 5-axis Machine
-    if(mtRotaryAxes == QVector3D(1,0,1)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-            //if components has common rotary axis in A, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
+    //    //get machine tool type
+    //    QVector3D mtRotaryAxes = ccpVector[0].getFirstComp().m_mtRotaryAxes;
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
+    //    //AB 5-axis Machine
+    //    if(mtRotaryAxes == QVector3D(1,1,0)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
 
-            //if components has common rotary axis in C, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
+    //            //if components has common rotary axis in A, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_SecondAxis();
-            }
-        }
-    }
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
 
-    //A 4-axis Machine
-    if(mtRotaryAxes == QVector3D(1,0,0)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-            //if components has common rotary axis in A, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
+    //            //if components has common rotary axis in B, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
+    //                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 2);
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
-        }
-    }
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_SecondAxis();
+    //            }
+    //        }
+    //    }
 
-    //B 4-axis Machine
-    if(mtRotaryAxes == QVector3D(0,1,0)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-            //if components has common rotary axis in B, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
+    //    //BC 5-axis Machine
+    //    if(mtRotaryAxes == QVector3D(0,1,1)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //            //if components has common rotary axis in B, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
-        }
-    }
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
 
-    //C 4-axis Machine
-    if(mtRotaryAxes == QVector3D(0,0,1)){
-        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
-            //if components has common rotary axis in C, then check collision
-            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 1);
+    //            //if components has common rotary axis in C, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
+    //                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
 
-                if(!isCollided)
-                    ccpVector[ccp_ind].not_collided_FirstAxis();
-            }
-        }
-    }
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_SecondAxis();
+    //            }
+    //        }
+    //    }
+
+    //    //AC 5-axis Machine
+    //    if(mtRotaryAxes == QVector3D(1,0,1)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //            //if components has common rotary axis in A, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
+
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
+
+    //            //if components has common rotary axis in C, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
+    //                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
+
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_SecondAxis();
+    //            }
+    //        }
+    //    }
+
+    //    //A 4-axis Machine
+    //    if(mtRotaryAxes == QVector3D(1,0,0)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //            //if components has common rotary axis in A, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
+
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
+    //        }
+    //    }
+
+    //    //B 4-axis Machine
+    //    if(mtRotaryAxes == QVector3D(0,1,0)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //            //if components has common rotary axis in B, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
+
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
+    //        }
+    //    }
+
+    //    //C 4-axis Machine
+    //    if(mtRotaryAxes == QVector3D(0,0,1)){
+    //        for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+    //            //if components has common rotary axis in C, then check collision
+    //            if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+    //                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+    //                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 1);
+
+    //                if(!isCollided)
+    //                    ccpVector[ccp_ind].not_collided_FirstAxis();
+    //            }
+    //        }
+    //    }
     qDebug()<<endl;
 
     for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
@@ -1411,8 +1541,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 }
 
 //Translational collision detection for CCP
-bool Voxelizer::translationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 movingtransformMatrix)
+bool Voxelizer::translationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 movingtransformMatrix,
+                                      bool getVoxelIndcies)
 {
+    QString drawingCCPName = "UMC-500_Z_Link_2==UMC-500_Y_Link_1";
+
     //    qDebug()<<"collision detection for CCP:"<<ccp.getName()<<endl;
 
     bool isCollided = false;
@@ -1427,8 +1560,11 @@ bool Voxelizer::translationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 mov
         transformMatrix.setToIdentity();
         QString componentName;
 
+        QList<QVector3D>* compVoxelIndciesList;
+
         //first component (only first component being transform)
         if(component_ind == 0){
+            compVoxelIndciesList = &compVoxelIndicesList1;
             if(ccp.getFirstComp().containsOffsetMesh()){
                 componentMesh = ccp.getFirstComp().getOffsetMesh();
                 componentName = ccp.getFirstComp().getName() + "_offset";
@@ -1441,8 +1577,8 @@ bool Voxelizer::translationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 mov
                 qDebug()<<"First component uses non-offset mesh for collision detection";
             }
         }else{
-
             //second component
+            compVoxelIndciesList = &compVoxelIndicesList2;
             if((ccp.getSecondComp().containsOffsetMesh())){
                 componentMesh = ccp.getSecondComp().getOffsetMesh();
                 componentName = ccp.getSecondComp().getName() + "_offset";
@@ -1454,53 +1590,113 @@ bool Voxelizer::translationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 mov
             }
         }
 
-        for (size_t itri = 0; itri < componentMesh.num_tris(); ++itri){
+        //code for getting voxel indicies
+        if(ccp.getName() == drawingCCPName && getVoxelIndcies){
+            for (size_t itri = 0; itri < componentMesh.num_tris(); ++itri){
 
-            //Load and transform triangles from mesh
-            loadAndTransform(itri, componentMesh, transformMatrix);
+                //Load and transform triangles from mesh
+                loadAndTransform(itri, componentMesh, transformMatrix);
 
-            //find bounding box of triangle
-            VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
-                    VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
-                    VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+                //find bounding box of triangle
+                VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                        VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                        VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
 
-                    //get voxel indices of bounding box of triangle
-                    int index_x_min = floor((min_x - (voxelStarting_X))/voxelSize);
-            int index_x_max = floor((max_x - (voxelStarting_X))/voxelSize);
-            int index_y_min = floor((min_y - (voxelStarting_Y))/voxelSize);
-            int index_y_max = floor((max_y - (voxelStarting_Y))/voxelSize);
-            int index_z_min = floor((min_z - (voxelStarting_Z))/voxelSize);
-            int index_z_max = floor((max_z - (voxelStarting_Z))/voxelSize);
+                        //get voxel indices of bounding box of triangle
+                        int index_x_min = floor((min_x - (voxelStarting_X))/voxelSize);
+                int index_x_max = floor((max_x - (voxelStarting_X))/voxelSize);
+                int index_y_min = floor((min_y - (voxelStarting_Y))/voxelSize);
+                int index_y_max = floor((max_y - (voxelStarting_Y))/voxelSize);
+                int index_z_min = floor((min_z - (voxelStarting_Z))/voxelSize);
+                int index_z_max = floor((max_z - (voxelStarting_Z))/voxelSize);
 
-            // bounding box of triangle can't be outside of voxelspace
-            Q_ASSERT_X((max_x < voxelStarting_X + voxelSpaceSize_X * voxelSize &&
-                        max_y < voxelStarting_Y + voxelSpaceSize_Y * voxelSize &&
-                        max_z < voxelStarting_Z + voxelSpaceSize_Z * voxelSize &&
-                        min_x > voxelStarting_X && min_y > voxelStarting_Y && min_z > voxelStarting_Z), "voxelizer", "part of geometry is outside of voxelspace");
+                // bounding box of triangle can't be outside of voxelspace
+                Q_ASSERT_X((max_x < voxelStarting_X + voxelSpaceSize_X * voxelSize &&
+                            max_y < voxelStarting_Y + voxelSpaceSize_Y * voxelSize &&
+                            max_z < voxelStarting_Z + voxelSpaceSize_Z * voxelSize &&
+                            min_x > voxelStarting_X && min_y > voxelStarting_Y && min_z > voxelStarting_Z), "voxelizer", "part of geometry is outside of voxelspace");
 
-            //Check intersection between triangle and voxels in the bounding boxes of triangle
-            for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++){
-                for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
-                    for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
-                        voxelForCCP& voxelForCpp = contactComponentsPairsVS[ind_x][ind_y][ind_z];
-                        QVector<QString>& componentsVector = voxelForCpp.componentsVector;
+                //Check intersection between triangle and voxels in the bounding boxes of triangle
+                for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++){
+                    for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
+                        for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
+                            voxelForCCP& voxelForCpp = contactComponentsPairsVS[ind_x][ind_y][ind_z];
+                            QVector<QString>& componentsVector = voxelForCpp.componentsVector;
 
-                        boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
-                        boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
-                        boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
+                            boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
+                            boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
+                            boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
 
-                        // for voxel that intersect with 3d model
-                        if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+                            // for voxel that intersect with 3d model
+                            if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
 
-                            //if there is no component assigned to this voxel
-                            if(componentsVector.isEmpty()){
-                                componentsVector.push_back(componentName);
-                            }else{
-                                //if this component hasn't assigned to this voxel
-                                if(!componentsVector.contains(componentName)){
-                                    //collision occurs
-                                    isCollided = true;
-                                    //                                    goto endOfLoop;
+                                //if there is no component assigned to this voxel
+                                if(componentsVector.isEmpty()){
+                                    compVoxelIndciesList->append(QVector3D(ind_x, ind_y, ind_z));
+                                    componentsVector.push_back(componentName);
+                                }else{
+                                    //if this component hasn't assigned to this voxel
+                                    if(!componentsVector.contains(componentName)){
+                                        compVoxelIndciesList->append(QVector3D(ind_x, ind_y, ind_z));
+                                        //collision occurs
+                                        isCollided = true;
+                                        //                                    goto endOfLoop;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }else{   //code for not getting voxel indicies
+            for (size_t itri = 0; itri < componentMesh.num_tris(); ++itri){
+
+                //Load and transform triangles from mesh
+                loadAndTransform(itri, componentMesh, transformMatrix);
+
+                //find bounding box of triangle
+                VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
+                        VX_FINDMINMAX(triangle.p1.y, triangle.p2.y, triangle.p3.y, min_y, max_y)
+                        VX_FINDMINMAX(triangle.p1.z, triangle.p2.z, triangle.p3.z, min_z, max_z)
+
+                        //get voxel indices of bounding box of triangle
+                        int index_x_min = floor((min_x - (voxelStarting_X))/voxelSize);
+                int index_x_max = floor((max_x - (voxelStarting_X))/voxelSize);
+                int index_y_min = floor((min_y - (voxelStarting_Y))/voxelSize);
+                int index_y_max = floor((max_y - (voxelStarting_Y))/voxelSize);
+                int index_z_min = floor((min_z - (voxelStarting_Z))/voxelSize);
+                int index_z_max = floor((max_z - (voxelStarting_Z))/voxelSize);
+
+                // bounding box of triangle can't be outside of voxelspace
+                Q_ASSERT_X((max_x < voxelStarting_X + voxelSpaceSize_X * voxelSize &&
+                            max_y < voxelStarting_Y + voxelSpaceSize_Y * voxelSize &&
+                            max_z < voxelStarting_Z + voxelSpaceSize_Z * voxelSize &&
+                            min_x > voxelStarting_X && min_y > voxelStarting_Y && min_z > voxelStarting_Z), "voxelizer", "part of geometry is outside of voxelspace");
+
+                //Check intersection between triangle and voxels in the bounding boxes of triangle
+                for (int ind_x = index_x_min; ind_x<index_x_max + 1; ind_x++){
+                    for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
+                        for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
+                            voxelForCCP& voxelForCpp = contactComponentsPairsVS[ind_x][ind_y][ind_z];
+                            QVector<QString>& componentsVector = voxelForCpp.componentsVector;
+
+                            boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
+                            boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
+                            boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
+
+                            // for voxel that intersect with 3d model
+                            if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
+
+                                //if there is no component assigned to this voxel
+                                if(componentsVector.isEmpty()){
+                                    componentsVector.push_back(componentName);
+                                }else{
+                                    //if this component hasn't assigned to this voxel
+                                    if(!componentsVector.contains(componentName)){
+                                        //collision occurs
+                                        isCollided = true;
+                                        //                                    goto endOfLoop;
+                                    }
                                 }
                             }
                         }
@@ -1619,6 +1815,3 @@ bool Voxelizer::rotationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 rotati
     //endOfLoop:
     return isCollided;
 }
-
-
-

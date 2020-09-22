@@ -44,15 +44,12 @@ void CreateCubes::createMTVoxelspace(float vSize, QVector<component> &componentV
 
 void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
 {
-
     QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
     voxelizer.updateCCPVector(ccpVector);
-    //    if(totalCollisionSet.empty()){
-    //        qDebug()<<"There is no Contact-components pairs"<<endl;
-    //    }else{
-    //        qDebug()<<"Contact-components pairs:"<<totalCollisionSet<<endl;
-    //    }
-    //    totalCollisionSet.clear();
+
+    qDebug()<<"size1:"<<voxelizer.compVoxelIndicesList1.size();
+    qDebug()<<"size2:"<<voxelizer.compVoxelIndicesList2.size();
+    drawVoxelforCCP(voxelizer.compVoxelIndicesList1, voxelizer.compVoxelIndicesList2);
 }
 
 void CreateCubes::findContactComponentsPairsFromURDF(MachineTool &MT)
@@ -313,7 +310,7 @@ void CreateCubes::collisionDetectionForConfigurations(MachineTool& MT, bool need
 
 
 void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
-{    
+{
     float voxelSpace_X_min = voxelizer.voxelStarting_X;
     float voxelSpace_Y_min = voxelizer.voxelStarting_Y;
     float voxelSpace_Z_min = voxelizer.voxelStarting_Z;
@@ -423,107 +420,120 @@ void CreateCubes::drawVoxelforMT(Link& link, int ind1, int ind2)
     }
 }
 
-void CreateCubes::drawVoxelforCCP(QVector<contactComponentsPair> &CCPVector)
+void CreateCubes::drawVoxelforCCP(QList<QVector3D> &compVoxelIndicesList1, QList<QVector3D> &compVoxelIndicesList2)
 {
-//    float voxelSpace_X_min = voxelizer.voxelStarting_X;
-//    float voxelSpace_Y_min = voxelizer.voxelStarting_Y;
-//    float voxelSpace_Z_min = voxelizer.voxelStarting_Z;
+    float voxelSpace_X_min = voxelizer.voxelStarting_X;
+    float voxelSpace_Y_min = voxelizer.voxelStarting_Y;
+    float voxelSpace_Z_min = voxelizer.voxelStarting_Z;
 
-//    for(int ccp_ind = 0; ccp_ind < CCPVector.size(); ++ccp_ind){
-//        for (QList<QVector3D>::iterator i = link.MTVoxelIndicesListVectorUpdate[mesh_ind][index].begin();
-//             i != link.MTVoxelIndicesListVectorUpdate[mesh_ind][index].end(); ++i){
+    for(int comp_ind = 0; comp_ind < 2; ++comp_ind){
 
-//            int number_x = i->x();
-//            int number_y = i->y();
-//            int number_z = i->z();
+        QList<QVector3D> compVoxelIndciesList;
+        int *numberOfVertex;
 
-//            GLfloat offset_y = voxelSize * number_y;
-//            GLfloat offset_x = voxelSize * number_x;
-//            GLfloat offset_z = voxelSize * number_z;
-//            GLfloat x_right = voxelSpace_X_min + voxelSize + offset_x;
-//            GLfloat x_left = voxelSpace_X_min + offset_x;
-//            GLfloat y_up = voxelSpace_Y_min + voxelSize + offset_y;
-//            GLfloat y_down = voxelSpace_Y_min + offset_y;
-//            GLfloat z_futher = voxelSpace_Z_min + offset_z;
-//            GLfloat z_closer = voxelSpace_Z_min + voxelSize + offset_z;
+        //first component (only first component being transform)
+        if(comp_ind == 0){
+            compVoxelIndciesList = compVoxelIndicesList1;
+            numberOfVertex = &numberOfVertex_comp1;
+        }else{
+            compVoxelIndciesList = compVoxelIndicesList2;
+            numberOfVertex = &numberOfVertex_comp2;
+        }
 
-//            //coordinates of triangles forming faces of cubes
-//            //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
-//            GLfloat coords[6][4][3] = {
-//                { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
-//                { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
-//                { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
-//                { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
-//                { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
-//                { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
-//            };
+        for (QList<QVector3D>::iterator i = compVoxelIndciesList.begin();
+             i != compVoxelIndciesList.end(); ++i){
 
-//            QVector3D normal;
-//            bool ifDuplicate = false;
+            int number_x = i->x();
+            int number_y = i->y();
+            int number_z = i->z();
 
-//            // Draw6 different normal direction and avoid overlapping face for each face
-//            for (int i = 0; i < 6; ++i) {
-//                normal = setNormal(i);
+            GLfloat offset_y = voxelSize * number_y;
+            GLfloat offset_x = voxelSize * number_x;
+            GLfloat offset_z = voxelSize * number_z;
+            GLfloat x_right = voxelSpace_X_min + voxelSize + offset_x;
+            GLfloat x_left = voxelSpace_X_min + offset_x;
+            GLfloat y_up = voxelSpace_Y_min + voxelSize + offset_y;
+            GLfloat y_down = voxelSpace_Y_min + offset_y;
+            GLfloat z_futher = voxelSpace_Z_min + offset_z;
+            GLfloat z_closer = voxelSpace_Z_min + voxelSize + offset_z;
 
-//                //                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
-//                //                if(ifDuplicate)
-//                //                    continue;
+            //coordinates of triangles forming faces of cubes
+            //6 faces for each cube, 4 vertices for each face, 3 coordinates for each vertex
+            GLfloat coords[6][4][3] = {
+                { { x_right, y_down, z_futher}, { x_left, y_down, z_futher}, { x_left, y_up, z_futher}, { x_right, y_up, z_futher} },
+                { { x_right, y_up, z_futher}, { x_left, y_up, z_futher}, { x_left, y_up, z_closer}, { x_right, y_up, z_closer} },
+                { { x_right, y_down, z_closer}, { x_right, y_down, z_futher}, { x_right, y_up, z_futher}, { x_right, y_up, z_closer} },
+                { { x_left,y_down, z_futher}, { x_left, y_down, z_closer}, { x_left, y_up, z_closer}, { x_left, y_up, z_futher} },
+                { { x_right,y_down, z_closer}, { x_left, y_down, z_closer}, { x_left, y_down, z_futher}, { x_right, y_down, z_futher} },
+                { { x_left, y_down, z_closer}, { x_right, y_down, z_closer}, { x_right, y_up, z_closer}, { x_left, y_up, z_closer} }
+            };
 
-//                // insert vertex position into m_data for creating VBO
+            QVector3D normal;
+            bool ifDuplicate = false;
 
-//                //first triangle in the face
-//                m_data.resize(m_totalCount+36);
-//                GLfloat *p = m_data.data() + m_totalCount;
-//                *p++ = coords[i][0][0];
-//                *p++ = coords[i][0][1];
-//                *p++ = coords[i][0][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
-//                //---------------------------------
-//                *p++ = coords[i][1][0];
-//                *p++ = coords[i][1][1];
-//                *p++ = coords[i][1][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
-//                //---------------------------------
-//                *p++ = coords[i][2][0];
-//                *p++ = coords[i][2][1];
-//                *p++ = coords[i][2][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
+            // Draw6 different normal direction and avoid overlapping face for each face
+            for (int i = 0; i < 6; ++i) {
+                normal = setNormal(i);
 
-//                /////////////////////////////////////////////
-//                //second triangle in the face
-//                *p++ = coords[i][0][0];
-//                *p++ = coords[i][0][1];
-//                *p++ = coords[i][0][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
-//                //---------------------------------
-//                *p++ = coords[i][2][0];
-//                *p++ = coords[i][2][1];
-//                *p++ = coords[i][2][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
-//                //---------------------------------
-//                *p++ = coords[i][3][0];
-//                *p++ = coords[i][3][1];
-//                *p++ = coords[i][3][2];
-//                *p++ = normal[0];
-//                *p++ = normal[1];
-//                *p++ = normal[2];
-//                m_totalCount += 36;
+                //                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
+                //                if(ifDuplicate)
+                //                    continue;
 
-//                //update number of vertices
-//                link.numberOfVertex += 6;
-//            }
-//        }
-//    }
+                // insert vertex position into m_data for creating VBO
+
+                //first triangle in the face
+                m_data.resize(m_totalCount+36);
+                GLfloat *p = m_data.data() + m_totalCount;
+                *p++ = coords[i][0][0];
+                *p++ = coords[i][0][1];
+                *p++ = coords[i][0][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][1][0];
+                *p++ = coords[i][1][1];
+                *p++ = coords[i][1][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][2][0];
+                *p++ = coords[i][2][1];
+                *p++ = coords[i][2][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+
+                /////////////////////////////////////////////
+                //second triangle in the face
+                *p++ = coords[i][0][0];
+                *p++ = coords[i][0][1];
+                *p++ = coords[i][0][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][2][0];
+                *p++ = coords[i][2][1];
+                *p++ = coords[i][2][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                //---------------------------------
+                *p++ = coords[i][3][0];
+                *p++ = coords[i][3][1];
+                *p++ = coords[i][3][2];
+                *p++ = normal[0];
+                *p++ = normal[1];
+                *p++ = normal[2];
+                m_totalCount += 36;
+
+                //update number of vertices
+                *numberOfVertex += 6;
+            }
+        }
+    }
 }
 
 
