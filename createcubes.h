@@ -43,6 +43,7 @@ private:
     void setupInitialTransformation(MachineTool& MT);
     void setupTransformation(MachineTool& MT, QChar linkType, float amount);
     QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
+    void findLIPCandidates(QVector<contactComponentsPair>& ccpVector);
 };
 
 

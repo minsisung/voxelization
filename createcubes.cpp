@@ -47,9 +47,88 @@ void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector
     QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
     voxelizer.updateCCPVector(ccpVector);
 
-    qDebug()<<"size1:"<<voxelizer.compVoxelIndicesList1.size();
-    qDebug()<<"size2:"<<voxelizer.compVoxelIndicesList2.size();
+    //print all motion relationship between components of CCPs
+    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+        qDebug()<<"Collision occurs when move in positive X:"<<ccpVector[ccp_ind].isCollided_Positive_X();
+        qDebug()<<"Collision occurs when move in negative X:"<<ccpVector[ccp_ind].isCollided_Negative_X();
+        qDebug()<<"Collision occurs when move in positive Y:"<<ccpVector[ccp_ind].isCollided_Positive_Y();
+        qDebug()<<"Collision occurs when move in negative Y:"<<ccpVector[ccp_ind].isCollided_Negative_Y();
+        qDebug()<<"Collision occurs when move in positive Z:"<<ccpVector[ccp_ind].isCollided_Positive_Z();
+        qDebug()<<"Collision occurs when move in negative Z:"<<ccpVector[ccp_ind].isCollided_Negative_Z();
+
+        if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
+            qDebug()<<"Collision occurs when rotate along"<<ccpVector[ccp_ind].firstAxis<<":"
+                   <<ccpVector[ccp_ind].isCollided_FirstAxis();
+        }else{
+            qDebug()<<"This CCP doesn't have common rotational axis in"<<ccpVector[ccp_ind].firstAxis;
+        }
+
+        if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
+            qDebug()<<"Collision occurs when rotate along"<<ccpVector[ccp_ind].secondAxis<<":"
+                   <<ccpVector[ccp_ind].isCollided_SecondAxis();
+        }else{
+            qDebug()<<"This CCP doesn't have common rotational axis in"<<ccpVector[ccp_ind].secondAxis;
+        }
+        qDebug()<<endl;
+    }
+
+
+    findLIPCandidates(ccpVector);
+
     drawVoxelforCCP(voxelizer.compVoxelIndicesList1, voxelizer.compVoxelIndicesList2);
+}
+
+
+void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
+{
+    for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
+
+        //Rotational LIP candidate
+        if(ccpVector[ccp_ind].containsCommonRotaryAxis1() && !ccpVector[ccp_ind].isCollided_FirstAxis()){
+            qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+            qDebug()<<"is a candidate of"<<ccpVector[ccp_ind].firstAxis<<"-LIP"<<endl;
+            continue;
+        }
+        if(ccpVector[ccp_ind].containsCommonRotaryAxis2() && !ccpVector[ccp_ind].isCollided_SecondAxis()){
+            qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+            qDebug()<<"is a candidate of"<<ccpVector[ccp_ind].secondAxis<<"-LIP"<<endl;
+            continue;
+        }
+
+        //X-LIP candidate
+        if(!ccpVector[ccp_ind].isCollided_Positive_X() && !ccpVector[ccp_ind].isCollided_Negative_X()){
+            if(((ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                (ccpVector[ccp_ind].isCollided_Positive_Z() && ccpVector[ccp_ind].isCollided_Negative_Z())) |
+                    ((ccpVector[ccp_ind].isCollided_Positive_Y() && ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                     (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z()))){
+                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"is a candidate of X-LIP"<<endl;
+            }
+        }
+
+        //Y-LIP candidate
+        if(!ccpVector[ccp_ind].isCollided_Positive_Y() && !ccpVector[ccp_ind].isCollided_Negative_Y()){
+            if(((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                (ccpVector[ccp_ind].isCollided_Positive_Z() && ccpVector[ccp_ind].isCollided_Negative_Z())) |
+                    ((ccpVector[ccp_ind].isCollided_Positive_X() && ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                     (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z()))){
+                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"is a candidate of Y-LIP"<<endl;
+            }
+        }
+
+        //Z-LIP candidate
+        if(!ccpVector[ccp_ind].isCollided_Positive_Z() && !ccpVector[ccp_ind].isCollided_Negative_Z()){
+            if(((ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                (ccpVector[ccp_ind].isCollided_Positive_X() && ccpVector[ccp_ind].isCollided_Negative_X())) |
+                    ((ccpVector[ccp_ind].isCollided_Positive_Y() && ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                     (ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()))){
+                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"is a candidate of Z-LIP"<<endl;
+            }
+        }
+    }
 }
 
 void CreateCubes::findContactComponentsPairsFromURDF(MachineTool &MT)

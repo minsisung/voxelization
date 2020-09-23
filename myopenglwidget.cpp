@@ -447,7 +447,8 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotar
 
             }
             //C
-            if(comp.getName() == "UMC-500_C_Link_2" | comp.getName() == "UMC-500_B_Link_1"){
+            if(comp.getName() == "UMC-500_C_Link_1" | comp.getName() == "UMC-500_C_Link_2"
+                    | comp.getName() == "UMC-500_B_Link_1"){
                 comp.setRotaryAxisPoint2(0.0f, -0.53336f, 0.0f);
                 comp.setContainsRotaryAxis2();
             }
