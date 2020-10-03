@@ -22,12 +22,17 @@ public:
     void setOffsetMesh(stl_reader::StlMesh<float, unsigned int> offsetMesh){m_offestMesh = offsetMesh;}
     void setContainsOffsetMesh(){m_containsOffsetMesh = true;}
     bool containsOffsetMesh(){return m_containsOffsetMesh;}
-    void setRotaryAxisPoint1(float x, float y, float z){rotaryAxisPoint1.setX(x);
-                                                        rotaryAxisPoint1.setY(y);
-                                                                                                        rotaryAxisPoint1.setZ(z);}
-    void setRotaryAxisPoint2(float x, float y, float z){rotaryAxisPoint2.setX(x);
-                                                        rotaryAxisPoint2.setY(y);
-                                                                                                        rotaryAxisPoint2.setZ(z);}
+    void setRotaryAxisPoint1(float x, float y, float z){
+        rotaryAxisPoint1.setX(x);
+        rotaryAxisPoint1.setY(y);
+        rotaryAxisPoint1.setZ(z);
+        setContainsRotaryAxis1();}
+
+    void setRotaryAxisPoint2(float x, float y, float z){
+        rotaryAxisPoint2.setX(x);
+        rotaryAxisPoint2.setY(y);
+        rotaryAxisPoint2.setZ(z);
+        setContainsRotaryAxis2();}
 
     QVector3D getRotaryAxisPoint1(){return rotaryAxisPoint1;}
     QVector3D getRotaryAxisPoint2(){return rotaryAxisPoint2;}
@@ -36,8 +41,6 @@ public:
     bool containsRotaryAxis1(){return m_containsRotaryAxis1;}
     void setContainsRotaryAxis2(){m_containsRotaryAxis2 = true;}
     bool containsRotaryAxis2(){return m_containsRotaryAxis2;}
-
-
 
 private:
     QString m_name;

@@ -6,9 +6,6 @@
 #include <shaders.h>
 #include <QFileDialog>
 
-
-
-
 bool MyOpenGLWidget::m_transparent = true;
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
@@ -125,6 +122,13 @@ void MyOpenGLWidget::initializeGL()
 
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
+    for(int i = 0; i < compVector.size(); i++){
+        component comp = compVector[i];
+        qDebug()<<comp.getRotaryAxisPoint1();
+        qDebug()<<comp.getRotaryAxisPoint2();
+    }
+
+
     //----------------------------------------------------------
     //temporarily used to get relative position for each components from pre-defined urdf
     //    QString urdfName = machineToolName + ".urdf";
@@ -132,9 +136,9 @@ void MyOpenGLWidget::initializeGL()
 
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
+    //    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
     //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
-    m_cubeGemoetry.findContactComponentsPairs(compVector);
+    //    m_cubeGemoetry.findContactComponentsPairs(compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
@@ -220,7 +224,7 @@ void MyOpenGLWidget::paintGL()
 
     //check if visualization is necessary
     if(m_cubeGemoetry.ifNeedVisualization){
-//        drawMTComponents();
+        //        drawMTComponents();
         drawCCPComponents();
     }
 
@@ -383,7 +387,7 @@ QVector<stl_reader::StlMesh <float, unsigned int>> MyOpenGLWidget::readSTLFiles(
 
 QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotaryAxes)
 {
-    QVector<component> m_compVector;
+    QVector<component> compVector;
 
     //store all .stl that contain the name of machine tool
     QString path = QDir::current().path() + "/" + mtName + "_Origin";
@@ -432,32 +436,279 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotar
         }
         qDebug()<<endl;
 
+        compVector.append(comp);
+    }
 
-        // Manually  input rotary axis!!!!!!!!!!!!!
+    return getAxisForComp(compVector, mtRotaryAxes);
+}
 
+QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector, QVector3D& mtRotaryAxes)
+{
+    // Assign rotary axis
+    for(int i = 0; i < compVector.size(); i++){
+        component comp = compVector[i];
+
+        // 3-axis Machine
         if(mtRotaryAxes == QVector3D(0,0,0)){
             comp.m_mtRotaryAxes = QVector3D(0,0,0);
         }else{
 
-            //B
-            if(comp.getName() == "UMC-500_B_Link_1" | comp.getName() == "UMC-500_B_Link_3"
-                    | comp.getName() == "UMC-500_Base_Link_1"){
-                comp.setRotaryAxisPoint1(0.0f, -0.53336f, 0.0f);
-                comp.setContainsRotaryAxis1();
+            //read B-Rep model
+            TopoDS_Shape aShape = readBRep(comp.getName());
 
+            //AB 5-axis Machine
+            if(mtRotaryAxes == QVector3D(1,1,0)){
+                QVector3D rotaryAxisPoint1;
+                QVector3D rotaryAxisPoint2;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+
+                rotaryAxisPoint2 = findCommonAxis(aShape, "B");
+                //if rotary axis 2 exist
+                if(rotaryAxisPoint2.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
             }
-            //C
-            if(comp.getName() == "UMC-500_C_Link_1" | comp.getName() == "UMC-500_C_Link_2"
-                    | comp.getName() == "UMC-500_B_Link_1"){
-                comp.setRotaryAxisPoint2(0.0f, -0.53336f, 0.0f);
-                comp.setContainsRotaryAxis2();
+
+            //BC 5-axis Machine
+            if(mtRotaryAxes == QVector3D(0,1,1)){
+                QVector3D rotaryAxisPoint1;
+                QVector3D rotaryAxisPoint2;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "B");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+
+
+                rotaryAxisPoint2 = findCommonAxis(aShape, "C");
+                //if rotary axis 2 exist
+                if(rotaryAxisPoint2.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
             }
+
+            //AC 5-axis Machine
+            if(mtRotaryAxes == QVector3D(1,0,1)){
+                QVector3D rotaryAxisPoint1;
+                QVector3D rotaryAxisPoint2;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+
+                rotaryAxisPoint2 = findCommonAxis(aShape, "C");
+                //if rotary axis 2 exist
+                if(rotaryAxisPoint2.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
+            }
+
+            //A 4-axis Machine
+            if(mtRotaryAxes == QVector3D(1,0,0)){
+                QVector3D rotaryAxisPoint1;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+            }
+
+            //B 4-axis Machine
+            if(mtRotaryAxes == QVector3D(0,1,0)){
+                QVector3D rotaryAxisPoint1;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "B");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+            }
+
+            //C 4-axis Machine
+            if(mtRotaryAxes == QVector3D(0,0,1)){
+                QVector3D rotaryAxisPoint1;
+
+                rotaryAxisPoint1 = findCommonAxis(aShape, "C");
+                //if rotary axis 1 exist
+                if(rotaryAxisPoint1.x() - 1111111111.0f < 0.0001f)
+                    comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
+            }
+
             comp.m_mtRotaryAxes = mtRotaryAxes;
         }
-        m_compVector.append(comp);
+    }
+    return compVector;
+}
+
+QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentAxis)
+{
+    QHash<QString, int> locationCollector;
+
+    //Transverse all edge
+    for (TopExp_Explorer fExpl(aShape, TopAbs_EDGE ); fExpl.More(); fExpl.Next())
+    {
+        const TopoDS_Edge &curEdge =
+                static_cast<const TopoDS_Edge &>(fExpl.Current());
+
+        Standard_Real c_start, c_end;
+        Handle_Geom_Curve curve= BRep_Tool::Curve(curEdge, c_start, c_end);
+
+        if(!curve.IsNull()){
+            if(curve->DynamicType()==STANDARD_TYPE(Geom_Circle))
+            {
+                Handle_Geom_Circle circle = Handle_Geom_Circle::DownCast(curve);
+                gp_Circ gpCirc = circle->Circ();
+                const gp_Ax1 axis = gpCirc.Axis();
+
+                //-------------------------------------------------------------------
+                if(componentAxis =="C")
+                {
+                    if(IsEqual(axis.Direction().Y(),1)& IsEqual(axis.Direction().X(),0) &
+                            IsEqual(axis.Direction().Z(),0))
+                    {
+                        QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 8))
+                                .arg(QString::number(axis.Location().Z(), 'f', 8));
+
+                        if(locationCollector.contains(locationQString))
+                        {
+                            locationCollector.insert(locationQString,
+                                                     locationCollector.value(locationQString)+1);
+                        }
+                        else
+                        {
+                            locationCollector.insert(locationQString,1);
+                        }
+                    }
+                }
+                //-------------------------------------------------------------------
+                if(componentAxis =="B")
+                {
+                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),0) &
+                            IsEqual(axis.Direction().Z(),1))
+                    {
+                        QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 10))
+                                .arg(QString::number(axis.Location().Y(), 'f', 10));
+
+                        if(locationCollector.contains(locationQString))
+                        {
+                            locationCollector.insert(locationQString,
+                                                     locationCollector.value(locationQString)+1);
+                        }
+                        else
+                        {
+                            locationCollector.insert(locationQString,1);
+                        }
+                    }
+                }
+                //-------------------------------------------------------------------
+                if(componentAxis =="A")
+                {
+                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),1) &
+                            IsEqual(axis.Direction().Z(),0))
+                    {
+                        QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().Y(), 'f', 8))
+                                .arg(QString::number(axis.Location().Z(), 'f', 8));
+
+                        if(locationCollector.contains(locationQString))
+                        {
+                            locationCollector.insert(locationQString,
+                                                     locationCollector.value(locationQString)+1);
+                        }
+                        else
+                        {
+                            locationCollector.insert(locationQString,1);
+                        }
+                    }
+                }
+                //-------------------------------------------------------------------
+            }
+        }
     }
 
-    return m_compVector;
+    QVector3D commonAxis;
+
+    if(!locationCollector.empty()){
+        int largestNumber = 0;
+        QString largestString;
+        QHashIterator<QString, int> i(locationCollector);
+
+        // find the most common axis
+        while (i.hasNext()) {
+            i.next();
+            if(i.value()>largestNumber)
+            {
+                largestNumber = i.value();
+                largestString = i.key();
+            }
+        }
+
+        if(largestNumber>2){
+
+            QStringList splitList = largestString.split(" ");
+            double value1 = splitList.at(0).toDouble();
+            double value2 = splitList.at(1).toDouble();
+
+            // for C axis, the point on the most common axis (X, 0 ,Z)
+            if(componentAxis =="C")
+            {
+                commonAxis.setX(value1);
+                commonAxis.setY(0);
+                commonAxis.setZ(value2);
+
+                qDebug()<<"Component C: "<<commonAxis.x()<<" "
+                       <<- commonAxis.z()<<" "
+                      <<commonAxis.y()<<endl;
+            }
+            // for B axis, the point on the most common axis (X, Y ,0)
+            if(componentAxis =="B")
+            {
+                commonAxis.setX(value1);
+                commonAxis.setY(value2);
+                commonAxis.setZ(0);
+
+                qDebug()<<"Component B: "<<commonAxis.x()<<" "
+                       <<- commonAxis.z()<<" "
+                      <<commonAxis.y()<<endl;
+            }
+            // for A axis, the point on the most common axis (0, Y ,Z)
+            if(componentAxis =="A")
+            {
+                commonAxis.setX(0);
+                commonAxis.setY(value1);
+                commonAxis.setZ(value2);
+
+                qDebug()<<"Component A: "<<commonAxis.x()<<" "
+                       <<- commonAxis.z()<<" "
+                      <<commonAxis.y()<<endl;
+            }
+            qDebug()<<"Largest Number: "<<largestNumber<<endl;
+        }
+    }else{
+        //stupid way to check if commonAxis is empty
+        commonAxis.setX(1111111111.0f);
+    }
+
+    return commonAxis;
+}
+
+TopoDS_Shape MyOpenGLWidget::readBRep(QString compName)
+{
+    qDebug()<<"Read B-Rep model for"<<compName;
+    QString fileName = compName + ".IGS";
+
+    QString path = QDir::current().path() + "/" + "UMC-500_Origin";
+    IGESControl_Reader Reader;
+    std::string fileName_str = (path + "/" + fileName).toStdString();
+    Standard_Integer status = Reader.ReadFile((Standard_CString)fileName_str.c_str());
+
+    if (status != IFSelect_RetDone)
+    {
+        qDebug()<<"error from reading IGES";
+    }
+    Reader.TransferRoots();
+
+    return Reader.OneShape();
 }
 
 void MyOpenGLWidget::mousePressEvent(QMouseEvent *event)

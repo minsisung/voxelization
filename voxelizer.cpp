@@ -1037,8 +1037,6 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
     for(QVector<contactComponentsPair>::iterator loop = ccpVector.begin();loop != ccpVector.end(); loop++){
         qDebug()<<loop->getName();
     }
-    qDebug()<<"There are"<<ccpVector.size()<<"ccp"<<endl;
-
     return ccpVector;
 }
 
@@ -1174,8 +1172,8 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponentsFromURD
 void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 {
     float CD_distance_offoff = 0.016f;
-    float CD_distance_offnon = 0.008f;
-    drawingCCPName = "UMC-500_Base_Link_3==UMC-500_Base_Link_1";
+    float CD_distance_offnon = 0.007f;
+    drawingCCPName = "UMC-500_Z_Link_2==UMC-500_Y_Link_1";
 
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
@@ -1258,7 +1256,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
             qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
@@ -1267,13 +1265,13 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                  (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
             qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
             qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)
@@ -1360,7 +1358,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offoff);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative, true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
             qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
@@ -1369,13 +1367,13 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                  (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative, true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
             qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative, true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
             qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)

@@ -45,6 +45,8 @@ void CreateCubes::createMTVoxelspace(float vSize, QVector<component> &componentV
 void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
 {
     QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
+    qDebug()<<"---------------------The number of components:"<<componentVector.size()<<"----------------------"<<endl;
+    qDebug()<<"---------------------The number of CCPs:"<<ccpVector.size()<<"----------------------"<<endl;
     voxelizer.updateCCPVector(ccpVector);
 
     //print all motion relationship between components of CCPs
@@ -72,10 +74,7 @@ void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector
         }
         qDebug()<<endl;
     }
-
-
     findLIPCandidates(ccpVector);
-
     drawVoxelforCCP(voxelizer.compVoxelIndicesList1, voxelizer.compVoxelIndicesList2);
 }
 
@@ -85,15 +84,74 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
     for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
 
         //Rotational LIP candidate
+        //first common axis
         if(ccpVector[ccp_ind].containsCommonRotaryAxis1() && !ccpVector[ccp_ind].isCollided_FirstAxis()){
-            qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
-            qDebug()<<"is a candidate of"<<ccpVector[ccp_ind].firstAxis<<"-LIP"<<endl;
-            continue;
+            //both components contain offset mesh
+            if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+                //A axis
+                if(ccpVector[ccp_ind].firstAxis == "A"){
+                    if((ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of A-LIP"<<endl;
+                        continue;
+                    }
+                }
+                //B axis
+                if(ccpVector[ccp_ind].firstAxis == "B"){
+                    if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of B-LIP"<<endl;
+                        continue;
+                    }
+                }
+                //C axis
+                if(ccpVector[ccp_ind].firstAxis == "C"){
+
+                    if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of C-LIP"<<endl;
+                        continue;
+                    }
+                }
+            }
         }
+
+        //second common axis
         if(ccpVector[ccp_ind].containsCommonRotaryAxis2() && !ccpVector[ccp_ind].isCollided_SecondAxis()){
-            qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
-            qDebug()<<"is a candidate of"<<ccpVector[ccp_ind].secondAxis<<"-LIP"<<endl;
-            continue;
+            //both components contain offset mesh
+            if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+                //A axis
+                if(ccpVector[ccp_ind].secondAxis == "A"){
+                    if((ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of A-LIP"<<endl;
+                        continue;
+                    }
+                }
+                //B axis
+                if(ccpVector[ccp_ind].secondAxis == "B"){
+                    if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of B-LIP"<<endl;
+                        continue;
+                    }
+                }
+                //C axis
+                if(ccpVector[ccp_ind].secondAxis == "C"){
+
+                    if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
+                            (ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y())){
+                        qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                        qDebug()<<"is a candidate of C-LIP"<<endl;
+                        continue;
+                    }
+                }
+            }
         }
 
         //X-LIP candidate
@@ -102,8 +160,12 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 (ccpVector[ccp_ind].isCollided_Positive_Z() && ccpVector[ccp_ind].isCollided_Negative_Z())) |
                     ((ccpVector[ccp_ind].isCollided_Positive_Y() && ccpVector[ccp_ind].isCollided_Negative_Y()) &&
                      (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z()))){
-                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
-                qDebug()<<"is a candidate of X-LIP"<<endl;
+                //both components contain offset mesh
+                if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+                    qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                    qDebug()<<"is a candidate of X-LIP"<<endl;
+                    continue;
+                }
             }
         }
 
@@ -113,8 +175,12 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 (ccpVector[ccp_ind].isCollided_Positive_Z() && ccpVector[ccp_ind].isCollided_Negative_Z())) |
                     ((ccpVector[ccp_ind].isCollided_Positive_X() && ccpVector[ccp_ind].isCollided_Negative_X()) &&
                      (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z()))){
-                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
-                qDebug()<<"is a candidate of Y-LIP"<<endl;
+                //both components contain offset mesh
+                if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+                    qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                    qDebug()<<"is a candidate of Y-LIP"<<endl;
+                    continue;
+                }
             }
         }
 
@@ -124,8 +190,12 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 (ccpVector[ccp_ind].isCollided_Positive_X() && ccpVector[ccp_ind].isCollided_Negative_X())) |
                     ((ccpVector[ccp_ind].isCollided_Positive_Y() && ccpVector[ccp_ind].isCollided_Negative_Y()) &&
                      (ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()))){
-                qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
-                qDebug()<<"is a candidate of Z-LIP"<<endl;
+                //both components contain offset mesh
+                if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
+                    qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
+                    qDebug()<<"is a candidate of Z-LIP"<<endl;
+                    continue;
+                }
             }
         }
     }

@@ -11,7 +11,16 @@
 #include <voxelizer.h>
 #include "machinetool.h"
 #include <QDir>
-#include<iostream>
+#include <TopExp_Explorer.hxx>
+#include <TDF_Label.hxx>
+#include <Geom_Circle.hxx>
+#include <gp_Circ.hxx>
+#include <gp_Pnt.hxx>
+#include <gp_Ax1.hxx>
+#include <BRep_Tool.hxx>
+#include <TopoDS_Edge.hxx>
+#include <IGESCAFControl_Reader.hxx>
+#include <STEPControl_Reader.hxx>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -56,6 +65,9 @@ private:
     void drawCCPComponents();
     QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
     QVector<component> readCompSTL(QString mtName, QVector3D mtRotaryAxes);
+    QVector<component> getAxisForComp(QVector<component>& compVector, QVector3D& mtRotaryAxes);
+    QVector3D findCommonAxis(TopoDS_Shape ashape, QString componentAxis);
+    TopoDS_Shape readBRep(QString compName);
     bool m_core;
     int m_xRot;
     int m_yRot;
@@ -85,6 +97,11 @@ private:
     CreateCubes m_cubeGemoetry;
 
     MachineTool MT;
+
+    bool IsEqual(const double& dX, const double& dY){
+        const double dEpsilon = 0.000001;
+        return fabs(dX - dY) <= dEpsilon;
+    }
 };
 
 #endif

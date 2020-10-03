@@ -57,3 +57,18 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+## OpenCascade
+DEFINES +=  \
+    WNT
+INCLUDEPATH +=  C:/OpenCASCADE-7.3.0-vc14-64/build/inc
+LIBS += -LC:/OpenCASCADE-7.3.0-vc14-64/build/win64/vc14/libd
+LIBS += -lTKernel -lTKMath -lTKTopAlgo -lTKV3d -lTKOpenGl -lTKService
+LIBS += -lTKG2d
+LIBS += -lTKBRep -lTKSTL
+LIBS += -lTKXSBase -lTKIGES -lTKSTEP -lTKXDESTEP -lTKXDEIGES
+LIBS += -lTKMeshVS -lTKXSDRAW
+LIBS += -lTKLCAF -lTKXCAF -lTKCAF
+LIBS += -lTKG3d
+LIBS += -lTKGeomBase
