@@ -21,6 +21,7 @@
 #include <TopoDS_Edge.hxx>
 #include <IGESCAFControl_Reader.hxx>
 #include <STEPControl_Reader.hxx>
+#include <QXmlStreamWriter>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -66,8 +67,10 @@ private:
     QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
     QVector<component> readCompSTL(QString mtName, QVector3D mtRotaryAxes);
     QVector<component> getAxisForComp(QVector<component>& compVector, QVector3D& mtRotaryAxes);
-    QVector3D findCommonAxis(TopoDS_Shape ashape, QString componentAxis);
+    QVector3D findCommonAxis(TopoDS_Shape ashape, QString componentAxis, QXmlStreamWriter& xmlWriter);
     TopoDS_Shape readBRep(QString compName);
+    QVector<component> readAxisForComp(QVector<component>& compVector, QXmlStreamReader& Rxml);
+    int indexOfComponent(QVector<component> &compVector,QString compName);
     bool m_core;
     int m_xRot;
     int m_yRot;
@@ -97,6 +100,7 @@ private:
     CreateCubes m_cubeGemoetry;
 
     MachineTool MT;
+    QString machineToolName;
 
     bool IsEqual(const double& dX, const double& dY){
         const double dEpsilon = 0.000001;
