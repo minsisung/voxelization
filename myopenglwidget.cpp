@@ -122,17 +122,17 @@ void MyOpenGLWidget::initializeGL()
 
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
-    for(int i = 0; i < compVector.size(); i++){
-        qDebug()<<compVector[i].getName();
-        if(compVector[i].containsRotaryAxis1()){
-            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint1();
-           qDebug()<<"Contain RotaryAXis1"<<rotaryAxis;
-        }
-        if(compVector[i].containsRotaryAxis2()){
-            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint2();
-           qDebug()<<"Contain RotaryAXis2"<<rotaryAxis;
-        }
-    }
+    //    for(int i = 0; i < compVector.size(); i++){
+    //        qDebug()<<compVector[i].getName();
+    //        if(compVector[i].containsRotaryAxis1()){
+    //            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint1();
+    //           qDebug()<<"Contain RotaryAXis1"<<rotaryAxis;
+    //        }
+    //        if(compVector[i].containsRotaryAxis2()){
+    //            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint2();
+    //           qDebug()<<"Contain RotaryAXis2"<<rotaryAxis;
+    //        }
+    //    }
 
     //----------------------------------------------------------
     //temporarily used to get relative position for each components from pre-defined urdf
@@ -141,9 +141,9 @@ void MyOpenGLWidget::initializeGL()
 
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-    //    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
+//    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
     //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
-    //    m_cubeGemoetry.findContactComponentsPairs(compVector);
+//    m_cubeGemoetry.findContactComponentsPairs(compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
@@ -452,7 +452,7 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotar
     }else{
         qDebug()<<"Read .xml for axes of components";
         Rxml.setDevice(&file);
-        return readAxisForComp(compVector, Rxml);
+        return readAxisForComp(compVector, Rxml , mtRotaryAxes);
     }
 }
 
@@ -488,7 +488,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                 QVector3D rotaryAxisPoint1;
                 QVector3D rotaryAxisPoint2;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "A", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -497,7 +497,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                     xmlWriter.writeEndElement();
                 }
 
-                rotaryAxisPoint2 = findCommonAxis(aShape, "B", xmlWriter);
+                rotaryAxisPoint2 = findCommonAxis(aShape, "B");
                 //if rotary axis 2 exist
                 if(!(abs(rotaryAxisPoint2.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
@@ -512,7 +512,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                 QVector3D rotaryAxisPoint1;
                 QVector3D rotaryAxisPoint2;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "B", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "B");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -522,7 +522,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                 }
 
 
-                rotaryAxisPoint2 = findCommonAxis(aShape, "C", xmlWriter);
+                rotaryAxisPoint2 = findCommonAxis(aShape, "C");
                 //if rotary axis 2 exist
                 if(!(abs(rotaryAxisPoint2.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
@@ -537,7 +537,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                 QVector3D rotaryAxisPoint1;
                 QVector3D rotaryAxisPoint2;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "A", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -546,7 +546,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
                     xmlWriter.writeEndElement();
                 }
 
-                rotaryAxisPoint2 = findCommonAxis(aShape, "C", xmlWriter);
+                rotaryAxisPoint2 = findCommonAxis(aShape, "C");
                 //if rotary axis 2 exist
                 if(!(abs(rotaryAxisPoint2.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint2(rotaryAxisPoint2.x(),rotaryAxisPoint2.y(),rotaryAxisPoint2.z());
@@ -560,7 +560,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
             if(mtRotaryAxes == QVector3D(1,0,0)){
                 QVector3D rotaryAxisPoint1;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "A", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "A");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -574,7 +574,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
             if(mtRotaryAxes == QVector3D(0,1,0)){
                 QVector3D rotaryAxisPoint1;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "B", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "B");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -588,7 +588,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
             if(mtRotaryAxes == QVector3D(0,0,1)){
                 QVector3D rotaryAxisPoint1;
 
-                rotaryAxisPoint1 = findCommonAxis(aShape, "C", xmlWriter);
+                rotaryAxisPoint1 = findCommonAxis(aShape, "C");
                 //if rotary axis 1 exist
                 if(!(abs(rotaryAxisPoint1.x() - 111111.0f) < 0.0001f)){
                     comp.setRotaryAxisPoint1(rotaryAxisPoint1.x(),rotaryAxisPoint1.y(),rotaryAxisPoint1.z());
@@ -609,7 +609,7 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
     return compVector;
 }
 
-QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentAxis, QXmlStreamWriter& xmlWriter)
+QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentAxis)
 {
     QHash<QString, int> locationCollector;
 
@@ -632,11 +632,11 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 //-------------------------------------------------------------------
                 if(componentAxis =="C")
                 {
-                    if(IsEqual(axis.Direction().Y(),1)& IsEqual(axis.Direction().X(),0) &
-                            IsEqual(axis.Direction().Z(),0))
+                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),0) &
+                            (IsEqual(axis.Direction().Z(),1) | IsEqual(axis.Direction().Z(),-1)))
                     {
                         QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 8))
-                                .arg(QString::number(axis.Location().Z(), 'f', 8));
+                                .arg(QString::number(axis.Location().Y(), 'f', 8));
 
                         if(locationCollector.contains(locationQString))
                         {
@@ -652,11 +652,11 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 //-------------------------------------------------------------------
                 if(componentAxis =="B")
                 {
-                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),0) &
-                            IsEqual(axis.Direction().Z(),1))
+                    if((IsEqual(axis.Direction().Y(),1) | IsEqual(axis.Direction().Y(),-1))& IsEqual(axis.Direction().X(),0) &
+                            IsEqual(axis.Direction().Z(),0))
                     {
                         QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 10))
-                                .arg(QString::number(axis.Location().Y(), 'f', 10));
+                                .arg(QString::number(axis.Location().Z(), 'f', 8));
 
                         if(locationCollector.contains(locationQString))
                         {
@@ -672,11 +672,11 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 //-------------------------------------------------------------------
                 if(componentAxis =="A")
                 {
-                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),1) &
+                    if(IsEqual(axis.Direction().Y(),0)& (IsEqual(axis.Direction().X(),1) | IsEqual(axis.Direction().X(), -1)) &
                             IsEqual(axis.Direction().Z(),0))
                     {
-                        QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().Y(), 'f', 8))
-                                .arg(QString::number(axis.Location().Z(), 'f', 8));
+                        QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 8))
+                                .arg(QString::number(axis.Location().Y(), 'f', 8));
 
                         if(locationCollector.contains(locationQString))
                         {
@@ -717,35 +717,35 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
             float value1 = splitList.at(0).toFloat();
             float value2 = splitList.at(1).toFloat();
 
-            // for C axis, coordinate direction conversion
+            // for C axis, unit conversion
             if(componentAxis =="C")
             {
-                commonAxis.setX(value1);
-                commonAxis.setY(-value2);
+                commonAxis.setX(value1/1000.0f);
+                commonAxis.setY(value2/1000.0f);
                 commonAxis.setZ(0);
 
                 qDebug()<<"Component C: "<<commonAxis.x()<<" "
-                       << commonAxis.y()<<" "<<commonAxis.z()<<endl;
+                       << commonAxis.y()<<" "<<commonAxis.z();
             }
-            // for B axis, coordinate direction conversion
+            // for B axis, unit conversion
             if(componentAxis =="B")
             {
-                commonAxis.setX(value1);
+                commonAxis.setX(value1/1000.0f);
                 commonAxis.setY(0);
-                commonAxis.setZ(value2);
+                commonAxis.setZ(value2/1000.0f);
 
-                qDebug()<<"Component C: "<<commonAxis.x()<<" "
-                       << commonAxis.y()<<" "<<commonAxis.z()<<endl;
+                qDebug()<<"Component B: "<<commonAxis.x()<<" "
+                       << commonAxis.y()<<" "<<commonAxis.z();
             }
-            // for A axis, coordinate direction conversion
+            // for A axis, unit conversion
             if(componentAxis =="A")
             {
                 commonAxis.setX(0);
-                commonAxis.setY(-value2);
-                commonAxis.setZ(value1);
+                commonAxis.setY(value1/1000.0f);
+                commonAxis.setZ(value2/1000.0f);
 
-                qDebug()<<"Component C: "<<commonAxis.x()<<" "
-                       << commonAxis.y()<<" "<<commonAxis.z()<<endl;
+                qDebug()<<"Component A: "<<commonAxis.x()<<" "
+                       << commonAxis.y()<<" "<<commonAxis.z();
             }
             qDebug()<<"Largest Number: "<<largestNumber<<endl;
         }else{
@@ -779,7 +779,7 @@ TopoDS_Shape MyOpenGLWidget::readBRep(QString compName)
     return Reader.OneShape();
 }
 
-QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVector, QXmlStreamReader& Rxml)
+QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVector, QXmlStreamReader& Rxml, QVector3D& mtRotaryAxes)
 {
     int num_comp_inXML = 0;
     while(!Rxml.atEnd() && !Rxml.hasError()) {
@@ -794,7 +794,6 @@ QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVecto
             if(Rxml.name() == "Component") {
                 num_comp_inXML++;
                 QString name = Rxml.attributes().value("Name").toString();
-                component& comp = compVector[indexOfComponent(compVector ,name)];
 
                 while(Rxml.readNextStartElement()){
                     if(Rxml.name() == "rotaryAxisPoint1"){
@@ -803,8 +802,11 @@ QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVecto
                         float X = splitList.at(0).toFloat();
                         float Y = splitList.at(1).toFloat();
                         float Z = splitList.at(2).toFloat();
-                        comp.setRotaryAxisPoint1(X,Y,Z);
-
+                        int index = indexOfComponent(compVector ,name);
+                        if(index != -1){
+                            compVector[index].setRotaryAxisPoint1(X,Y,Z);
+                            compVector[index].m_mtRotaryAxes = mtRotaryAxes;
+                        }
                         Rxml.readNext();
                     }
                     if(Rxml.name() == "rotaryAxisPoint2"){
@@ -813,7 +815,11 @@ QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVecto
                         float X = splitList.at(0).toFloat();
                         float Y = splitList.at(1).toFloat();
                         float Z = splitList.at(2).toFloat();
-                        comp.setRotaryAxisPoint2(X,Y,Z);
+                        int index = indexOfComponent(compVector ,name);
+                        if(index != -1){
+                            compVector[index].setRotaryAxisPoint2(X,Y,Z);
+                            compVector[index].m_mtRotaryAxes = mtRotaryAxes;
+                        }
                     }
                 }
             }
@@ -832,7 +838,7 @@ int MyOpenGLWidget::indexOfComponent(QVector<component> &compVector, QString com
         if(compVector[i].getName() == compName)
             return i;
     }
-    qDebug()<<"No such component in .xml file"<<endl;
+    qDebug()<<"No"<<compName<<"in .IGES file"<<endl;
     return -1;
 }
 

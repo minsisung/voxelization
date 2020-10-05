@@ -909,7 +909,6 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                                             ccp.setSecondMeshName(voxelCompVector[component_ind]);
                                             ccp.setName(ccpName);
                                             ccpVector.append(ccp);
-                                            qDebug()<<ccp.getName();
                                         }
                                     }
                                     voxelCompVector.push_back(componentName);
@@ -932,7 +931,6 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
         loop->setSecondComp(componentVector[indexOfCompVector(loop->getSecondMeshName(),componentVector)]);
         qDebug()<<"First mesh contain"<<loop->getFirstComp().getNonOffsetMesh().num_tris()<<"triangles";
         qDebug()<<"Second mesh contain"<<loop->getSecondComp().getNonOffsetMesh().num_tris()<<"triangles"<<endl;
-
 
         //setup common rotary axis in CCPs
         //AB Machine tool (5 Axis)
@@ -1188,7 +1186,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_X_Positive.translate(CD_distance_offoff,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1197,13 +1194,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_X_Positive.translate(CD_distance_offnon,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_X_Positive.translate(CD_distance_offnon,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Positive);
-            qDebug()<<"non-offset non-offset CD"<<endl;
         }
 
         if(isCollided)
@@ -1223,7 +1218,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_X_Negative.translate(-CD_distance_offoff,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1232,13 +1226,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_X_Negative.translate(-CD_distance_offnon,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_X_Negative.translate(-CD_distance_offnon,0.0f,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_X_Negative);
-            qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Negative_X();
@@ -1257,7 +1249,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1266,13 +1257,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
-            qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Positive_Y();
@@ -1291,7 +1280,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Negative.translate(0.0f,-CD_distance_offoff,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1300,7 +1288,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Y_Negative.translate(0.0f,-CD_distance_offnon,0.0f);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Negative);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
@@ -1325,7 +1312,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offoff);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1334,13 +1320,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offnon);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Z_Positive.translate(0.0f,0.0f,CD_distance_offnon);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Positive);
-            qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Positive_Z();
@@ -1359,7 +1343,6 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offoff);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
-            qDebug()<<"offset offset CD"<<endl;
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1368,13 +1351,11 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
-            qDebug()<<"offset non-offset CD"<<endl;
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Z_Negative.translate(0.0f,0.0f,-CD_distance_offnon);
             isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Z_Negative);
-            qDebug()<<"non-offset non-offset CD"<<endl;
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Negative_Z();
@@ -1406,7 +1387,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 
             //if components has common rotary axis in A, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in A for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
 
                 if(!isCollided)
@@ -1415,7 +1396,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 
             //if components has common rotary axis in B, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in B for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 2);
 
                 if(!isCollided)
@@ -1429,7 +1410,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
             //if components has common rotary axis in B, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in B for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
 
                 if(!isCollided)
@@ -1438,7 +1419,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
 
                 if(!isCollided)
@@ -1452,7 +1433,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
             //if components has common rotary axis in A, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in A for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
 
                 if(!isCollided)
@@ -1461,7 +1442,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
 
                 if(!isCollided)
@@ -1475,7 +1456,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
             //if components has common rotary axis in A, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in A for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_A, 1);
 
                 if(!isCollided)
@@ -1489,7 +1470,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
             //if components has common rotary axis in B, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along Y for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in B for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_B, 1);
 
                 if(!isCollided)
@@ -1503,7 +1484,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis1()){
-                qDebug()<<"colliion detection for rotating along X for"<<ccpVector[ccp_ind].getName();
+                qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
                 bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 1);
 
                 if(!isCollided)
