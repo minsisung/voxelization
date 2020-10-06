@@ -1171,7 +1171,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 {
     float CD_distance_offoff = 0.016f;
     float CD_distance_offnon = 0.007f;
-    drawingCCPName = "UMC-500_Z_Link_2==UMC-500_Y_Link_1";
+    drawingCCPName = "UMC-500_C_Link_2==UMC-500_B_Link_1";
 
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
@@ -1248,7 +1248,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1256,12 +1256,12 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
                  (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Positive_Y();
@@ -1361,7 +1361,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
             ccpVector[ccp_ind].collided_Negative_Z();
     }
 
-    //Collision detecytion for rotary axis
+    //Collision detection for rotary axis
 
     //Transformation Matrix in A axis
     QMatrix4x4 transformMatrix_A;
@@ -1371,7 +1371,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
     //Transformation Matrix in B axis
     QMatrix4x4 transformMatrix_B;
     transformMatrix_B.setToIdentity();
-    transformMatrix_B.rotate(30, 0.0, 1.0, 0.0);
+    transformMatrix_B.rotate(3, 0.0, 1.0, 0.0);
 
     //Transformation Matrix in C axis
     QMatrix4x4 transformMatrix_C;
@@ -1420,7 +1420,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
                 qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
+                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2,true);
 
                 if(!isCollided)
                     ccpVector[ccp_ind].not_collided_SecondAxis();
@@ -1683,15 +1683,15 @@ bool Voxelizer::rotationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 rotati
         if(component_ind == 0){
 
             if(commonAxis_ind == 1){
-                transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint1());
-                transformMatrix = transformMatrix*rotatingtransformMatrix;
                 transformMatrix.translate(ccp.getFirstComp().getRotaryAxisPoint1());
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint1());
             }
 
             if(commonAxis_ind == 2){
-                transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint2());
-                transformMatrix = transformMatrix*rotatingtransformMatrix;
                 transformMatrix.translate(ccp.getFirstComp().getRotaryAxisPoint2());
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint2());
             }
 
             compVoxelIndciesList = &compVoxelIndicesList1;

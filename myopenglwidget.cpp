@@ -141,9 +141,9 @@ void MyOpenGLWidget::initializeGL()
 
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-//    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
+    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
     //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
-//    m_cubeGemoetry.findContactComponentsPairs(compVector);
+    m_cubeGemoetry.findContactComponentsPairs(compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
@@ -633,7 +633,7 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 if(componentAxis =="C")
                 {
                     if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),0) &
-                            (IsEqual(axis.Direction().Z(),1) | IsEqual(axis.Direction().Z(),-1)))
+                            IsEqual(axis.Direction().Z(),1))
                     {
                         QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 8))
                                 .arg(QString::number(axis.Location().Y(), 'f', 8));
@@ -652,7 +652,7 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 //-------------------------------------------------------------------
                 if(componentAxis =="B")
                 {
-                    if((IsEqual(axis.Direction().Y(),1) | IsEqual(axis.Direction().Y(),-1))& IsEqual(axis.Direction().X(),0) &
+                    if(IsEqual(axis.Direction().Y(),1) & IsEqual(axis.Direction().X(),0) &
                             IsEqual(axis.Direction().Z(),0))
                     {
                         QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 10))
@@ -672,7 +672,7 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 //-------------------------------------------------------------------
                 if(componentAxis =="A")
                 {
-                    if(IsEqual(axis.Direction().Y(),0)& (IsEqual(axis.Direction().X(),1) | IsEqual(axis.Direction().X(), -1)) &
+                    if(IsEqual(axis.Direction().Y(),0)& IsEqual(axis.Direction().X(),1) &
                             IsEqual(axis.Direction().Z(),0))
                     {
                         QString locationQString = QString("%1 %2").arg(QString::number(axis.Location().X(), 'f', 8))
