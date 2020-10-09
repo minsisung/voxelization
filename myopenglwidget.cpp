@@ -145,6 +145,11 @@ void MyOpenGLWidget::initializeGL()
     //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
     m_cubeGemoetry.findContactComponentsPairs(compVector);
 
+    int num_group = 4 + static_cast<int>(mtRotaryAxes.x()) +
+            static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
+    InitialGrouper initialGrouper(m_cubeGemoetry.CCPs, m_cubeGemoetry.LIPs, num_group);
+    initialGrouper.startGrouping();
+
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
 

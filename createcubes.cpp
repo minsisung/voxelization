@@ -45,6 +45,16 @@ void CreateCubes::createMTVoxelspace(float vSize, QVector<component> &componentV
 void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
 {
     QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
+
+    //Initialize CCPs for intial grouping usage
+    for(int ind_ccp = 0; ind_ccp < ccpVector.size(); ind_ccp++){
+        //build CCPs
+        QVector<QString> ccp;
+        ccp.append(ccpVector[ind_ccp].getFirstMeshName());
+        ccp.append(ccpVector[ind_ccp].getSecondMeshName());
+        CCPs.append(ccp);
+    }
+
     qDebug()<<"---------------------The number of components:"<<componentVector.size()<<"----------------------"<<endl;
     qDebug()<<"---------------------The number of CCPs:"<<ccpVector.size()<<"----------------------"<<endl;
     voxelizer.updateCCPVector(ccpVector);
@@ -94,6 +104,13 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                             (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of A-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("A");
                         continue;
                     }
                 }
@@ -103,16 +120,29 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                             (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of B-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("B");
                         continue;
                     }
                 }
                 //C axis
                 if(ccpVector[ccp_ind].firstAxis == "C"){
-
                     if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
                             (ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of C-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("C");
                         continue;
                     }
                 }
@@ -129,6 +159,13 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                             (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of A-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("A");
                         continue;
                     }
                 }
@@ -138,16 +175,29 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                             (ccpVector[ccp_ind].isCollided_Positive_Z() | ccpVector[ccp_ind].isCollided_Negative_Z())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of B-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("B");
                         continue;
                     }
                 }
                 //C axis
                 if(ccpVector[ccp_ind].secondAxis == "C"){
-
                     if((ccpVector[ccp_ind].isCollided_Positive_X() | ccpVector[ccp_ind].isCollided_Negative_X()) &&
                             (ccpVector[ccp_ind].isCollided_Positive_Y() | ccpVector[ccp_ind].isCollided_Negative_Y())){
                         qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                         qDebug()<<"is a candidate of C-LIP"<<endl;
+
+                        //fill LIPs
+                        QVector<QString> lip;
+                        lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                        lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                        LIPs.append(lip);
+                        LIPsAxes.append("C");
                         continue;
                     }
                 }
@@ -164,6 +214,13 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
                     qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                     qDebug()<<"is a candidate of X-LIP"<<endl;
+
+                    //fill LIPs
+                    QVector<QString> lip;
+                    lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                    lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                    LIPs.append(lip);
+                    LIPsAxes.append("X");
                     continue;
                 }
             }
@@ -179,6 +236,13 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
                     qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                     qDebug()<<"is a candidate of Y-LIP"<<endl;
+
+                    //fill LIPs
+                    QVector<QString> lip;
+                    lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                    lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                    LIPs.append(lip);
+                    LIPsAxes.append("Y");
                     continue;
                 }
             }
@@ -194,6 +258,13 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
                 if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() && ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
                     qDebug()<<"CCP name:"<<ccpVector[ccp_ind].getName();
                     qDebug()<<"is a candidate of Z-LIP"<<endl;
+
+                    //fill LIPs
+                    QVector<QString> lip;
+                    lip.append(ccpVector[ccp_ind].getFirstMeshName());
+                    lip.append(ccpVector[ccp_ind].getSecondMeshName());
+                    LIPs.append(lip);
+                    LIPsAxes.append("Z");
                     continue;
                 }
             }

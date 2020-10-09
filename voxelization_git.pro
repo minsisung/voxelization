@@ -21,6 +21,7 @@ SOURCES += \
     contactcomponentspair.cpp \
     createcubes.cpp \
     creategeometry.cpp \
+    initialgrouper.cpp \
     joint.cpp \
     link.cpp \
     machinetool.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
     contactcomponentspair.h \
     createcubes.h \
     creategeometry.h \
+    initialgrouper.h \
     joint.h \
     link.h \
     machinetool.h \

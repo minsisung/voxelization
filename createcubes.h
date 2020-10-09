@@ -29,6 +29,9 @@ public:
     int m_totalVoxelCount = 0;
     int numberOfVertex_comp1 = 0;
     int numberOfVertex_comp2 = 0;
+    QVector<QVector<QString>> CCPs;
+    QVector<QVector<QString>>LIPs;
+    QVector<QString> LIPsAxes;
 
 private:
     QVector<GLfloat> m_data;

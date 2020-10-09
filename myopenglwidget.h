@@ -22,6 +22,7 @@
 #include <IGESCAFControl_Reader.hxx>
 #include <STEPControl_Reader.hxx>
 #include <QXmlStreamWriter>
+#include <initialgrouper.h>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
