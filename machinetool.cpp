@@ -173,7 +173,6 @@ int MachineTool::readURDF(QString filename){
         //        const XMLAttribute *limit_lower = limit->FirstAttribute();   //lower limit do it later
         //        const XMLAttribute *limit_upper = limit_lower->Next();       //upper limit
 
-
         //        double double_limit_lower = strToDouble(limit_lower->Value());
         //        double double_limit_upper = strToDouble(limit_upper->Value());
 
@@ -198,7 +197,6 @@ int MachineTool::readURDF(QString filename){
 
     qDebug()<<"Finish creating kinematic chain by reading URDF"<<endl;
 
-
     //create hash table for components
     for(int link_ind = 0; link_ind < LinkVector.size(); ++link_ind){
         for(int mesh_ind = 0; mesh_ind < LinkVector[link_ind].m_STLMeshVector.size(); ++mesh_ind){
@@ -206,8 +204,6 @@ int MachineTool::readURDF(QString filename){
             componentsHash[componentName] = LinkVector[link_ind].m_STLMeshVector[mesh_ind];
         }
     }
-
-
 
     //find and voxelize base link
 

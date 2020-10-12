@@ -1,8 +1,10 @@
 #include "initialgrouper.h"
 
 InitialGrouper::InitialGrouper(QVector<QVector<QString>> CCPs_input,
-                               QVector<QVector<QString>>LIPs_input, int num_group_input)
-    :CCPs(CCPs_input), LIPs(LIPs_input), num_group(num_group_input){
+                               QVector<QPair<QString,QVector<QString>>> LIPs_input,
+                               int num_group_input, QString lowestCompName_input)
+    :CCPs(CCPs_input), LIPs(LIPs_input),
+      num_group(num_group_input), lowestCompName(lowestCompName_input){
 
     //delete components if there is no any connection to other component
     QVector<QString> compVectorUpdate;
@@ -20,7 +22,8 @@ InitialGrouper::InitialGrouper(QVector<QVector<QString>> CCPs_input,
         int ind = -1;
 
         for(int ind_ccp = 0; ind_ccp < CCPs.size(); ind_ccp++){
-            if(LIPs[ind_lip][0] == CCPs[ind_ccp][0] && LIPs[ind_lip][1] == CCPs[ind_ccp][1])
+            if(LIPs[ind_lip].second[0] == CCPs[ind_ccp][0] &&
+                    LIPs[ind_lip].second[1] == CCPs[ind_ccp][1])
                 ind = ind_ccp;
         }
         if(ind != -1)
@@ -58,14 +61,15 @@ void InitialGrouper::deleteOverlappingComps(QVector<QString> overlappingCompsVec
     }
 }
 
-bool InitialGrouper::containsLIIfMerge(QVector<QString> &group1, QVector<QString> &group2, QVector<QVector<QString> > &LIPs)
+bool InitialGrouper::containsLIIfMerge(QVector<QString> &group1, QVector<QString> &group2,
+                                       QVector<QPair<QString,QVector<QString>>>& LIPs)
 {
     bool contains = false;
     for(int ind_lip = 0; ind_lip < LIPs.size();ind_lip++){
-        if((group1.contains(LIPs[ind_lip][0]) | group2.contains(LIPs[ind_lip][0])) &&
-                (group1.contains(LIPs[ind_lip][1]) | group2.contains(LIPs[ind_lip][1]))){
+        if((group1.contains(LIPs[ind_lip].second[0]) | group2.contains(LIPs[ind_lip].second[0])) &&
+                (group1.contains(LIPs[ind_lip].second[1]) | group2.contains(LIPs[ind_lip].second[1]))){
             qDebug()<<"There are link interface in these two subgroups if merge which is:";
-            qDebug()<<LIPs[ind_lip][0]<<LIPs[ind_lip][1]<<endl;
+            qDebug()<<LIPs[ind_lip].second[0]<<LIPs[ind_lip].second[1]<<endl;
             contains = true;
             break;
         }
@@ -125,6 +129,62 @@ void InitialGrouper::growsGroup(QVector<QVector<QString> > &subgroupVector, QVec
     }
 }
 
+QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
+        QVector<QVector<QString>>& subgroupVector)
+{
+    //Vector of pair which first element is the axis and second one is the components in the group
+    QVector<QPair<QString,QVector<QString>>> group_axisVector;
+
+    //assign Base to the corresponding group
+    int ind_base = -1;
+    for(int ind_group = 0; ind_group < subgroupVector.size(); ind_group++){
+        QString axisName;
+        if(subgroupVector[ind_group].contains(lowestCompName)){
+            axisName = "Base";
+            ind_base = ind_group;
+        }else{
+            axisName = "";
+        }
+        group_axisVector.append(qMakePair(axisName, subgroupVector[ind_group]));
+    }
+
+    QVector<QPair<QString,QVector<QString>>> LIPsCopy = LIPs;
+    while(!LIPsCopy.isEmpty()){
+        for(int ind_lip = 0; ind_lip < LIPsCopy.size(); ind_lip++){
+            for(int ind1 = 0; ind1 < group_axisVector.size() - 1; ind1++){
+                for(int ind2 = ind1 + 1; ind2 < group_axisVector.size(); ind2++){
+
+                    //find the groups that are connected by the lip
+                    if((group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[0]) &&
+                        group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[1])) |
+                            (group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[1]) &&
+                             group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[0]))){
+
+                        //find the condition that one of the group connected by the lip hasn't be assigned axis
+                        //and the other one has, then assign the no assigned group and delete the lip
+                        if(group_axisVector[ind1].first == "" & group_axisVector[ind2].first != ""){
+                            group_axisVector[ind1].first = LIPsCopy[ind_lip].first;
+                            LIPsCopy.remove(ind_lip);
+                            continue;
+                        }
+                        if(group_axisVector[ind2].first == "" & group_axisVector[ind1].first != ""){
+                            group_axisVector[ind2].first = LIPsCopy[ind_lip].first;
+                            LIPsCopy.remove(ind_lip);
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
+        qDebug()<<"Group"<<group_axisVector[ind_group].first<<"contains"<<
+                  group_axisVector[ind_group].second<<endl;
+    }
+    return group_axisVector;
+}
+
 QVector<QVector<QString>> InitialGrouper::startGrouping()
 {
     //print out inputs
@@ -136,7 +196,8 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
     qDebug()<<endl;
     qDebug()<<"All LIPs";
     for(int i = 0 ; i < LIPs.size(); i++){
-        qDebug()<<LIPs[i][0]<<" "<< LIPs[i][1];
+        qDebug()<<"Axis type of lip:"<<LIPs[i].first;
+        qDebug()<<LIPs[i].second[0]<<" "<<LIPs[i].second[1];
     }
     qDebug()<<endl;
 
@@ -144,8 +205,8 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
     QVector<QString >LIP_Com_Vector;
     for(int ind_LIP = 0; ind_LIP < LIPs.size(); ind_LIP++){
         for(int i = 0 ; i < 2; i++){
-            if(!LIP_Com_Vector.contains(LIPs[ind_LIP][i]))
-                LIP_Com_Vector.append(LIPs[ind_LIP][i]);
+            if(!LIP_Com_Vector.contains(LIPs[ind_LIP].second[i]))
+                LIP_Com_Vector.append(LIPs[ind_LIP].second[i]);
         }
     }
 
@@ -153,7 +214,6 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
     for(int ind_LIP = 0; ind_LIP < LIP_Com_Vector.size(); ind_LIP++)
         qDebug()<< LIP_Com_Vector[ind_LIP];
     qDebug()<<endl;
-
 
     //Start doing grouping------------------------------------------------
     QVector<QVector<QString>> subgroupVector;
@@ -242,7 +302,6 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
             qDebug()<<endl;
         }
 
-
         qDebug()<<"All components after merging:"<<compVector<<endl;
 
         qDebug()<<"All CCPs after merging:"<<CCPs<<endl;
@@ -258,8 +317,12 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
             qDebug()<<endl;
         }
 
-        qDebug()<<"All components afte growing:"<<compVector<<endl;
+        qDebug()<<"All components after growing:"<<compVector<<endl;
         qDebug()<<"There are "<<subgroupVector.size()<<"subgroups"<<endl;
     }
+
+    //Assign axis to each group
+    QVector<QPair<QString,QVector<QString>>>group_axisVector = assignAxisToGroups(subgroupVector);
+
     return subgroupVector;
 }

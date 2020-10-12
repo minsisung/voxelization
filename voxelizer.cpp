@@ -285,22 +285,24 @@ void Voxelizer::setupSize(float v_Size, QVector<stl_reader::StlMesh <float, unsi
     voxelStarting_Z = (bounding_z_min - (bounding_z_max - bounding_z_min) * (VSEnglargeRatio-1)/2) * 1000;
 }
 
-void Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
+QString Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
 {
-    //get bounding box for each STL
-    QList<double> mtBoundingBox_X_min;
-    QList<double> mtBoundingBox_X_max;
-    QList<double> mtBoundingBox_Y_min;
-    QList<double> mtBoundingBox_Y_max;
-    QList<double> mtBoundingBox_Z_min;
-    QList<double> mtBoundingBox_Z_max;
+    //get bounding box for each Component
+
+    QList<QPair<double,int>> mtBoundingBox_X_min;
+    QList<QPair<double,int>> mtBoundingBox_X_max;
+    QList<QPair<double,int>> mtBoundingBox_Y_min;
+    QList<QPair<double,int>> mtBoundingBox_Y_max;
+    QList<QPair<double,int>> mtBoundingBox_Z_min;
+    QList<QPair<double,int>> mtBoundingBox_Z_max;
+
     for(int i = 0; i < componentVector.size(); i++){
-        mtBoundingBox_X_min.append(componentVector[i].getNonOffsetMesh().getBoundingBox_X_min());
-        mtBoundingBox_X_max.append(componentVector[i].getNonOffsetMesh().getBoundingBox_X_max());
-        mtBoundingBox_Y_min.append(componentVector[i].getNonOffsetMesh().getBoundingBox_Y_min());
-        mtBoundingBox_Y_max.append(componentVector[i].getNonOffsetMesh().getBoundingBox_Y_max());
-        mtBoundingBox_Z_min.append(componentVector[i].getNonOffsetMesh().getBoundingBox_Z_min());
-        mtBoundingBox_Z_max.append(componentVector[i].getNonOffsetMesh().getBoundingBox_Z_max());
+        mtBoundingBox_X_min.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_X_min(),i));
+        mtBoundingBox_X_max.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_X_max(),i));
+        mtBoundingBox_Y_min.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_Y_min(),i));
+        mtBoundingBox_Y_max.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_Y_max(),i));
+        mtBoundingBox_Z_min.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_Z_min(),i));
+        mtBoundingBox_Z_max.append(qMakePair(componentVector[i].getNonOffsetMesh().getBoundingBox_Z_max(),i));
     }
 
     //Get bounding box coordinates for whole machine tool
@@ -311,14 +313,15 @@ void Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
     qSort(mtBoundingBox_Z_min.begin(), mtBoundingBox_Z_min.end());
     qSort(mtBoundingBox_Z_max.begin(), mtBoundingBox_Z_max.end());
 
-    double bounding_x_min = mtBoundingBox_X_min.first();
-    double bounding_x_max = mtBoundingBox_X_max.last();
-    double bounding_y_min = mtBoundingBox_Y_min.first();
-    double bounding_y_max = mtBoundingBox_Y_max.last();
-    double bounding_z_min = mtBoundingBox_Z_min.first();
-    double bounding_z_max = mtBoundingBox_Z_max.last();
+    double bounding_x_min = mtBoundingBox_X_min.first().first;
+    double bounding_x_max = mtBoundingBox_X_max.last().first;
+    double bounding_y_min = mtBoundingBox_Y_min.first().first;
+    double bounding_y_max = mtBoundingBox_Y_max.last().first;
+    double bounding_z_min = mtBoundingBox_Z_min.first().first;
+    double bounding_z_max = mtBoundingBox_Z_max.last().first;
 
-
+    //declare the lowest component
+    QString lowestComp = componentVector[mtBoundingBox_Z_min.first().second].getName();
 
     //setup voxel size from the bounding box of whole machine tool
     voxelSize = v_Size;
@@ -341,6 +344,8 @@ void Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
     voxelStarting_X = (bounding_x_min - (bounding_x_max - bounding_x_min) * (VSEnglargeRatio-1)/2) * 1000;
     voxelStarting_Y = (bounding_y_min - (bounding_y_max - bounding_y_min) * (VSEnglargeRatio-1)/2) * 1000;
     voxelStarting_Z = (bounding_z_min - (bounding_z_max - bounding_z_min) * (VSEnglargeRatio-1)/2) * 1000;
+
+    return lowestComp;
 }
 
 void Voxelizer::createVoxelSapce()

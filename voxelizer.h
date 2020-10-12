@@ -10,6 +10,7 @@
 #include <voxelforccp.h>
 #include <contactcomponentspair.h>
 #include <component.h>
+#include <QPair>
 
 typedef struct vx_vertex {
     union {
@@ -63,7 +64,7 @@ public:
     void createVoxelSapce();
     void parentModelVoxelization(Link& link);
     void setupSize(float voxelSize, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
-    void setupSize(float v_Size, QVector<component>& componentVector);
+    QString setupSize(float v_Size, QVector<component>& componentVector);
     void loadAndTransform(size_t itri, stl_reader::StlMesh <float, unsigned int>& mesh, QMatrix4x4 TransformMatrix);
     void setupInitialTransformationMatrix(MachineTool& MT, float x, float y, float z, float a, float b, float c);
     void setTransformationMatrix(MachineTool& MT, QChar linkType, float amount);

@@ -122,18 +122,6 @@ void MyOpenGLWidget::initializeGL()
 
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
-    //    for(int i = 0; i < compVector.size(); i++){
-    //        qDebug()<<compVector[i].getName();
-    //        if(compVector[i].containsRotaryAxis1()){
-    //            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint1();
-    //           qDebug()<<"Contain RotaryAXis1"<<rotaryAxis;
-    //        }
-    //        if(compVector[i].containsRotaryAxis2()){
-    //            QVector3D rotaryAxis = compVector[i].getRotaryAxisPoint2();
-    //           qDebug()<<"Contain RotaryAXis2"<<rotaryAxis;
-    //        }
-    //    }
-
     //----------------------------------------------------------
     //temporarily used to get relative position for each components from pre-defined urdf
     //    QString urdfName = machineToolName + ".urdf";
@@ -141,22 +129,22 @@ void MyOpenGLWidget::initializeGL()
 
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-    m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
-    //    m_cubeGemoetry.findContactComponentsPairsFromURDF(MT);
+    QString lowestCompName = m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
     m_cubeGemoetry.findContactComponentsPairs(compVector);
 
+    //Initial grouping using LIPs and CCPs
     int num_group = 4 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
-    InitialGrouper initialGrouper(m_cubeGemoetry.CCPs, m_cubeGemoetry.LIPs, num_group);
+    InitialGrouper initialGrouper(m_cubeGemoetry.CCPs, m_cubeGemoetry.LIPs,
+                                  num_group, lowestCompName);
     initialGrouper.startGrouping();
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
 
     //create machine tool by reading urdf
-    //    QString urdfName = machineToolName + ".urdf";
-    //        MT.readURDF(urdfName);
-
+    QString urdfName = machineToolName + ".urdf";
+    MT.readURDF(urdfName);
 
     //    MT.readURDF("VF-2.urdf");
     //    MT.readURDF("UMC-750.urdf");
@@ -166,9 +154,9 @@ void MyOpenGLWidget::initializeGL()
 
 
     //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
-    //            m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
+    m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
 
-    //        m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
+    //            m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);

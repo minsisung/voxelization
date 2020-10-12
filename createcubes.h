@@ -15,10 +15,9 @@ public:
     int totalCount() const { return m_totalCount; }
     int totocalVertexCount() const { return m_totalCount / 6; }
     void createMTVoxelspace(float voxelSize, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
-    void createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
+    QString createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
     void createCollisionVoxelspace(float vSize, MachineTool& MT, bool needVisualization);
     void findContactComponentsPairs(QVector<component>& componentVector);
-    void findContactComponentsPairsFromURDF(MachineTool& MT);
 
     void collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
@@ -30,8 +29,7 @@ public:
     int numberOfVertex_comp1 = 0;
     int numberOfVertex_comp2 = 0;
     QVector<QVector<QString>> CCPs;
-    QVector<QVector<QString>>LIPs;
-    QVector<QString> LIPsAxes;
+    QVector<QPair<QString,QVector<QString>>> LIPs;
 
 private:
     QVector<GLfloat> m_data;
