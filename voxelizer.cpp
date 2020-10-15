@@ -956,6 +956,8 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis2();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in A:"<<loop->containsCommonRotaryAxis1();
+            qDebug()<<"Contain common Rotary Axis in B:"<<loop->containsCommonRotaryAxis2()<<endl;
         }
         //AC Machine tool (5 Axis)
         if(loop->getFirstComp().m_mtRotaryAxes == QVector3D(1, 0, 1)){
@@ -975,6 +977,8 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis2();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in A:"<<loop->containsCommonRotaryAxis1();
+            qDebug()<<"Contain common Rotary Axis in C:"<<loop->containsCommonRotaryAxis2()<<endl;
         }
         //BC Machine tool (5 Axis)
         if(loop->getFirstComp().m_mtRotaryAxes == QVector3D(0, 1, 1)){
@@ -994,6 +998,8 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis2();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in B:"<<loop->containsCommonRotaryAxis1();
+            qDebug()<<"Contain common Rotary Axis in C:"<<loop->containsCommonRotaryAxis2()<<endl;
         }
 
         //A Machine tool (4 Axis)
@@ -1006,6 +1012,7 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis1();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in A:"<<loop->containsCommonRotaryAxis1()<<endl;
         }
 
         //B Machine tool (4 Axis)
@@ -1018,6 +1025,7 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis1();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in B:"<<loop->containsCommonRotaryAxis1()<<endl;
         }
 
         //C Machine tool (4 Axis)
@@ -1030,10 +1038,8 @@ QVector<contactComponentsPair> Voxelizer::collisionDetectionForComponents(QVecto
                     loop->setContainsCommonRotaryAxis2();
                 }
             }
+            qDebug()<<"Contain common Rotary Axis in C:"<<loop->containsCommonRotaryAxis1()<<endl;
         }
-
-        qDebug()<<"Contain common Rotary Axis in B:"<<loop->containsCommonRotaryAxis1();
-        qDebug()<<"Contain common Rotary Axis in C:"<<loop->containsCommonRotaryAxis2()<<endl;
     }
 
     qDebug()<<"All contact-components pairs:";
@@ -1176,7 +1182,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 {
     float CD_distance_offoff = 0.016f;
     float CD_distance_offnon = 0.007f;
-    drawingCCPName = "UMC-500_C_Link_2==UMC-500_B_Link_1";
+    drawingCCPName = "VF-2 - 4th and 5th Axis (TR160)-1 TR160 Tilt-1-1==VF-2 - 4th and 5th Axis (TR160)-1 TR160 Base-1-1";
 
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
@@ -1253,7 +1259,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&

@@ -2,6 +2,7 @@
 #define INITIALGROUPER_H
 #include<QVector>
 #include<qdebug.h>
+#include<machinetool.h>
 
 class InitialGrouper
 {
@@ -27,6 +28,7 @@ private:
                     QVector<QVector<QString>>& CCPs);
     QVector<QPair<QString,QVector<QString>>> assignAxisToGroups(
             QVector<QVector<QString>>& subgroupVector);
+    MachineTool createMT(QVector<QPair<QString,QVector<QString>>>group_axisVector);
 };
 
 #endif // INITIALGROUPER_H

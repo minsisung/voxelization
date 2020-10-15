@@ -148,6 +148,7 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
         group_axisVector.append(qMakePair(axisName, subgroupVector[ind_group]));
     }
 
+    //assign axis type to the corresponding group
     QVector<QPair<QString,QVector<QString>>> LIPsCopy = LIPs;
     while(!LIPsCopy.isEmpty()){
         for(int ind_lip = 0; ind_lip < LIPsCopy.size(); ind_lip++){
@@ -185,6 +186,17 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
     return group_axisVector;
 }
 
+MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > > group_axisVector)
+{
+    //Create machine tool object
+    MachineTool MT;
+    Link link_reading("Base");
+    MT.LinkVector.push_back(link_reading);
+
+
+    return MT;
+}
+
 QVector<QVector<QString>> InitialGrouper::startGrouping()
 {
     //print out inputs
@@ -194,12 +206,19 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
         qDebug()<<CCPs[i][0]<<" "<< CCPs[i][1];
     }
     qDebug()<<endl;
+
     qDebug()<<"All LIPs";
     for(int i = 0 ; i < LIPs.size(); i++){
         qDebug()<<"Axis type of lip:"<<LIPs[i].first;
         qDebug()<<LIPs[i].second[0]<<" "<<LIPs[i].second[1];
     }
     qDebug()<<endl;
+
+    if(LIPs.size() != num_group - 1){
+        qDebug()<<"LIPs number != what this machine should have which is"<<num_group - 1<<endl;
+        QVector<QVector<QString>> fault;
+        return fault;
+    }
 
     //build LIP component vector to store all lip component without repeating
     QVector<QString >LIP_Com_Vector;
@@ -238,11 +257,6 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
                 //if this component contains in compVector, remove it
                 if(ind != -1)
                     compVector.remove(ind);
-
-                //remove this CCP from CCPs
-                CCPs.remove(ind_CCP);
-                //update the index due to removal
-                ind_CCP -= 1;
             }
 
             if(CCPs[ind_CCP][1] == LIP_Com_Vector[ind_LIP_Comp]){

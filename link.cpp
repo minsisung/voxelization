@@ -10,10 +10,6 @@ Link::Link(std::string name, Vector3 origin_xyz,Vector3 origin_rpy, std::string 
     : m_name(name),m_origin_xyz(origin_xyz), m_origin_rpy(origin_rpy),m_meshfile(meshfile), m_rgba(rgba){
 
     m_TransformMatrix.setToIdentity();
-
-    QList<int> X_index;
-    QList<int> Y_index;
-    QList<int> Z_index;
 }
 
 QStringList Link::getMeshFile()const {
