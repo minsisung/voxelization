@@ -1182,7 +1182,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
 {
     float CD_distance_offoff = 0.016f;
     float CD_distance_offnon = 0.007f;
-    drawingCCPName = "VF-2 - 4th and 5th Axis (TR160)-1 TR160 Tilt-1-1==VF-2 - 4th and 5th Axis (TR160)-1 TR160 Base-1-1";
+    drawingCCPName = "UMC-1600H - X Axis Table UMC-1600 5-AX-1==UMC-1600H - B Axis UMC-1600H-1";
 
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
@@ -1259,7 +1259,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
-            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
+            isCollided = translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -1454,7 +1454,7 @@ void Voxelizer::updateCCPVector(QVector<contactComponentsPair>& ccpVector)
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
                 qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
+                bool isCollided = rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2,true);
 
                 if(!isCollided)
                     ccpVector[ccp_ind].not_collided_SecondAxis();

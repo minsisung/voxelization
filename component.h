@@ -42,6 +42,8 @@ public:
     void setContainsRotaryAxis2(){m_containsRotaryAxis2 = true;}
     bool containsRotaryAxis2(){return m_containsRotaryAxis2;}
 
+    friend bool operator== (const component &c1, const component &c2);
+
 private:
     QString m_name;
     stl_reader::StlMesh <float, unsigned int> m_nonOffestMesh;
@@ -53,5 +55,7 @@ private:
     bool m_containsRotaryAxis1 = false;
     bool m_containsRotaryAxis2 = false;
 };
+
+
 
 #endif // COMPONENT_H

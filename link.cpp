@@ -49,6 +49,23 @@ void Link::setSTLMesh()
     MTVoxelIndicesListVector = correctsize_MTVoxelIndicesListVector;
 }
 
+void Link::setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVector){
+    for(int ind_comp = 0; ind_comp< linkCompsNames.size(); ind_comp++){
+        //set STL file of each component for the link
+        stl_reader::StlMesh <float, unsigned int> mesh;
+        int ind_compVector = compVector.indexOf(linkCompsNames[ind_comp]);
+        if(ind_compVector != -1){
+            mesh = compVector[ind_compVector].getNonOffsetMesh();
+            m_STLMeshVector.append(mesh);
+            qDebug() << "Finish setting mesh for " <<linkCompsNames[ind_comp];
+        }else{
+            qDebug()<<linkCompsNames[ind_comp]<<"doesn't exist in compVector"<<endl;
+        }
+
+
+    }
+}
+
 void Link::setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,
                                int z_min_index, int z_max_index)
 {

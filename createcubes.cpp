@@ -44,7 +44,7 @@ QString CreateCubes::createMTVoxelspace(float vSize, QVector<component> &compone
     return lowestCompName;
 }
 
-void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
+QVector<contactComponentsPair> CreateCubes::findContactComponentsPairs(QVector<component>& componentVector)
 {
     QVector<contactComponentsPair> ccpVector = voxelizer.collisionDetectionForComponents(componentVector);
 
@@ -86,12 +86,12 @@ void CreateCubes::findContactComponentsPairs(QVector<component>& componentVector
         }
         qDebug()<<endl;
     }
-    findLIPCandidates(ccpVector);
-    drawVoxelforCCP(voxelizer.compVoxelIndicesList1, voxelizer.compVoxelIndicesList2);
+
+    return ccpVector;
 }
 
 
-void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
+int CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
 {
     for(int ccp_ind = 0; ccp_ind < ccpVector.size(); ++ccp_ind){
 
@@ -272,6 +272,11 @@ void CreateCubes::findLIPCandidates(QVector<contactComponentsPair> &ccpVector)
             }
         }
     }
+
+    //draw selected CCP with relative movement
+    drawVoxelforCCP(voxelizer.compVoxelIndicesList1, voxelizer.compVoxelIndicesList2);
+
+    return LIPs.size();
 }
 
 

@@ -3,6 +3,7 @@
 #include<QVector>
 #include<qdebug.h>
 #include<machinetool.h>
+#include<component.h>
 
 class InitialGrouper
 {
@@ -10,7 +11,9 @@ public:
     InitialGrouper(QVector<QVector<QString>> CCPs_input,
                    QVector<QPair<QString,QVector<QString>>>LIPs_input,
                    int num_group, QString lowestCompName);
-    QVector<QVector<QString>> startGrouping();
+    QVector<QPair<QString,QVector<QString>>> startGrouping();
+    MachineTool createMT(QVector<QPair<QString,QVector<QString>>>group_axisVector,
+                         QVector<component> compVector);
 
 private:
     QVector<QVector<QString>> CCPs;
@@ -28,7 +31,6 @@ private:
                     QVector<QVector<QString>>& CCPs);
     QVector<QPair<QString,QVector<QString>>> assignAxisToGroups(
             QVector<QVector<QString>>& subgroupVector);
-    MachineTool createMT(QVector<QPair<QString,QVector<QString>>>group_axisVector);
 };
 
 #endif // INITIALGROUPER_H

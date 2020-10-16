@@ -5,7 +5,7 @@
 #include <QMatrix4x4>
 #include <stl_reader.h>
 #include "voxel.h"
-
+#include<component.h>
 
 class Link
 {
@@ -47,11 +47,13 @@ public:
     Vector3 getOrigin_xyz() const{return m_origin_xyz;}
     Vector3 getOrigin_rpy() const{return m_origin_rpy;}
     VectorRGBA getRGBA() const{return m_rgba;}
+    void setRGBA(VectorRGBA rgba){m_rgba = rgba;}
     QStringList getMeshFile()const;
     std::string getName() const{return m_name;}
     int numberOfVertex = 0;
     QMatrix4x4 m_TransformMatrix;
     void setSTLMesh();
+    void setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVector);
     QVector<stl_reader::StlMesh <float, unsigned int>> getSTLMesh(){return m_STLMeshVector;}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}

@@ -113,17 +113,17 @@ void MyOpenGLWidget::initializeGL()
     //**Step 1: Find contact-components pairs
 
     //read stl files (correct one!!)-------------------------
-//    machineToolName = "UMC-500";
-//    //rotary axes of machine tool (A,B,C)
-//    QVector3D mtRotaryAxes(0,1,1);
-
-    //    machineToolName = "UMC-1600H";
+    //    machineToolName = "UMC-500";
     //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(1,0,1);
+    //    QVector3D mtRotaryAxes(0,1,1);
 
-        machineToolName = "VF-2";
-        //rotary axes of machine tool (A,B,C)
-        QVector3D mtRotaryAxes(1,0,1);
+//            machineToolName = "UMC-1600H";
+//            //rotary axes of machine tool (A,B,C)
+//            QVector3D mtRotaryAxes(1,0,1);
+
+    machineToolName = "VF-2";
+    //rotary axes of machine tool (A,B,C)
+    QVector3D mtRotaryAxes(1,0,1);
 
     //    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
     //            readSTLFiles(machineToolName);
@@ -140,14 +140,33 @@ void MyOpenGLWidget::initializeGL()
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
     QString lowestCompName = m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
-    m_cubeGemoetry.findContactComponentsPairs(compVector);
+
+    int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
+            static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
+
+    //find CCPs using collision detection and also update CCPVector by doing relative movement for
+    //the following LIPs checking
+    QVector<contactComponentsPair> ccpVector = m_cubeGemoetry.findContactComponentsPairs(compVector);
+
+    //Find LIPs using the information from above
+    int LIPs_Number = m_cubeGemoetry.findLIPCandidates(ccpVector);
+
+    //if number of LIPs is small than the number of groups - 1, which means there might have missing components,
+    //then stop processing.
+    if(LIPs_Number < num_LIPs)
+        return;
 
     //Initial grouping using LIPs and CCPs
-    int num_group = 4 + static_cast<int>(mtRotaryAxes.x()) +
-            static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
     InitialGrouper initialGrouper(m_cubeGemoetry.CCPs, m_cubeGemoetry.LIPs,
-                                  num_group, lowestCompName);
-    initialGrouper.startGrouping();
+                                  num_LIPs + 1, lowestCompName);
+    QVector<QPair<QString,QVector<QString>>> group_axisVector =
+            initialGrouper.startGrouping();
+
+    //If LIPs number != number of group - 1, stop processing
+    if(group_axisVector.isEmpty())
+        return;
+
+    MachineTool MT =initialGrouper.createMT(group_axisVector, compVector);
 
 
     //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
@@ -446,7 +465,8 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotar
 
     QXmlStreamReader Rxml;
     QString filename = machineToolName + ".xml";
-    QFile file(filename);
+    QString filePath_Name = path + "/" + filename;
+    QFile file(filePath_Name);
     //if there xml doesn't exist
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -482,7 +502,6 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
         if(mtRotaryAxes == QVector3D(0,0,0)){
             comp.m_mtRotaryAxes = QVector3D(0,0,0);
         }else{
-
             //read B-Rep model
             TopoDS_Shape aShape = readBRep(comp.getName());
 
@@ -634,8 +653,8 @@ QVector3D MyOpenGLWidget::findCommonAxis(TopoDS_Shape aShape, QString componentA
                 gp_Circ gpCirc = circle->Circ();
                 const gp_Ax1 axis = gpCirc.Axis();
 
-                qDebug()<<"axis direction:"<<QString::number(axis.Direction().X(), 'f', 8)<<QString::number(axis.Direction().Y(), 'f', 8)<<QString::number(axis.Direction().Z(), 'f', 8);
-                qDebug()<<"axis location:"<<QString::number(axis.Location().X(), 'f', 8)<<QString::number(axis.Location().Y(), 'f', 8)<<QString::number(axis.Location().Z(), 'f', 8)<<endl;
+                //                qDebug()<<"axis direction:"<<QString::number(axis.Direction().X(), 'f', 8)<<QString::number(axis.Direction().Y(), 'f', 8)<<QString::number(axis.Direction().Z(), 'f', 8);
+                //                qDebug()<<"axis location:"<<QString::number(axis.Location().X(), 'f', 8)<<QString::number(axis.Location().Y(), 'f', 8)<<QString::number(axis.Location().Z(), 'f', 8)<<endl;
 
                 //-------------------------------------------------------------------
                 if(componentAxis =="C")

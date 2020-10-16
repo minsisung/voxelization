@@ -17,8 +17,8 @@ public:
     void createMTVoxelspace(float voxelSize, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector);
     QString createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
     void createCollisionVoxelspace(float vSize, MachineTool& MT, bool needVisualization);
-    void findContactComponentsPairs(QVector<component>& componentVector);
-
+    QVector<contactComponentsPair> findContactComponentsPairs(QVector<component>& componentVector);
+    int findLIPCandidates(QVector<contactComponentsPair>& ccpVector);
     void collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     bool checkDuplicateFaceforCollision(int i, int number_x, int number_y, int number_z);
@@ -44,7 +44,6 @@ private:
     void setupInitialTransformation(MachineTool& MT);
     void setupTransformation(MachineTool& MT, QChar linkType, float amount);
     QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
-    void findLIPCandidates(QVector<contactComponentsPair>& ccpVector);
 };
 
 

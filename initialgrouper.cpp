@@ -186,18 +186,41 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
     return group_axisVector;
 }
 
-MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > > group_axisVector)
+MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > > group_axisVector,
+                                     QVector<component> compVector)
 {
     //Create machine tool object
     MachineTool MT;
-    Link link_reading("Base");
-    MT.LinkVector.push_back(link_reading);
+
+    //initialize links
+    for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
+
+        //constructor with link name
+        Link link_input(group_axisVector[ind_group].first.toStdString());
+
+        //set STL files for the link
+        link_input.setSTLMesh(group_axisVector[ind_group].second, compVector);
+        qDebug()<<"Link"<<QString::fromStdString(link_input.getName())<<"contains"<<
+                  link_input.m_STLMeshVector.size()<<"components"<<endl;
+
+        //set color for link
+        VectorRGBA rgba(rand()/RAND_MAX, rand()/RAND_MAX, rand()/RAND_MAX, 1.0);
+        link_input.setRGBA(rgba);
+
+        MT.LinkVector.push_back(link_input);
+    }
+
+    qDebug()<<"MT contains # links:"<<MT.LinkVector.size()<<endl;
 
 
+    //initialize joints
+    for(int ind_lip = 0; ind_lip < LIPs.size(); ind_lip++){
+
+    }
     return MT;
 }
 
-QVector<QVector<QString>> InitialGrouper::startGrouping()
+QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 {
     //print out inputs
     qDebug()<<"All components:"<<compVector<<endl;
@@ -216,7 +239,7 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
 
     if(LIPs.size() != num_group - 1){
         qDebug()<<"LIPs number != what this machine should have which is"<<num_group - 1<<endl;
-        QVector<QVector<QString>> fault;
+        QVector<QPair<QString,QVector<QString>>> fault;
         return fault;
     }
 
@@ -336,7 +359,7 @@ QVector<QVector<QString>> InitialGrouper::startGrouping()
     }
 
     //Assign axis to each group
-    QVector<QPair<QString,QVector<QString>>>group_axisVector = assignAxisToGroups(subgroupVector);
+    QVector<QPair<QString,QVector<QString>>> group_axisVector = assignAxisToGroups(subgroupVector);
 
-    return subgroupVector;
+    return group_axisVector;
 }
