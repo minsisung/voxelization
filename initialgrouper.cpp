@@ -165,11 +165,43 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
                         //and the other one has, then assign the no assigned group and delete the lip
                         if(group_axisVector[ind1].first == "" & group_axisVector[ind2].first != ""){
                             group_axisVector[ind1].first = LIPsCopy[ind_lip].first;
+
+                            //get information for creating joint later
+                            JointString jointStringNew;
+                            jointStringNew.name = group_axisVector[ind2].first + "-" + group_axisVector[ind1].first;                                   jointStringNew.link_parent = group_axisVector[ind2].first;
+                            jointStringNew.link_parent = group_axisVector[ind2].first;
+                            jointStringNew.link_child = group_axisVector[ind1].first;
+
+                            //get the Lip component in the childlink which is group_axisVector[ind1]
+                            if(group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[0]))
+                                jointStringNew.compInChildLink =  LIPsCopy[ind_lip].second[0];
+
+                            //get the Lip component in the childlink which is group_axisVector[ind1]
+                            if(group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[1]))
+                                jointStringNew.compInChildLink =  LIPsCopy[ind_lip].second[1];
+
+                            jointStringVector.append(jointStringNew);
                             LIPsCopy.remove(ind_lip);
                             continue;
                         }
                         if(group_axisVector[ind2].first == "" & group_axisVector[ind1].first != ""){
                             group_axisVector[ind2].first = LIPsCopy[ind_lip].first;
+
+                            //get information for creating joint later
+                            JointString jointStringNew;
+                            jointStringNew.name = group_axisVector[ind1].first + "-" + group_axisVector[ind2].first;
+                            jointStringNew.link_parent = group_axisVector[ind1].first;
+                            jointStringNew.link_child = group_axisVector[ind2].first;
+
+                            //get the Lip component in the childlink which is group_axisVector[ind2]
+                            if(group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[1]))
+                                jointStringNew.compInChildLink = LIPsCopy[ind_lip].second[1];
+
+                            //get the Lip component in the childlink which is group_axisVector[ind2]
+                            if(group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[0]))
+                                jointStringNew.compInChildLink = LIPsCopy[ind_lip].second[0];
+
+                            jointStringVector.append(jointStringNew);
                             LIPsCopy.remove(ind_lip);
                             continue;
                         }
@@ -184,6 +216,80 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
                   group_axisVector[ind_group].second<<endl;
     }
     return group_axisVector;
+}
+
+QString InitialGrouper::getJointType(QString jointName)
+{
+    if(jointName == "X" | jointName == "Y" | jointName == "Z")
+        return "prismatic";
+    return "revolute";
+}
+
+Vector3 InitialGrouper::getJointAxis(QString jointName)
+{
+    if(jointName == "X" | jointName == "A"){
+        Vector3 axis(1,0,0);
+        return axis;
+    }
+    if(jointName == "Y" | jointName == "B"){
+        Vector3 axis(0,1,0);
+        return axis;
+    }
+    Vector3 axis(0,0,1);
+    return axis;
+}
+
+Vector3 InitialGrouper::getJointXYZ(QString lipCompName, QString jointName,
+                                    QVector<component> &compVector)
+{
+    component& component = compVector[compVector.indexOf(lipCompName)];
+
+    //AB machine tool
+    if(component.m_mtRotaryAxes == QVector3D(1.0,1.0,0.0)){
+        QVector3D axisVector;
+        if(jointName == "A"){
+            axisVector = component.getRotaryAxisPoint1();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
+        }
+        if(jointName == "B"){
+        axisVector = component.getRotaryAxisPoint2();
+        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+        return axis;
+        }
+    }
+
+    //AC machine tool
+    if(component.m_mtRotaryAxes == QVector3D(1.0,0.0,1.0)){
+        QVector3D axisVector;
+        if(jointName == "A"){
+            axisVector = component.getRotaryAxisPoint1();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
+        }
+        if(jointName == "C"){
+        axisVector = component.getRotaryAxisPoint2();
+        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+        return axis;
+        }
+    }
+
+    //BC machine tool
+    if(component.m_mtRotaryAxes == QVector3D(0.0,1.0,1.0)){
+        QVector3D axisVector;
+        if(jointName == "B"){
+            axisVector = component.getRotaryAxisPoint1();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
+        }
+        if(jointName == "C"){
+        axisVector = component.getRotaryAxisPoint2();
+        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+        return axis;
+        }
+    }
+    Vector3 axis_prismatic(0,0,0);
+    return axis_prismatic;
 }
 
 MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > > group_axisVector,
@@ -214,8 +320,29 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > >
 
 
     //initialize joints
-    for(int ind_lip = 0; ind_lip < LIPs.size(); ind_lip++){
+    for(int ind_joint = 0; ind_joint < jointStringVector.size(); ind_joint++){
+        QString jointName = jointStringVector[ind_joint].name;
+        QString parentLink = jointStringVector[ind_joint].link_parent;
+        QString childLink = jointStringVector[ind_joint].link_child;
+        QString compInChildLink = jointStringVector[ind_joint].compInChildLink;
+        Vector3 rpy(0,0,0);
+        Joint joint_reading(jointName.toStdString(), getJointType(childLink).toStdString(),
+                            getJointXYZ(compInChildLink,childLink, compVector), rpy, getJointAxis(childLink),
+                            MT.find_link(parentLink.toStdString(), MT.LinkVector),
+                            MT.find_link(childLink.toStdString(), MT.LinkVector));
+        MT.JointVector.push_back(joint_reading);
 
+
+        //        qDebug()<<"Joint name:"<<jointStringVector[ind_joint].name<<
+        //                  "parent link:"<<jointStringVector[ind_joint].link_parent<<
+        //                  "child link:"<<jointStringVector[ind_joint].link_child<<
+        //                  "component in child link"<<jointStringVector[ind_joint].compInChildLink<<endl;
+        qDebug()<<"Joint name:"<< QString::fromStdString(joint_reading.getName())<<
+                  "Type:"<<QString::fromStdString(joint_reading.getType())<<
+                  "parent link:"<<QString::fromStdString(joint_reading.getParentLink()->getName())<<
+                  "child link:"<<QString::fromStdString(joint_reading.getChildLink()->getName())<<
+                  "xyz:"<<joint_reading.getOrigin_xyz().x<<joint_reading.getOrigin_xyz().y<<
+                  joint_reading.getOrigin_xyz().z<<endl;
     }
     return MT;
 }
@@ -304,7 +431,7 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 
     //keep doing iteration if there is component left being assigned to any group
     //or the number of subgroup is not number of axis + 1
-    while(compVector.size()!= 0 | subgroupVector.size() != num_group){
+    while((compVector.size()!= 0) | (subgroupVector.size() != num_group)){
 
         for(int ind_subgroup1 = 0; ind_subgroup1 < subgroupVector.size(); ind_subgroup1++){
             //merge subgroups if there is overlapping components in two subgroups

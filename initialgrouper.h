@@ -5,6 +5,15 @@
 #include<machinetool.h>
 #include<component.h>
 
+struct JointString
+{
+    QString name;
+    QString link_parent;
+    QString link_child;
+    QString compInChildLink;
+//    Vector3 xyz;
+};
+
 class InitialGrouper
 {
 public:
@@ -31,6 +40,12 @@ private:
                     QVector<QVector<QString>>& CCPs);
     QVector<QPair<QString,QVector<QString>>> assignAxisToGroups(
             QVector<QVector<QString>>& subgroupVector);
+    QString getJointType(QString jointName);
+    Vector3 getJointAxis(QString jointName);
+    Vector3 getJointXYZ(QString lipCompName,QString jointName, QVector<component>& compVector);
+    QVector<JointString> jointStringVector;
 };
+
+
 
 #endif // INITIALGROUPER_H

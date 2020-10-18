@@ -24,10 +24,8 @@ private:
     int bounding_y_max_index;
     int bounding_z_min_index;
     int bounding_z_max_index;
-
     float m_lower_limit;
     float m_upper_limit;
-
 
 public:
     Link();             //constructor
