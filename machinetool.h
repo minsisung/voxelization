@@ -13,6 +13,8 @@ public:
     MachineTool();
     int readURDF(QString);
     Link* find_link(std::string linkName, QVector<Link> &myVector);
+    void assignLinkType(Joint &joint);
+
     QVector<Link> LinkVector;                 // create a vector for links
     QVector<Joint> JointVector;               // create a vector for joints
     QString m_name;
@@ -45,8 +47,6 @@ public:
     }
 
 private:
-    void assignLinkType(Joint &joint);
-
     bool hasAssignFirstRotaryLink = false;
 
 };

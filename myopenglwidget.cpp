@@ -174,7 +174,6 @@ void MyOpenGLWidget::initializeGL()
     //create machine tool by reading urdf
     //    QString urdfName = machineToolName + ".urdf";
     //    MT.readURDF(urdfName);
-
     //    MT.readURDF("VF-2.urdf");
     //    MT.readURDF("UMC-750.urdf");
     //    MT.readURDF("UMC-750_short.urdf");
@@ -183,7 +182,7 @@ void MyOpenGLWidget::initializeGL()
 
 
     //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
-    //    m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
+        m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
 
     //            m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 

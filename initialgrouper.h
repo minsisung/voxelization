@@ -21,8 +21,8 @@ public:
                    QVector<QPair<QString,QVector<QString>>>LIPs_input,
                    int num_group, QString lowestCompName);
     QVector<QPair<QString,QVector<QString>>> startGrouping();
-    MachineTool createMT(QVector<QPair<QString,QVector<QString>>>group_axisVector,
-                         QVector<component> compVector);
+    MachineTool createMT(QVector<QPair<QString,QVector<QString>>>& group_axisVector,
+                         QVector<component>& compVector);
 
 private:
     QVector<QVector<QString>> CCPs;

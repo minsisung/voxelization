@@ -149,22 +149,22 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
     }
 
     //assign axis type to the corresponding group
-    QVector<QPair<QString,QVector<QString>>> LIPsCopy = LIPs;
-    while(!LIPsCopy.isEmpty()){
-        for(int ind_lip = 0; ind_lip < LIPsCopy.size(); ind_lip++){
+    int number_unassginedLips = LIPs.size();
+    while(number_unassginedLips){
+        for(int ind_lip = 0; ind_lip < LIPs.size(); ind_lip++){
             for(int ind1 = 0; ind1 < group_axisVector.size() - 1; ind1++){
                 for(int ind2 = ind1 + 1; ind2 < group_axisVector.size(); ind2++){
 
                     //find the groups that are connected by the lip
-                    if((group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[0]) &&
-                        group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[1])) |
-                            (group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[1]) &&
-                             group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[0]))){
+                    if((group_axisVector[ind1].second.contains(LIPs[ind_lip].second[0]) &&
+                        group_axisVector[ind2].second.contains(LIPs[ind_lip].second[1])) |
+                            (group_axisVector[ind1].second.contains(LIPs[ind_lip].second[1]) &&
+                             group_axisVector[ind2].second.contains(LIPs[ind_lip].second[0]))){
 
                         //find the condition that one of the group connected by the lip hasn't be assigned axis
                         //and the other one has, then assign the no assigned group and delete the lip
                         if(group_axisVector[ind1].first == "" & group_axisVector[ind2].first != ""){
-                            group_axisVector[ind1].first = LIPsCopy[ind_lip].first;
+                            group_axisVector[ind1].first = LIPs[ind_lip].first;
 
                             //get information for creating joint later
                             JointString jointStringNew;
@@ -173,19 +173,21 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
                             jointStringNew.link_child = group_axisVector[ind1].first;
 
                             //get the Lip component in the childlink which is group_axisVector[ind1]
-                            if(group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[0]))
-                                jointStringNew.compInChildLink =  LIPsCopy[ind_lip].second[0];
+                            if(group_axisVector[ind1].second.contains(LIPs[ind_lip].second[0]))
+                                jointStringNew.compInChildLink =  LIPs[ind_lip].second[0];
 
                             //get the Lip component in the childlink which is group_axisVector[ind1]
-                            if(group_axisVector[ind1].second.contains(LIPsCopy[ind_lip].second[1]))
-                                jointStringNew.compInChildLink =  LIPsCopy[ind_lip].second[1];
+                            if(group_axisVector[ind1].second.contains(LIPs[ind_lip].second[1]))
+                                jointStringNew.compInChildLink =  LIPs[ind_lip].second[1];
 
                             jointStringVector.append(jointStringNew);
-                            LIPsCopy.remove(ind_lip);
+                            //                            LIPsCopy.remove(ind_lip);
+                            number_unassginedLips--;
                             continue;
                         }
+
                         if(group_axisVector[ind2].first == "" & group_axisVector[ind1].first != ""){
-                            group_axisVector[ind2].first = LIPsCopy[ind_lip].first;
+                            group_axisVector[ind2].first = LIPs[ind_lip].first;
 
                             //get information for creating joint later
                             JointString jointStringNew;
@@ -194,15 +196,16 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
                             jointStringNew.link_child = group_axisVector[ind2].first;
 
                             //get the Lip component in the childlink which is group_axisVector[ind2]
-                            if(group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[1]))
-                                jointStringNew.compInChildLink = LIPsCopy[ind_lip].second[1];
+                            if(group_axisVector[ind2].second.contains(LIPs[ind_lip].second[1]))
+                                jointStringNew.compInChildLink = LIPs[ind_lip].second[1];
 
                             //get the Lip component in the childlink which is group_axisVector[ind2]
-                            if(group_axisVector[ind2].second.contains(LIPsCopy[ind_lip].second[0]))
-                                jointStringNew.compInChildLink = LIPsCopy[ind_lip].second[0];
+                            if(group_axisVector[ind2].second.contains(LIPs[ind_lip].second[0]))
+                                jointStringNew.compInChildLink = LIPs[ind_lip].second[0];
 
                             jointStringVector.append(jointStringNew);
-                            LIPsCopy.remove(ind_lip);
+                            //                            LIPsCopy.remove(ind_lip);
+                            number_unassginedLips--;
                             continue;
                         }
                     }
@@ -253,9 +256,9 @@ Vector3 InitialGrouper::getJointXYZ(QString lipCompName, QString jointName,
             return axis;
         }
         if(jointName == "B"){
-        axisVector = component.getRotaryAxisPoint2();
-        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
-        return axis;
+            axisVector = component.getRotaryAxisPoint2();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
         }
     }
 
@@ -268,9 +271,9 @@ Vector3 InitialGrouper::getJointXYZ(QString lipCompName, QString jointName,
             return axis;
         }
         if(jointName == "C"){
-        axisVector = component.getRotaryAxisPoint2();
-        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
-        return axis;
+            axisVector = component.getRotaryAxisPoint2();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
         }
     }
 
@@ -283,17 +286,17 @@ Vector3 InitialGrouper::getJointXYZ(QString lipCompName, QString jointName,
             return axis;
         }
         if(jointName == "C"){
-        axisVector = component.getRotaryAxisPoint2();
-        Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
-        return axis;
+            axisVector = component.getRotaryAxisPoint2();
+            Vector3 axis(axisVector.x(),axisVector.y(),axisVector.z());
+            return axis;
         }
     }
     Vector3 axis_prismatic(0,0,0);
     return axis_prismatic;
 }
 
-MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > > group_axisVector,
-                                     QVector<component> compVector)
+MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& group_axisVector,
+                                     QVector<component>& compVector)
 {
     //Create machine tool object
     MachineTool MT;
@@ -326,23 +329,26 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString> > >
         QString childLink = jointStringVector[ind_joint].link_child;
         QString compInChildLink = jointStringVector[ind_joint].compInChildLink;
         Vector3 rpy(0,0,0);
-        Joint joint_reading(jointName.toStdString(), getJointType(childLink).toStdString(),
-                            getJointXYZ(compInChildLink,childLink, compVector), rpy, getJointAxis(childLink),
-                            MT.find_link(parentLink.toStdString(), MT.LinkVector),
-                            MT.find_link(childLink.toStdString(), MT.LinkVector));
-        MT.JointVector.push_back(joint_reading);
+        Joint joint_new(jointName.toStdString(), getJointType(childLink).toStdString(),
+                        getJointXYZ(compInChildLink,childLink, compVector), rpy, getJointAxis(childLink),
+                        MT.find_link(parentLink.toStdString(), MT.LinkVector),
+                        MT.find_link(childLink.toStdString(), MT.LinkVector));
+        MT.JointVector.push_back(joint_new);
+        joint_new.getParentLink()->ChildLink.append(joint_new.getChildLink());
+        //assign child link to the parent link
 
+        joint_new.getChildLink()->ParentLink = joint_new.getParentLink();
+        //assign parent link to the child link
 
-        //        qDebug()<<"Joint name:"<<jointStringVector[ind_joint].name<<
-        //                  "parent link:"<<jointStringVector[ind_joint].link_parent<<
-        //                  "child link:"<<jointStringVector[ind_joint].link_child<<
-        //                  "component in child link"<<jointStringVector[ind_joint].compInChildLink<<endl;
-        qDebug()<<"Joint name:"<< QString::fromStdString(joint_reading.getName())<<
-                  "Type:"<<QString::fromStdString(joint_reading.getType())<<
-                  "parent link:"<<QString::fromStdString(joint_reading.getParentLink()->getName())<<
-                  "child link:"<<QString::fromStdString(joint_reading.getChildLink()->getName())<<
-                  "xyz:"<<joint_reading.getOrigin_xyz().x<<joint_reading.getOrigin_xyz().y<<
-                  joint_reading.getOrigin_xyz().z<<endl;
+        MT.assignLinkType(joint_new);
+        //assign Link type to child link of joint
+
+        qDebug()<<"Joint name:"<< QString::fromStdString(joint_new.getName())<<
+                  "Type:"<<QString::fromStdString(joint_new.getType())<<
+                  "parent link:"<<QString::fromStdString(joint_new.getParentLink()->getName())<<
+                  "child link:"<<QString::fromStdString(joint_new.getChildLink()->getName())<<
+                  "xyz:"<<joint_new.getOrigin_xyz().x<<joint_new.getOrigin_xyz().y<<
+                  joint_new.getOrigin_xyz().z<<endl;
     }
     return MT;
 }
