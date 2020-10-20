@@ -21,6 +21,7 @@ SOURCES += \
     contactcomponentspair.cpp \
     createcubes.cpp \
     creategeometry.cpp \
+    groupingpreprocessor.cpp \
     initialgrouper.cpp \
     joint.cpp \
     link.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
     contactcomponentspair.h \
     createcubes.h \
     creategeometry.h \
+    groupingpreprocessor.h \
     initialgrouper.h \
     joint.h \
     link.h \

@@ -23,6 +23,7 @@
 #include <STEPControl_Reader.hxx>
 #include <QXmlStreamWriter>
 #include <initialgrouper.h>
+#include <groupingpreprocessor.h>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -99,6 +100,7 @@ private:
     QStringList m_filepathes;
     CreateGeometry m_geometry;
     CreateCubes m_cubeGemoetry;
+    GroupingPreProcessor m_groupingPreProcessor;
 
     MachineTool MT;
     QString machineToolName;

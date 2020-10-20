@@ -44,7 +44,6 @@ public:
     Voxelizer();
     QVector < QVector < QVector< Voxel > > > voxelspace;
 
-
     float voxelStarting_X;
     float voxelStarting_Y;
     float voxelStarting_Z;
@@ -73,7 +72,6 @@ public:
     QSet<QString> collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2);
     QVector<contactComponentsPair> collisionDetectionForComponents(QVector<component>& STLMeshVector);
     QVector<contactComponentsPair> collisionDetectionForComponentsFromURDF(MachineTool &MT);
-    void updateCCPVector(QVector<contactComponentsPair>& ccpVector);
     bool translationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix,
                                bool getVoxelIndcies = false);
     bool rotationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix, int commonAxis_ind,

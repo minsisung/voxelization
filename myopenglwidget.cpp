@@ -139,17 +139,18 @@ void MyOpenGLWidget::initializeGL()
 
     //setup voxel space
     //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
-    QString lowestCompName = m_cubeGemoetry.createMTVoxelspace(4.0f, compVector);
+    QString lowestCompName = m_groupingPreProcessor.createMTVoxelspace(4.0f, compVector);
+
 
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
     //find CCPs using collision detection and also update CCPVector by doing relative movement for
     //the following LIPs checking
-    QVector<contactComponentsPair> ccpVector = m_cubeGemoetry.findContactComponentsPairs(compVector);
+    QVector<contactComponentsPair> ccpVector = m_groupingPreProcessor.findContactComponentsPairs(compVector);
 
     //Find LIPs using the information from above
-    int LIPs_Number = m_cubeGemoetry.findLIPCandidates(ccpVector);
+    int LIPs_Number = m_groupingPreProcessor.findLIPCandidates(ccpVector);
 
     //if number of LIPs is small than the number of groups - 1, which means there might have missing components,
     //then stop processing.
@@ -157,7 +158,7 @@ void MyOpenGLWidget::initializeGL()
         return;
 
     //Initial grouping using LIPs and CCPs
-    InitialGrouper initialGrouper(m_cubeGemoetry.CCPs, m_cubeGemoetry.LIPs,
+    InitialGrouper initialGrouper(m_groupingPreProcessor.CCPs, m_groupingPreProcessor.LIPs,
                                   num_LIPs + 1, lowestCompName);
     QVector<QPair<QString,QVector<QString>>> group_axisVector =
             initialGrouper.startGrouping();
@@ -182,7 +183,7 @@ void MyOpenGLWidget::initializeGL()
 
 
     //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
-        m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
+//        m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
 
     //            m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
 
@@ -359,7 +360,6 @@ void MyOpenGLWidget::drawCCPComponents()
     QMatrix3x3 normalMatrix = m_world.normalMatrix();
     m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
 
-    QVector<int> totalVerticesVector = m_cubeGemoetry.get_vertices_numbers();
     int startNumber = 0;
 
     for (int comp_ind = 0; comp_ind < 2; comp_ind++){
@@ -373,14 +373,14 @@ void MyOpenGLWidget::drawCCPComponents()
                                                          static_cast<float>(0.37647f * (comp_ind + 1))));
         if(comp_ind ==0){
             //draw triangles
-            glDrawArrays(GL_TRIANGLES, startNumber, m_cubeGemoetry.numberOfVertex_comp1);
+            glDrawArrays(GL_TRIANGLES, startNumber, m_groupingPreProcessor.numberOfVertex_comp1);
             //update starting number of each component
-            startNumber += m_cubeGemoetry.numberOfVertex_comp1;
+            startNumber += m_groupingPreProcessor.numberOfVertex_comp1;
         }else{
             //draw triangles
-            glDrawArrays(GL_TRIANGLES, startNumber, m_cubeGemoetry.numberOfVertex_comp2);
+            glDrawArrays(GL_TRIANGLES, startNumber, m_groupingPreProcessor.numberOfVertex_comp2);
             //update starting number of each component
-            startNumber += m_cubeGemoetry.numberOfVertex_comp2;
+            startNumber += m_groupingPreProcessor.numberOfVertex_comp2;
         }
     }
 }
