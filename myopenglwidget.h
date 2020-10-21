@@ -20,10 +20,10 @@
 #include <BRep_Tool.hxx>
 #include <TopoDS_Edge.hxx>
 #include <IGESCAFControl_Reader.hxx>
-#include <STEPControl_Reader.hxx>
 #include <QXmlStreamWriter>
-#include <initialgrouper.h>
-#include <groupingpreprocessor.h>
+#include "initialgrouper.h"
+#include "groupingpreprocessor.h"
+#include "groupingvalidator.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -101,6 +101,7 @@ private:
     CreateGeometry m_geometry;
     CreateCubes m_cubeGemoetry;
     GroupingPreProcessor m_groupingPreProcessor;
+    GroupingValidator m_groupingValidator;
 
     MachineTool MT;
     QString machineToolName;

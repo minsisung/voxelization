@@ -11,6 +11,9 @@ public:
     QString createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
     QVector<contactComponentsPair> findContactComponentsPairs(QVector<component>& componentVector);
     int findLIPCandidates(QVector<contactComponentsPair>& ccpVector);
+    QVector<GLfloat> getData(){return m_data;}
+    int getTotalCount(){return m_totalCount;}
+
     QVector<QVector<QString>> CCPs;
     QVector<QPair<QString,QVector<QString>>> LIPs;
     int numberOfVertex_comp1 = 0;

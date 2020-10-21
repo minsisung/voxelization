@@ -76,6 +76,7 @@ public:
                                bool getVoxelIndcies = false);
     bool rotationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix, int commonAxis_ind,
                             bool getVoxelIndcies = false);
+    void setDrawingCCPName(QString drawingCCPName_input){drawingCCPName = drawingCCPName_input;}
     QList<QVector3D> compVoxelIndicesList1;
     QList<QVector3D> compVoxelIndicesList2;
 

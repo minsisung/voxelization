@@ -313,7 +313,8 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& 
                   link_input.m_STLMeshVector.size()<<"components"<<endl;
 
         //set color for link
-        VectorRGBA rgba(rand()/RAND_MAX, rand()/RAND_MAX, rand()/RAND_MAX, 1.0);
+        VectorRGBA rgba(0.37647 * (ind_group + 1),0.75294 / (ind_group + 1),
+                        0.37647 * (ind_group + 1), 1.0);
         link_input.setRGBA(rgba);
 
         MT.LinkVector.push_back(link_input);
@@ -350,6 +351,26 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& 
                   "xyz:"<<joint_new.getOrigin_xyz().x<<joint_new.getOrigin_xyz().y<<
                   joint_new.getOrigin_xyz().z<<endl;
     }
+
+
+    //create hash table for components
+    for(int link_ind = 0; link_ind < MT.LinkVector.size(); ++link_ind){
+        for(int mesh_ind = 0; mesh_ind < MT.LinkVector[link_ind].m_STLMeshVector.size(); ++mesh_ind){
+            QString componentName = QString(QChar::fromLatin1(MT.LinkVector[link_ind].getLinkType())) + QString::number(mesh_ind + 1);
+            MT.componentsHash[componentName] = MT.LinkVector[link_ind].m_STLMeshVector[mesh_ind];
+        }
+    }
+
+    //find and voxelize base link
+
+    for (QVector<Link>::iterator loop = MT.LinkVector.begin(); loop != MT.LinkVector.end(); loop++){
+        if(loop->ParentLink == nullptr)
+        {
+            MT.baseLink = loop;
+            break;
+        }
+    }
+
     return MT;
 }
 

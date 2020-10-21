@@ -117,31 +117,20 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(0,1,1);
 
-//            machineToolName = "UMC-1600H";
-//            //rotary axes of machine tool (A,B,C)
-//            QVector3D mtRotaryAxes(1,0,1);
+    //                machineToolName = "UMC-1600H";
+    //                //rotary axes of machine tool (A,B,C)
+    //                QVector3D mtRotaryAxes(1,0,1);
 
     machineToolName = "VF-2";
     //rotary axes of machine tool (A,B,C)
     QVector3D mtRotaryAxes(1,0,1);
 
-    //    QVector<stl_reader::StlMesh <float, unsigned int>> stlMeshVector =
-    //            readSTLFiles(machineToolName);
-
-
-
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
     //----------------------------------------------------------
-    //temporarily used to get relative position for each components from pre-defined urdf
-    //    QString urdfName = machineToolName + ".urdf";
-    //    MT.readURDF(urdfName);
 
     //setup voxel space
-    //    m_cubeGemoetry.createMTVoxelspace(5.0f, stlMeshVector);
     QString lowestCompName = m_groupingPreProcessor.createMTVoxelspace(4.0f, compVector);
-
-
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
@@ -167,25 +156,25 @@ void MyOpenGLWidget::initializeGL()
     if(group_axisVector.isEmpty())
         return;
 
-    MachineTool MT =initialGrouper.createMT(group_axisVector, compVector);
+    MT =initialGrouper.createMT(group_axisVector, compVector);
 
 
-    //**Step 2: Check collision for all configurations--------------  !!!! need to recreate MT for the rest of process!!!!
+    //**Step 2: Check collision for all configurations--------------
+    m_groupingValidator.createMTVoxelspace(4.0f, compVector);
+    m_groupingValidator.collisionDetectionForConfigurations(MT, true);
 
-    //create machine tool by reading urdf
-    //    QString urdfName = machineToolName + ".urdf";
-    //    MT.readURDF(urdfName);
-    //    MT.readURDF("VF-2.urdf");
-    //    MT.readURDF("UMC-750.urdf");
-    //    MT.readURDF("UMC-750_short.urdf");
-    //    MT.readURDF("50machineTool.urdf");
-    //    MT.readURDF("50machineTool_short.urdf");
+    //Select which one to be painted  1. machinetool  2. CCP
+    QString paintMode = "machinetool";
 
-
-    //    Q_ASSERT_X(MT.LinkVector.size()<7, "MyOpenGLWidget", "Number of components should be less than 6");
-//        m_cubeGemoetry.collisionDetectionForConfigurations(MT, true);
-
-    //            m_cubeGemoetry.createCollisionVoxelspace(4500.0f, 4.0f, MT, true);
+    if(paintMode == "machinetool"){
+        m_cubeGemoetry.m_paintMode = paintMode;
+        m_cubeGemoetry.setData(m_groupingValidator.getData());
+        m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
+    }else{
+        m_cubeGemoetry.m_paintMode = paintMode;
+        m_cubeGemoetry.setData(m_groupingPreProcessor.getData());
+        m_cubeGemoetry.setTotalCount(m_groupingPreProcessor.getTotalCount());
+    }
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -251,10 +240,12 @@ void MyOpenGLWidget::paintGL()
 
     //check if visualization is necessary
     if(m_cubeGemoetry.ifNeedVisualization){
-        //        drawMTComponents();
-        drawCCPComponents();
+        if(m_cubeGemoetry.m_paintMode == "machinetool"){
+            drawMTComponents();
+        }else{
+            drawCCPComponents();
+        }
     }
-
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
 
     //Creating coordinate system================================================================================
@@ -331,23 +322,19 @@ void MyOpenGLWidget::drawMTComponents()
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
     QMatrix3x3 normalMatrix = m_world.normalMatrix();
     m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
-
-    QVector<int> totalVerticesVector = m_cubeGemoetry.get_vertices_numbers();
     int startNumber = 0;
 
-    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
-
-
+    for (int ind_link = 0; ind_link < MT.LinkVector.size(); ind_link++){
         // only draw skeleton of each triangle
         //                                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(loop->getRGBA().r),
-                                                         static_cast<float>(loop->getRGBA().g),
-                                                         static_cast<float>(loop->getRGBA().b)));
+        m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(0.15f * (ind_link + 1)),
+                                                         static_cast<float>(0.75294f / (ind_link + 1)),
+                                                         static_cast<float>(0.9f / (ind_link + 1))));
         //draw triangles
-        glDrawArrays(GL_TRIANGLES, startNumber, loop->numberOfVertex);
+        glDrawArrays(GL_TRIANGLES, startNumber, MT.LinkVector[ind_link].numberOfVertex);
         //update starting number of each component
-        startNumber += loop->numberOfVertex;
+        startNumber += MT.LinkVector[ind_link].numberOfVertex;
     }
 }
 
@@ -359,11 +346,8 @@ void MyOpenGLWidget::drawCCPComponents()
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
     QMatrix3x3 normalMatrix = m_world.normalMatrix();
     m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
-
     int startNumber = 0;
-
     for (int comp_ind = 0; comp_ind < 2; comp_ind++){
-
 
         // only draw skeleton of each triangle
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

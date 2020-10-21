@@ -22,6 +22,7 @@ SOURCES += \
     createcubes.cpp \
     creategeometry.cpp \
     groupingpreprocessor.cpp \
+    groupingvalidator.cpp \
     initialgrouper.cpp \
     joint.cpp \
     link.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     createcubes.h \
     creategeometry.h \
     groupingpreprocessor.h \
+    groupingvalidator.h \
     initialgrouper.h \
     joint.h \
     link.h \

@@ -360,9 +360,9 @@ void Voxelizer::parentModelVoxelization(Link& link)
 {
     float min_x, max_x, min_y, max_y, min_z, max_z;
     QChar linkType = link.getLinkType();
-
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector = link.getSTLMesh();
     QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
+    qDebug()<<TransformMatrix;
 
     QElapsedTimer timer;
     timer.start();
@@ -378,7 +378,36 @@ void Voxelizer::parentModelVoxelization(Link& link)
         for (size_t itri = 0; itri < meshVector[mesh_ind].num_tris(); ++itri){
 
             //Load and transform triangles from mesh
-            loadAndTransform(itri, meshVector[mesh_ind], TransformMatrix);
+//            loadAndTransform(itri, meshVector[mesh_ind], TransformMatrix);
+
+            QVector3D vertex1(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[0],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[1],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[2]);
+
+            QVector3D vertex2(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[0],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[1],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[2]);
+
+            QVector3D vertex3(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[0],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[1],
+                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[2]);
+
+            p1.x = 1000 * vertex1.x();
+            p1.y = 1000 * vertex1.y();
+            p1.z = 1000 * vertex1.z();
+
+            p2.x = 1000 * vertex2.x();
+            p2.y = 1000 * vertex2.y();
+            p2.z = 1000 * vertex2.z();
+
+            p3.x = 1000 * vertex3.x();
+            p3.y = 1000 * vertex3.y();
+            p3.z = 1000 * vertex3.z();
+
+            triangle.p1 = p1;
+            triangle.p2 = p2;
+            triangle.p3 = p3;
+
 
             //find bounding box of triangle
             VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -404,18 +433,10 @@ void Voxelizer::parentModelVoxelization(Link& link)
                 for (int ind_y = index_y_min; ind_y<index_y_max + 1; ind_y++){
                     for (int ind_z = index_z_min; ind_z<index_z_max + 1; ind_z++){
                         Voxel& voxel = voxelspace[ind_x][ind_y][ind_z];
-                        //                        QChar voxelLinkType = voxel.getVoxelLinkType();
-
                         boxcenter.x = voxelStarting_X + (voxelSize/2) + voxelSize*ind_x;
                         boxcenter.y = voxelStarting_Y + (voxelSize/2) + voxelSize*ind_y;
                         boxcenter.z = voxelStarting_Z + (voxelSize/2) + voxelSize*ind_z;
                         if(vx_triangle_box_overlap(boxcenter, halfboxsize, triangle)){
-
-                            //                            if(voxelLinkType != 'E' && voxelLinkType != linkType){
-                            //                                voxel.collide();
-                            //                                link.MTCollidedVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
-                            //                            }
-
                             voxel.setVoxelLinkType(linkType);
                             voxel.setComponentNumber(mesh_ind + 1);
                             newParentMTVoxelIndicesList.append(QVector3D(ind_x, ind_y, ind_z));
@@ -431,7 +452,6 @@ void Voxelizer::parentModelVoxelization(Link& link)
     link.MTVoxelIndicesListVectorUpdate = link.MTVoxelIndicesListVector;
 
     //update voxel space assigned to voxel space
-
     if(link.getLinkType() == 'b')
         link.linkVoxelspace = voxelspace;
 }

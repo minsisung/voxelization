@@ -50,20 +50,30 @@ void Link::setSTLMesh()
 }
 
 void Link::setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVector){
+    int num_mesh = 0;
     for(int ind_comp = 0; ind_comp< linkCompsNames.size(); ind_comp++){
         //set STL file of each component for the link
         stl_reader::StlMesh <float, unsigned int> mesh;
         int ind_compVector = compVector.indexOf(linkCompsNames[ind_comp]);
         if(ind_compVector != -1){
-            mesh = compVector[ind_compVector].getNonOffsetMesh();
+            if(compVector[ind_compVector].containsOffsetMesh()){
+                mesh = compVector[ind_compVector].getOffsetMesh();
+            }else{
+                mesh = compVector[ind_compVector].getNonOffsetMesh();
+            }
+
             m_STLMeshVector.append(mesh);
+            num_mesh++;
             qDebug() << "Finish setting mesh for " <<linkCompsNames[ind_comp];
         }else{
             qDebug()<<linkCompsNames[ind_comp]<<"doesn't exist in compVector"<<endl;
         }
-
-
     }
+
+    //setup MTVoxelIndicesListVector depends on the size of meshlist
+    QVector<QList<QVector3D>> correctsize_MTVoxelIndicesList;
+    QVector<QVector<QList<QVector3D>>> correctsize_MTVoxelIndicesListVector(num_mesh, correctsize_MTVoxelIndicesList);
+    MTVoxelIndicesListVector = correctsize_MTVoxelIndicesListVector;
 }
 
 void Link::setBoundingBoxIndex(int x_min_index, int x_max_index, int y_min_index, int y_max_index,

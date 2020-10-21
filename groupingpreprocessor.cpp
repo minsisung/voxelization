@@ -370,8 +370,8 @@ void GroupingPreProcessor::updateCCPVector(QVector<contactComponentsPair> &ccpVe
 {
     float CD_distance_offoff = 0.016f;
     float CD_distance_offnon = 0.007f;
-    drawingCCPName = "UMC-1600H - X Axis Table UMC-1600 5-AX-1==UMC-1600H - B Axis UMC-1600H-1";
-
+    drawingCCPName = "VF-2 - Z Axis Ram2-1-1==VF-2 - Base Casting-1-1";
+    voxelizer.setDrawingCCPName(drawingCCPName);
     //check x positive
     QMatrix4x4 transformMatrix_X_Positive;
 
@@ -447,7 +447,7 @@ void GroupingPreProcessor::updateCCPVector(QVector<contactComponentsPair> &ccpVe
         if(ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                 ccpVector[ccp_ind].getSecondComp().containsOffsetMesh()){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offoff,0.0f);
-            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
 
             //non-offset offset CD
         }else if((ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
@@ -455,12 +455,12 @@ void GroupingPreProcessor::updateCCPVector(QVector<contactComponentsPair> &ccpVe
                  (!ccpVector[ccp_ind].getFirstComp().containsOffsetMesh() &&
                   ccpVector[ccp_ind].getSecondComp().containsOffsetMesh())){
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
 
             //non-offset non-offset CD
         }else{
             transformMatrix_Y_Positive.translate(0.0f,CD_distance_offnon,0.0f);
-            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive);
+            isCollided = voxelizer.translationalCDForCCP(ccpVector[ccp_ind], transformMatrix_Y_Positive,true);
         }
         if(isCollided)
             ccpVector[ccp_ind].collided_Positive_Y();
@@ -619,7 +619,7 @@ void GroupingPreProcessor::updateCCPVector(QVector<contactComponentsPair> &ccpVe
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
                 qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = voxelizer.rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2,true);
+                bool isCollided = voxelizer.rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
 
                 if(!isCollided)
                     ccpVector[ccp_ind].not_collided_SecondAxis();
@@ -642,7 +642,7 @@ void GroupingPreProcessor::updateCCPVector(QVector<contactComponentsPair> &ccpVe
             //if components has common rotary axis in C, then check collision
             if(ccpVector[ccp_ind].containsCommonRotaryAxis2()){
                 qDebug()<<"colliion detection for rotating in C for"<<ccpVector[ccp_ind].getName();
-                bool isCollided = voxelizer.rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2,true);
+                bool isCollided = voxelizer.rotationalCDForCCP(ccpVector[ccp_ind], transformMatrix_C, 2);
 
                 if(!isCollided)
                     ccpVector[ccp_ind].not_collided_SecondAxis();
