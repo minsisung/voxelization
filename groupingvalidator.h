@@ -18,12 +18,14 @@ public:
 private:
     void setupInitialTransformation(MachineTool& MT);
     void drawVoxelforMT(Link& link, int ind1, int ind2);
+    bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
     Voxelizer voxelizer;
     QVector<GLfloat> m_data;
     int m_totalCount;
     float voxelSize;
     bool ifNeedVisualization = true;
+    QSet<QVector<int>>voxelSet;
 };
 
 #endif // GROUPINGVALIDATOR_H

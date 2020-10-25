@@ -10,7 +10,7 @@ void GroupingValidator::createMTVoxelspace(float vSize, QVector<component> &comp
     voxelSize = vSize;
 
     //initialize voxel space and voxel size and return the name of the lowest component
-    QString lowestCompName = voxelizer.setupSize(voxelSize, componentVector);
+    voxelizer.setupSize(voxelSize, componentVector);
 }
 
 void GroupingValidator::collisionDetectionForConfigurations(MachineTool &MT, bool needVisualization)
@@ -82,7 +82,7 @@ void GroupingValidator::collisionDetectionForConfigurations(MachineTool &MT, boo
     //    QElapsedTimer parentModelstimer;
     //    parentModelstimer.start();
 
-    //    int samplingNumber = 1;
+        int samplingNumber = 1;
 
     //    for(int Number = 0; Number < baseLink->ChildLink.size(); Number++){
     //        Link* currentLink = baseLink->ChildLink[Number];
@@ -219,22 +219,22 @@ void GroupingValidator::collisionDetectionForConfigurations(MachineTool &MT, boo
 
 
     //Checking only one configuration for collision-----------------------------------------------
-    //    voxelizer.shiftVoxelModel(MT, 0.0 * 1, 0.0 *1, 0.0 *1);
-    //    QSet<QString> totalCollisionSet;
-    //    totalCollisionSet +=
-    //            voxelizer.collisionDetectionForGroups(MT, 0, 0 * samplingNumber + 0);
+        voxelizer.shiftVoxelModel(MT, 0.0f * 1, 0.0f *1, -0.0f *1);
+        QSet<QString> totalCollisionSet;
+        totalCollisionSet +=
+                voxelizer.collisionDetectionForGroups(MT, 0, 0 * samplingNumber + 0);
 
-    //    if(totalCollisionSet.empty()){
-    //        qDebug()<<"No collision occurs at X shift:"<<0<<" Y shift:"<<0
-    //               <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
-    //                 MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<endl;
-    //    }else{
-    //        qDebug()<<"Collision pairs at X shift:"<<0<<" Y shift:"<<0
-    //               <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
-    //                 MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<":"
-    //              <<totalCollisionSet<<endl;
-    //    }
-    //    totalCollisionSet.clear();
+        if(totalCollisionSet.empty()){
+            qDebug()<<"No collision occurs at X shift:"<<0<<" Y shift:"<<0
+                   <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
+                     MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<endl;
+        }else{
+            qDebug()<<"Collision pairs at X shift:"<<0<<" Y shift:"<<0
+                   <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
+                     MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<":"
+                  <<totalCollisionSet<<endl;
+        }
+        totalCollisionSet.clear();
 
     //Checking only one configuration for collision-----------------------------------------------
 
@@ -283,6 +283,14 @@ void GroupingValidator::drawVoxelforMT(Link &link, int ind1, int ind2)
             int number_y = i->y();
             int number_z = i->z();
 
+            QVector<int> voxelVector;
+            voxelVector << number_x << number_y << number_z;
+            if(voxelSet.contains(voxelVector)){
+                continue;
+            }else{
+                voxelSet.insert(voxelVector);
+            }
+
             GLfloat offset_y = voxelSize * number_y;
             GLfloat offset_x = voxelSize * number_x;
             GLfloat offset_z = voxelSize * number_z;
@@ -305,9 +313,15 @@ void GroupingValidator::drawVoxelforMT(Link &link, int ind1, int ind2)
             };
 
             QVector3D normal;
+            bool ifDuplicate = false;
+
             // Draw6 different normal direction and avoid overlapping face for each face
             for (int i = 0; i < 6; ++i) {
                 normal = setNormal(i);
+
+                ifDuplicate = checkDuplicateFace(i, number_x, number_y, number_z);
+                if(ifDuplicate)
+                    continue;
 
                 // insert vertex position into m_data for creating VBO
 
@@ -364,6 +378,60 @@ void GroupingValidator::drawVoxelforMT(Link &link, int ind1, int ind2)
             }
         }
     }
+}
+
+bool GroupingValidator::checkDuplicateFace(int i, int number_x, int number_y, int number_z)
+{
+    // number_z - 1 has overlapping face
+    if (i==0 && number_z > 0){
+        QVector<int> voxelVector;
+        voxelVector << number_x << number_y << number_z - 1;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    // number_y + 1 has overlapping face
+    else if (i==1 && number_y < voxelizer.voxelSpaceSize_Y - 1){
+        QVector<int> voxelVector;
+        voxelVector << number_x << number_y + 1 << number_z;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    // number_x + 1 has overlapping face
+    else if (i==2 && number_x < voxelizer.voxelSpaceSize_X - 1){
+        QVector<int> voxelVector;
+        voxelVector << number_x + 1<< number_y<< number_z;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    // number_x - 1 has overlapping face
+    else if (i==3 && number_x > 0){
+        QVector<int> voxelVector;
+        voxelVector << number_x - 1<< number_y<< number_z;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    // number_y - 1 has overlapping face
+    else if (i==4 && number_y > 0){
+        QVector<int> voxelVector;
+        voxelVector << number_x<< number_y - 1<< number_z;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    // number_z + 1 has overlapping face
+    else if (i==5 && number_z < voxelizer.voxelSpaceSize_Z - 1){
+        QVector<int> voxelVector;
+        voxelVector << number_x<< number_y<< number_z + 1;
+        if(voxelSet.contains(voxelVector)){
+            return true;
+        }
+    }
+    //if no overlapping face
+    return false;
 }
 
 QVector3D GroupingValidator::setNormal(int i)

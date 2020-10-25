@@ -130,7 +130,7 @@ void MyOpenGLWidget::initializeGL()
     //----------------------------------------------------------
 
     //setup voxel space
-    QString lowestCompName = m_groupingPreProcessor.createMTVoxelspace(4.0f, compVector);
+    m_groupingPreProcessor.createMTVoxelspace(4.0f, compVector);
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
@@ -148,14 +148,13 @@ void MyOpenGLWidget::initializeGL()
 
     //Initial grouping using LIPs and CCPs
     InitialGrouper initialGrouper(m_groupingPreProcessor.CCPs, m_groupingPreProcessor.LIPs,
-                                  num_LIPs + 1, lowestCompName);
+                                  num_LIPs + 1, compVector);
     QVector<QPair<QString,QVector<QString>>> group_axisVector =
             initialGrouper.startGrouping();
 
     //If LIPs number != number of group - 1, stop processing
     if(group_axisVector.isEmpty())
         return;
-
     MT =initialGrouper.createMT(group_axisVector, compVector);
 
 
@@ -328,9 +327,19 @@ void MyOpenGLWidget::drawMTComponents()
         // only draw skeleton of each triangle
         //                                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        m_program->setUniformValue(m_colorLoc, QVector3D(static_cast<float>(0.15f * (ind_link + 1)),
-                                                         static_cast<float>(0.75294f / (ind_link + 1)),
-                                                         static_cast<float>(0.9f / (ind_link + 1))));
+        float r, g, b;
+        if(ind_link == 0){
+            r = 0.8f; g = 0.7f;b = 0.7f;
+        }else if(ind_link == 1){r = 0.6f; g = 0.4f; b = 0.3987f;
+        }else if(ind_link == 2){r = 0.5143f; g = 0.143f; b = 0.456f;
+        }else if(ind_link == 3){r = 0.125f; g = 0.643f; b = 0.619f;
+        }else if(ind_link == 4){r = 0.32f; g = 0.2f; b = 0.8f;
+        }else if(ind_link == 5){r = 0.37647f ; g = 0.75294f; b = 0.37647f ;
+        }else{
+            r = 0.1f; g = 0.7f; b = 0.8f;
+        }
+        m_program->setUniformValue(m_colorLoc, QVector3D(r,g,b));
+//        qDebug()<<QString::fromStdString(MT.LinkVector[ind_link].getName())<<"RGB:"<<r<<g<<b;
         //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, MT.LinkVector[ind_link].numberOfVertex);
         //update starting number of each component

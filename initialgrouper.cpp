@@ -2,9 +2,9 @@
 
 InitialGrouper::InitialGrouper(QVector<QVector<QString>> CCPs_input,
                                QVector<QPair<QString,QVector<QString>>> LIPs_input,
-                               int num_group_input, QString lowestCompName_input)
+                               int num_group_input, QVector<component> &compnent_Mesh_Vector)
     :CCPs(CCPs_input), LIPs(LIPs_input),
-      num_group(num_group_input), lowestCompName(lowestCompName_input){
+      num_group(num_group_input){
 
     //delete components if there is no any connection to other component
     QVector<QString> compVectorUpdate;
@@ -30,7 +30,7 @@ InitialGrouper::InitialGrouper(QVector<QVector<QString>> CCPs_input,
             CCPs.remove(ind);
     }
 
-
+    setLowestComponent(compnent_Mesh_Vector);
 }
 
 void InitialGrouper::mergeGroups(QVector<QVector<QString> > &subgroupVector, int ind_group1, int ind_group2)
@@ -132,6 +132,7 @@ void InitialGrouper::growsGroup(QVector<QVector<QString> > &subgroupVector, QVec
 QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
         QVector<QVector<QString>>& subgroupVector)
 {
+
     //Vector of pair which first element is the axis and second one is the components in the group
     QVector<QPair<QString,QVector<QString>>> group_axisVector;
 
@@ -147,6 +148,7 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
         }
         group_axisVector.append(qMakePair(axisName, subgroupVector[ind_group]));
     }
+    qDebug()<<"Assigned base";
 
     //assign axis type to the corresponding group
     int number_unassginedLips = LIPs.size();
@@ -295,6 +297,25 @@ Vector3 InitialGrouper::getJointXYZ(QString lipCompName, QString jointName,
     return axis_prismatic;
 }
 
+void InitialGrouper::setLowestComponent(QVector<component> &compnent_Mesh_Vector)
+{
+    //get z position for each Component
+    QList<QPair<double,int>> mtBoundingBox_Z_min;
+
+    for(int i = 0; i < compVector.size(); i++){
+        component& component = compnent_Mesh_Vector[compnent_Mesh_Vector.indexOf(compVector[i])];
+        mtBoundingBox_Z_min.append(qMakePair(component.getNonOffsetMesh().getBoundingBox_Z_min(),i));
+    }
+
+    qSort(mtBoundingBox_Z_min.begin(), mtBoundingBox_Z_min.end());
+
+    //declare the lowest component
+    QString lowestComp = compVector[mtBoundingBox_Z_min.first().second];
+    qDebug()<<"lowestComp"<<lowestComp;
+
+    lowestCompName = lowestComp;
+}
+
 MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& group_axisVector,
                                      QVector<component>& compVector)
 {
@@ -314,7 +335,7 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& 
 
         //set color for link
         VectorRGBA rgba(0.37647 * (ind_group + 1),0.75294 / (ind_group + 1),
-                        0.37647 * (ind_group + 1), 1.0);
+                        0.2 * (ind_group + 1), 1.0);
         link_input.setRGBA(rgba);
 
         MT.LinkVector.push_back(link_input);
@@ -514,6 +535,5 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 
     //Assign axis to each group
     QVector<QPair<QString,QVector<QString>>> group_axisVector = assignAxisToGroups(subgroupVector);
-
     return group_axisVector;
 }

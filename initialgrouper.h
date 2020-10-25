@@ -19,7 +19,7 @@ class InitialGrouper
 public:
     InitialGrouper(QVector<QVector<QString>> CCPs_input,
                    QVector<QPair<QString,QVector<QString>>>LIPs_input,
-                   int num_group, QString lowestCompName);
+                   int num_group,QVector<component> &compnent_Mesh_Vector);
     QVector<QPair<QString,QVector<QString>>> startGrouping();
     MachineTool createMT(QVector<QPair<QString,QVector<QString>>>& group_axisVector,
                          QVector<component>& compVector);
@@ -43,6 +43,7 @@ private:
     QString getJointType(QString jointName);
     Vector3 getJointAxis(QString jointName);
     Vector3 getJointXYZ(QString lipCompName,QString jointName, QVector<component>& compVector);
+    void setLowestComponent(QVector<component> &compnent_Mesh_Vector);
     QVector<JointString> jointStringVector;
 };
 

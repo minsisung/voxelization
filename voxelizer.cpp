@@ -285,10 +285,9 @@ void Voxelizer::setupSize(float v_Size, QVector<stl_reader::StlMesh <float, unsi
     voxelStarting_Z = (bounding_z_min - (bounding_z_max - bounding_z_min) * (VSEnglargeRatio-1)/2) * 1000;
 }
 
-QString Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
+void Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
 {
     //get bounding box for each Component
-
     QList<QPair<double,int>> mtBoundingBox_X_min;
     QList<QPair<double,int>> mtBoundingBox_X_max;
     QList<QPair<double,int>> mtBoundingBox_Y_min;
@@ -320,9 +319,6 @@ QString Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
     double bounding_z_min = mtBoundingBox_Z_min.first().first;
     double bounding_z_max = mtBoundingBox_Z_max.last().first;
 
-    //declare the lowest component
-    QString lowestComp = componentVector[mtBoundingBox_Z_min.first().second].getName();
-
     //setup voxel size from the bounding box of whole machine tool
     voxelSize = v_Size;
     VSEnglargeRatio = 1.4f;
@@ -344,8 +340,6 @@ QString Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
     voxelStarting_X = (bounding_x_min - (bounding_x_max - bounding_x_min) * (VSEnglargeRatio-1)/2) * 1000;
     voxelStarting_Y = (bounding_y_min - (bounding_y_max - bounding_y_min) * (VSEnglargeRatio-1)/2) * 1000;
     voxelStarting_Z = (bounding_z_min - (bounding_z_max - bounding_z_min) * (VSEnglargeRatio-1)/2) * 1000;
-
-    return lowestComp;
 }
 
 void Voxelizer::createVoxelSapce()

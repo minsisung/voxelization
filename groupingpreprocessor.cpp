@@ -5,15 +5,13 @@ GroupingPreProcessor::GroupingPreProcessor():
 {
 }
 
-QString GroupingPreProcessor::createMTVoxelspace(float vSize, QVector<component> &componentVector)
+void GroupingPreProcessor::createMTVoxelspace(float vSize, QVector<component> &componentVector)
 {
     //setup voxelsize
     voxelSize = vSize;
 
     //initialize voxel space and voxel size and return the name of the lowest component
-    QString lowestCompName = voxelizer.setupSize(voxelSize, componentVector);
-
-    return lowestCompName;
+    voxelizer.setupSize(voxelSize, componentVector);
 }
 
 QVector<contactComponentsPair> GroupingPreProcessor::findContactComponentsPairs(QVector<component> &componentVector)
