@@ -356,7 +356,7 @@ void Voxelizer::parentModelVoxelization(Link& link)
     QChar linkType = link.getLinkType();
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector = link.getSTLMesh();
     QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
-    qDebug()<<TransformMatrix;
+//    qDebug()<<TransformMatrix;
 
     QElapsedTimer timer;
     timer.start();
@@ -372,36 +372,7 @@ void Voxelizer::parentModelVoxelization(Link& link)
         for (size_t itri = 0; itri < meshVector[mesh_ind].num_tris(); ++itri){
 
             //Load and transform triangles from mesh
-//            loadAndTransform(itri, meshVector[mesh_ind], TransformMatrix);
-
-            QVector3D vertex1(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[0],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[1],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 0))[2]);
-
-            QVector3D vertex2(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[0],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[1],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 1))[2]);
-
-            QVector3D vertex3(meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[0],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[1],
-                    meshVector[mesh_ind].vrt_coords(meshVector[mesh_ind].tri_corner_ind(itri, 2))[2]);
-
-            p1.x = 1000 * vertex1.x();
-            p1.y = 1000 * vertex1.y();
-            p1.z = 1000 * vertex1.z();
-
-            p2.x = 1000 * vertex2.x();
-            p2.y = 1000 * vertex2.y();
-            p2.z = 1000 * vertex2.z();
-
-            p3.x = 1000 * vertex3.x();
-            p3.y = 1000 * vertex3.y();
-            p3.z = 1000 * vertex3.z();
-
-            triangle.p1 = p1;
-            triangle.p2 = p2;
-            triangle.p3 = p3;
-
+            loadAndTransform(itri, meshVector[mesh_ind], TransformMatrix);
 
             //find bounding box of triangle
             VX_FINDMINMAX(triangle.p1.x, triangle.p2.x, triangle.p3.x, min_x, max_x)
@@ -525,6 +496,7 @@ void Voxelizer::setupInitialTransformationMatrix(MachineTool& MT, float x, float
 
         if (loop->getType() == "revolute")
         {
+
             ChildLink->m_TransformMatrix = ParentLink->m_TransformMatrix;
             ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),static_cast<float>(loop->getOrigin_xyz().y),
                                                    static_cast<float>(loop->getOrigin_xyz().z));
@@ -533,6 +505,108 @@ void Voxelizer::setupInitialTransformationMatrix(MachineTool& MT, float x, float
         }
     }
 
+    //setup transformation matrix hastable for machine tool
+    //create hash table for components
+    for(int link_ind = 0; link_ind < MT.LinkVector.size(); ++link_ind){
+        for(int mesh_ind = 0; mesh_ind < MT.LinkVector[link_ind].m_STLMeshVector.size(); ++mesh_ind){
+            QString componentName = QString(QChar::fromLatin1(MT.LinkVector[link_ind].getLinkType())) + QString::number(mesh_ind + 1);
+            MT.tranMatrixHash[componentName] = MT.LinkVector[link_ind].m_TransformMatrix;
+        }
+    }
+}
+
+void Voxelizer::setInitialTM_Same_Oirgin(MachineTool &MT, float x, float y, float z, float a, float b, float c)
+{
+    //Transform according to each component
+    for (QVector<Joint>::iterator loop = MT.JointVector.begin();loop != MT.JointVector.end(); loop++)
+    {
+        Link *ParentLink = loop->getParentLink();
+        Link *ChildLink = loop->getChildLink();
+
+        switch(ChildLink->getLinkType()) {
+        case 'A':
+            loop->rotational_motion = a;
+            break;
+        case 'B':
+            loop->rotational_motion = b;
+            break;
+        case 'C':
+            loop->rotational_motion = c;
+            break;
+        case 'X':
+            loop->translational_motion = x;
+            break;
+        case 'Y':
+            loop->translational_motion = y;
+            break;
+        case 'Z':
+            loop->translational_motion = z;
+            break;
+        }
+
+        if (loop->getType() == "prismatic")
+        {
+            ChildLink->m_TransformMatrix = ParentLink->m_TransformMatrix;
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),static_cast<float>(loop->getOrigin_xyz().y),
+                                                   static_cast<float>(loop->getOrigin_xyz().z));
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getAxis().x) * static_cast<float>(loop->translational_motion)
+                                                   ,static_cast<float>(loop->getAxis().y) * static_cast<float>(loop->translational_motion),
+                                                   static_cast<float>(loop->getAxis().z) * static_cast<float>(loop->translational_motion));
+        }
+
+        if (loop->getType() == "revolute")
+        {
+            if(ChildLink->getLinkType() == 'A'){
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 1.0, 0.0, 0.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+
+
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }else if(ChildLink->getLinkType() == 'B'){
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 0.0, 1.0, 0.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }else{
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 0.0, 0.0, 1.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }
+        }
+    }
 
     //setup transformation matrix hastable for machine tool
     //create hash table for components
@@ -579,6 +653,88 @@ void Voxelizer::setTransformationMatrix(MachineTool &MT, QChar linkType, float a
                                                    static_cast<float>(loop->getOrigin_xyz().z));
             ChildLink->m_TransformMatrix.rotate(static_cast<float>(loop->rotational_motion), static_cast<float>(loop->getAxis().x),
                                                 static_cast<float>(loop->getAxis().y),static_cast<float>(loop->getAxis().z));
+        }
+    }
+}
+
+void Voxelizer::setMT_Same_Oirgin(MachineTool &MT, QChar linkType, float amount)
+{
+    //Transform according to each component
+    for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++)
+    {
+        Link *ParentLink = loop->getParentLink();
+        Link *ChildLink = loop->getChildLink();
+
+        if(ChildLink->getLinkType() == linkType){
+            if(ChildLink->isRotaitonal){
+                loop->rotational_motion = amount;
+            }
+            else{
+                loop->translational_motion = amount;
+            }
+        }
+
+        if (loop->getType() == "prismatic")
+        {
+            ChildLink->m_TransformMatrix = ParentLink->m_TransformMatrix;
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),static_cast<float>(loop->getOrigin_xyz().y),
+                                                   static_cast<float>(loop->getOrigin_xyz().z));
+            ChildLink->m_TransformMatrix.translate(static_cast<float>(loop->getAxis().x) * static_cast<float>(loop->translational_motion)
+                                                   ,static_cast<float>(loop->getAxis().y) * static_cast<float>(loop->translational_motion),
+                                                   static_cast<float>(loop->getAxis().z) * static_cast<float>(loop->translational_motion));
+        }
+
+        if (loop->getType() == "revolute")
+        {
+            if(ChildLink->getLinkType() == 'A'){
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 1.0, 0.0, 0.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+
+
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }else if(ChildLink->getLinkType() == 'B'){
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 0.0, 1.0, 0.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }else{
+                QMatrix4x4 rotatingtransformMatrix;
+                rotatingtransformMatrix.setToIdentity();
+                rotatingtransformMatrix.rotate(static_cast<float>(loop->rotational_motion), 0.0, 0.0, 1.0);
+                QMatrix4x4 transformMatrix;
+                transformMatrix.setToIdentity();
+                transformMatrix = transformMatrix * ParentLink->m_TransformMatrix;
+                transformMatrix.translate(static_cast<float>(loop->getOrigin_xyz().x),
+                                          static_cast<float>(loop->getOrigin_xyz().y),
+                                          static_cast<float>(loop->getOrigin_xyz().z));
+                transformMatrix = transformMatrix*rotatingtransformMatrix;
+                transformMatrix.translate(-static_cast<float>(loop->getOrigin_xyz().x),
+                                          -static_cast<float>(loop->getOrigin_xyz().y),
+                                          -static_cast<float>(loop->getOrigin_xyz().z));
+                ChildLink->m_TransformMatrix = transformMatrix;
+            }
         }
     }
 }
@@ -1363,34 +1519,29 @@ bool Voxelizer::rotationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 rotati
                                    int commonAxis_ind,bool getVoxelIndcies)
 {
     bool isCollided = false;
-
+    float min_x, max_x, min_y, max_y, min_z, max_z;
     QVector < QVector < QVector< voxelForCCP > > > contactComponentsPairsVS
             (voxelSpaceSize_X, QVector < QVector< voxelForCCP > >(voxelSpaceSize_Y,QVector<voxelForCCP>(voxelSpaceSize_Z)));
-    float min_x, max_x, min_y, max_y, min_z, max_z;
 
     for (int component_ind = 0; component_ind < 2; ++component_ind){
         stl_reader::StlMesh <float, unsigned int> componentMesh;
         QMatrix4x4 transformMatrix;
         transformMatrix.setToIdentity();
         QString componentName;
-
         QList<QVector3D>* compVoxelIndciesList;
 
         //first component (only first component being transform)
         if(component_ind == 0){
-
             if(commonAxis_ind == 1){
                 transformMatrix.translate(ccp.getFirstComp().getRotaryAxisPoint1());
                 transformMatrix = transformMatrix*rotatingtransformMatrix;
                 transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint1());
             }
-
             if(commonAxis_ind == 2){
                 transformMatrix.translate(ccp.getFirstComp().getRotaryAxisPoint2());
                 transformMatrix = transformMatrix*rotatingtransformMatrix;
                 transformMatrix.translate(-ccp.getFirstComp().getRotaryAxisPoint2());
             }
-
             compVoxelIndciesList = &compVoxelIndicesList1;
             if(ccp.getFirstComp().containsOffsetMesh()){
                 componentMesh = ccp.getFirstComp().getOffsetMesh();
@@ -1400,6 +1551,7 @@ bool Voxelizer::rotationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 rotati
                 componentName = ccp.getFirstComp().getName();
             }
         }else{
+
             //second component
             compVoxelIndciesList = &compVoxelIndicesList2;
             if(ccp.getSecondComp().containsOffsetMesh()){

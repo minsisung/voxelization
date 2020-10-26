@@ -149,14 +149,12 @@ void MyOpenGLWidget::initializeGL()
     //Initial grouping using LIPs and CCPs
     InitialGrouper initialGrouper(m_groupingPreProcessor.CCPs, m_groupingPreProcessor.LIPs,
                                   num_LIPs + 1, compVector);
-    QVector<QPair<QString,QVector<QString>>> group_axisVector =
-            initialGrouper.startGrouping();
+    QVector<QPair<QString,QVector<QString>>> group_axisVector = initialGrouper.startGrouping();
 
     //If LIPs number != number of group - 1, stop processing
     if(group_axisVector.isEmpty())
         return;
     MT =initialGrouper.createMT(group_axisVector, compVector);
-
 
     //**Step 2: Check collision for all configurations--------------
     m_groupingValidator.createMTVoxelspace(4.0f, compVector);
