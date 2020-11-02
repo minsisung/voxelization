@@ -224,7 +224,6 @@ bool vx_triangle_box_overlap(vx_vertex_t boxcenter,
 //constructor
 Voxelizer::Voxelizer()
 {
-
 }
 
 void Voxelizer::setupSize(float v_Size, QVector<stl_reader::StlMesh <float, unsigned int>>& STLMeshVector)
@@ -356,7 +355,7 @@ void Voxelizer::parentModelVoxelization(Link& link)
     QChar linkType = link.getLinkType();
     QVector<stl_reader::StlMesh <float, unsigned int>> meshVector = link.getSTLMesh();
     QMatrix4x4 TransformMatrix = link.m_TransformMatrix;
-//    qDebug()<<TransformMatrix;
+    qDebug()<<TransformMatrix;
 
     QElapsedTimer timer;
     timer.start();
@@ -918,18 +917,16 @@ void Voxelizer::shiftVoxelModel(MachineTool &MT,float amountX, float amountY, fl
     }
 }
 
-QSet<QString> Voxelizer::collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2)
+QSet<QPair<QString, QString>> Voxelizer::collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2)
 {
-    QSet<QString> totalCollisionSet;
-
+    QSet<QPair<QString, QString>> totalCollisionSet;
     voxelspace = MT.baseLink->linkVoxelspace;
-
 
     for(int Number = 0; Number < MT.baseLink->ChildLink.size(); Number++){
         Link *currentLink = MT.baseLink->ChildLink[Number];
 
         while(currentLink != nullptr){
-            QSet<QString> collisionSet;
+            QSet<QPair<QString, QString>> collisionSet;
             currentLink->MTCollidedVoxelIndicesList.clear();
             QChar currentLinkType = currentLink->getLinkType();
             int index = 0;
@@ -960,10 +957,10 @@ QSet<QString> Voxelizer::collisionDetectionForGroups(MachineTool &MT, int ind1, 
                         voxel.collide();
                         currentLink->MTCollidedVoxelIndicesList.append(QVector3D(number_x, number_y, number_z));
 
-                        QString collisionPair;
+                        QPair<QString, QString> collisionPair;
 
-                        collisionPair.append(currentLinkType + QString::number(voxel.getComponentNumber()) +
-                                             ShellType + componentNumber);
+                        collisionPair.first = currentLinkType + QString::number(voxel.getComponentNumber());
+                        collisionPair.second = ShellType + componentNumber;
 
                         if(!collisionSet.contains(collisionPair))
                             collisionSet.insert(collisionPair);
@@ -1681,4 +1678,23 @@ bool Voxelizer::rotationalCDForCCP(contactComponentsPair &ccp, QMatrix4x4 rotati
     }
     //endOfLoop:
     return isCollided;
+}
+
+void Voxelizer::clear()
+{
+    voxelspace.clear();
+
+    voxelStarting_X = 0;
+    voxelStarting_Y = 0;
+    voxelStarting_Z = 0;
+    voxelSpaceSize_X = 0;
+    voxelSpaceSize_Y = 0;
+    voxelSpaceSize_Z = 0;
+    spaceLength_X = 0;
+    spaceLength_Y = 0;
+    spaceLength_Z = 0;
+    voxelSize = 0;
+    VSEnglargeRatio = 0;
+    meshHash.clear();
+    drawingCCPName = "";
 }

@@ -3,13 +3,10 @@
 #include <QVector>
 #include <cassert>
 
-
 using namespace tinyxml2;
 using namespace std;
 
 MachineTool::MachineTool(){}
-
-
 Link* MachineTool::find_link(std::string linkName, QVector<Link> &myVector)
 {               //The function to find the link for joint and return a pointer
 

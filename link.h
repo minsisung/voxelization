@@ -53,6 +53,7 @@ public:
     void setSTLMesh();
     void setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVector);
     QVector<stl_reader::StlMesh <float, unsigned int>> getSTLMesh(){return m_STLMeshVector;}
+    QString getMeshNameAt(int i){return m_MeshNameVector[i];}
     char getLinkType(){return linkType;}
     void setLinkType(char setLinkType){linkType = setLinkType;}
 
@@ -70,6 +71,7 @@ public:
                              int z_min_index, int z_max_index);
 
     QVector<stl_reader::StlMesh <float, unsigned int>> m_STLMeshVector;
+    QVector<QString>m_MeshNameVector;
     QVector < QVector < QVector< Voxel > > > linkVoxelspace;
     QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVector; //[component][parent model][indies]
     QVector<QVector<QList<QVector3D>>> MTVoxelIndicesListVectorUpdate; //[component][parent model][indies]

@@ -5,6 +5,11 @@ GroupingPreProcessor::GroupingPreProcessor():
 {
 }
 
+GroupingPreProcessor::~GroupingPreProcessor()
+{
+    qDebug()<<"GroupingPreProcessor destroyed"<<endl;
+}
+
 void GroupingPreProcessor::createMTVoxelspace(float vSize, QVector<component> &componentVector)
 {
     //setup voxelsize

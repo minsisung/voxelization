@@ -24,6 +24,7 @@
 #include "initialgrouper.h"
 #include "groupingpreprocessor.h"
 #include "groupingvalidator.h"
+#include "groupingresolver.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -100,11 +101,17 @@ private:
     QStringList m_filepathes;
     CreateGeometry m_geometry;
     CreateCubes m_cubeGemoetry;
-    GroupingPreProcessor m_groupingPreProcessor;
-    GroupingValidator m_groupingValidator;
 
     MachineTool MT;
     QString machineToolName;
+    GroupingValidator m_groupingValidator;
+
+    QVector<QVector<QString>> CCPs;
+    QVector<QPair<QString,QVector<QString>>> LIPs;
+    int num_Vertex_CCP_comp1;
+    int num_Vertex_CCP_comp2;
+
+    QVector<QString> OverlappingCompsVector;
 
     bool IsEqual(const double& dX, const double& dY){
         const double dEpsilon = 0.000001;

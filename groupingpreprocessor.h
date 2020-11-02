@@ -8,6 +8,7 @@ class GroupingPreProcessor
 {
 public:
     GroupingPreProcessor();
+    ~GroupingPreProcessor();
     void createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
     QVector<contactComponentsPair> findContactComponentsPairs(QVector<component>& componentVector);
     int findLIPCandidates(QVector<contactComponentsPair>& ccpVector);

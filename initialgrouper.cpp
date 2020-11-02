@@ -132,7 +132,6 @@ void InitialGrouper::growsGroup(QVector<QVector<QString> > &subgroupVector, QVec
 QVector<QPair<QString,QVector<QString>>> InitialGrouper::assignAxisToGroups(
         QVector<QVector<QString>>& subgroupVector)
 {
-
     //Vector of pair which first element is the axis and second one is the components in the group
     QVector<QPair<QString,QVector<QString>>> group_axisVector;
 
@@ -493,6 +492,7 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
                 if(!overlappingCompsVector.empty()){
                     qDebug()<<"There are overlapping component";
                     if(containsLIIfMerge(subgroupVector[ind_subgroup1], subgroupVector[ind_subgroup2], LIPs)){
+                        m_overlappingCompsVector += overlappingCompsVector;
                         deleteOverlappingComps(overlappingCompsVector, subgroupVector,ind_subgroup1, ind_subgroup2);
                         qDebug()<<"-------------------------------------------------";
                     }else{

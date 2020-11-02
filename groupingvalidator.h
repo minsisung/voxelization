@@ -10,16 +10,18 @@ class GroupingValidator
 public:
     GroupingValidator();
     void createMTVoxelspace(float voxelSize, QVector<component>& componentVector);
-    void collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization);
+    QVector<QPair<QString,QString>> collisionDetectionForConfigurations(MachineTool& MT, bool needVisualization);
     QVector<GLfloat> getData(){return m_data;}
     int getTotalCount(){return m_totalCount;}
     bool getIfNeedVisualization(){return ifNeedVisualization;}
+    void drawVoxelforMT(MachineTool& MT, int ind1, int ind2);
+    void clear();
 
 private:
     void setupInitialTransformation(MachineTool& MT);
-    void drawVoxelforMT(Link& link, int ind1, int ind2);
     bool checkDuplicateFace(int i, int number_x, int number_y, int number_z);
     QVector3D setNormal(int i);
+    QPair<QString, QString> getCollidedPairName(MachineTool& MT, QString linkName1, QString linkName2);
     Voxelizer voxelizer;
     QVector<GLfloat> m_data;
     int m_totalCount;

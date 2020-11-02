@@ -71,7 +71,7 @@ public:
     void setMT_Same_Oirgin(MachineTool &MT, QChar linkType, float amount);
     QSet<QString> translateVoxelModel(MachineTool &MT, QChar linkType, float amount, int samplingNumber);
     void shiftVoxelModel(MachineTool &MT,float amountX, float amountY, float amountZ);
-    QSet<QString> collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2);
+    QSet<QPair<QString, QString>> collisionDetectionForGroups(MachineTool &MT, int ind1, int ind2);
     QVector<contactComponentsPair> collisionDetectionForComponents(QVector<component>& STLMeshVector);
     QVector<contactComponentsPair> collisionDetectionForComponentsFromURDF(MachineTool &MT);
     bool translationalCDForCCP(contactComponentsPair& ccp, QMatrix4x4 movingtransformMatrix,
@@ -81,6 +81,7 @@ public:
     void setDrawingCCPName(QString drawingCCPName_input){drawingCCPName = drawingCCPName_input;}
     QList<QVector3D> compVoxelIndicesList1;
     QList<QVector3D> compVoxelIndicesList2;
+    void clear();
 
 
 private:

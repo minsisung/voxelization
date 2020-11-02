@@ -61,7 +61,7 @@ void Link::setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVe
             }else{
                 mesh = compVector[ind_compVector].getNonOffsetMesh();
             }
-
+            m_MeshNameVector.append(linkCompsNames[ind_comp]);
             m_STLMeshVector.append(mesh);
             num_mesh++;
             qDebug() << "Finish setting mesh for " <<linkCompsNames[ind_comp];

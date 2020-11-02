@@ -110,36 +110,62 @@ void MyOpenGLWidget::initializeGL()
 
     //m_geometry.readSTL(m_filepath);
 
+
+    //Select which one to be painted  1. machinetool  2. CCP
+    QString paintMode = "machinetool";
+
     //**Step 1: Find contact-components pairs
 
     //read stl files (correct one!!)-------------------------
-    //    machineToolName = "UMC-500";
+    //    machineToolName = "UMC-500";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(0,1,1);
 
-    //                machineToolName = "UMC-1600H";
+    //    machineToolName = "UMC-750"; //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(0,1,1);
+
+    //                machineToolName = "UMC-1600H";   //----------------
     //                //rotary axes of machine tool (A,B,C)
     //                QVector3D mtRotaryAxes(1,0,1);
 
-    machineToolName = "VF-2";
+    machineToolName = "VF-2";   //----------------
     //rotary axes of machine tool (A,B,C)
     QVector3D mtRotaryAxes(1,0,1);
 
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
-    //----------------------------------------------------------
+    //dynamically allocate the class
+    GroupingPreProcessor* m_groupingPreProcessor = new GroupingPreProcessor();
 
     //setup voxel space
-    m_groupingPreProcessor.createMTVoxelspace(4.0f, compVector);
+
+    m_groupingPreProcessor->createMTVoxelspace(4.0f, compVector);
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
     //find CCPs using collision detection and also update CCPVector by doing relative movement for
     //the following LIPs checking
-    QVector<contactComponentsPair> ccpVector = m_groupingPreProcessor.findContactComponentsPairs(compVector);
+    QVector<contactComponentsPair> ccpVector = m_groupingPreProcessor->findContactComponentsPairs(compVector);
 
     //Find LIPs using the information from above
-    int LIPs_Number = m_groupingPreProcessor.findLIPCandidates(ccpVector);
+    int LIPs_Number = m_groupingPreProcessor->findLIPCandidates(ccpVector);
+
+    CCPs = m_groupingPreProcessor->CCPs;
+    LIPs = m_groupingPreProcessor->LIPs;
+
+    //get information for drawing CCP
+    if(paintMode == "CCP"){
+        m_cubeGemoetry.m_paintMode = paintMode;
+        m_cubeGemoetry.setData(m_groupingPreProcessor->getData());
+        m_cubeGemoetry.setTotalCount(m_groupingPreProcessor->getTotalCount());
+        num_Vertex_CCP_comp1 = m_groupingPreProcessor->numberOfVertex_comp1;
+        num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
+    }
+
+    //deallocate the class
+    delete m_groupingPreProcessor;
+    m_groupingPreProcessor = nullptr;
 
     //if number of LIPs is small than the number of groups - 1, which means there might have missing components,
     //then stop processing.
@@ -147,30 +173,61 @@ void MyOpenGLWidget::initializeGL()
         return;
 
     //Initial grouping using LIPs and CCPs
-    InitialGrouper initialGrouper(m_groupingPreProcessor.CCPs, m_groupingPreProcessor.LIPs,
-                                  num_LIPs + 1, compVector);
-    QVector<QPair<QString,QVector<QString>>> group_axisVector = initialGrouper.startGrouping();
+    //dynamically allocate the class
+    InitialGrouper* initialGrouper = new InitialGrouper(CCPs, LIPs, num_LIPs + 1, compVector);
+    QVector<QPair<QString,QVector<QString>>> group_axisVector = initialGrouper->startGrouping();
 
     //If LIPs number != number of group - 1, stop processing
     if(group_axisVector.isEmpty())
         return;
-    MT =initialGrouper.createMT(group_axisVector, compVector);
 
-    //**Step 2: Check collision for all configurations--------------
-    m_groupingValidator.createMTVoxelspace(4.0f, compVector);
-    m_groupingValidator.collisionDetectionForConfigurations(MT, true);
+    //create machine tool object by initial grouping
+    MT = initialGrouper->createMT(group_axisVector, compVector);
+    QVector<JointString> jointStringVector = initialGrouper->getjointStringVector();
 
-    //Select which one to be painted  1. machinetool  2. CCP
-    QString paintMode = "machinetool";
+    OverlappingCompsVector = initialGrouper->getOverlappingCompsVector();
 
-    if(paintMode == "machinetool"){
-        m_cubeGemoetry.m_paintMode = paintMode;
-        m_cubeGemoetry.setData(m_groupingValidator.getData());
-        m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
-    }else{
-        m_cubeGemoetry.m_paintMode = paintMode;
-        m_cubeGemoetry.setData(m_groupingPreProcessor.getData());
-        m_cubeGemoetry.setTotalCount(m_groupingPreProcessor.getTotalCount());
+    //deallocate the class
+    delete initialGrouper;
+    initialGrouper = nullptr;
+
+    qDebug()<<"overlappingCompVector"<<OverlappingCompsVector;
+
+    int num_interation = 0;
+    while(true){
+        qDebug()<<"Grouping iteration no."<<num_interation + 1;
+
+        //**Step 2: Check collision for all configurations--------------
+        m_groupingValidator.createMTVoxelspace(4.0f, compVector);
+        qDebug()<<"GenerateMTVoxelspace";
+        QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
+        qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
+
+        //**Step 3: if collision occurs, resolve it--------------------
+        if(!collisionPairsVector.isEmpty()){
+            GroupingResolver m_groupingResolver(CCPs, OverlappingCompsVector,
+                                                collisionPairsVector, group_axisVector);
+            group_axisVector = m_groupingResolver.regroup();
+
+            for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
+                qDebug()<<"Link"<<group_axisVector[ind_group].first<<"contains"
+                       <<group_axisVector[ind_group].second;
+            }
+
+            //Update MT
+            MT = m_groupingResolver.createMT(group_axisVector, compVector, jointStringVector);
+            m_groupingValidator.clear();
+        }else{
+            qDebug()<<"Regrouping Done!";
+            //get information for drawing the machine tool
+            if(paintMode == "machinetool"){
+                m_groupingValidator.drawVoxelforMT(MT, 0, 0);
+                m_cubeGemoetry.m_paintMode = paintMode;
+                m_cubeGemoetry.setData(m_groupingValidator.getData());
+                m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
+            }
+            break;
+        }
     }
 
     m_program = new QOpenGLShaderProgram;
@@ -337,7 +394,7 @@ void MyOpenGLWidget::drawMTComponents()
             r = 0.1f; g = 0.7f; b = 0.8f;
         }
         m_program->setUniformValue(m_colorLoc, QVector3D(r,g,b));
-//        qDebug()<<QString::fromStdString(MT.LinkVector[ind_link].getName())<<"RGB:"<<r<<g<<b;
+        //        qDebug()<<QString::fromStdString(MT.LinkVector[ind_link].getName())<<"RGB:"<<r<<g<<b;
         //draw triangles
         glDrawArrays(GL_TRIANGLES, startNumber, MT.LinkVector[ind_link].numberOfVertex);
         //update starting number of each component
@@ -364,14 +421,14 @@ void MyOpenGLWidget::drawCCPComponents()
                                                          static_cast<float>(0.37647f * (comp_ind + 1))));
         if(comp_ind ==0){
             //draw triangles
-            glDrawArrays(GL_TRIANGLES, startNumber, m_groupingPreProcessor.numberOfVertex_comp1);
+            glDrawArrays(GL_TRIANGLES, startNumber, num_Vertex_CCP_comp1);
             //update starting number of each component
-            startNumber += m_groupingPreProcessor.numberOfVertex_comp1;
+            startNumber += num_Vertex_CCP_comp1;
         }else{
             //draw triangles
-            glDrawArrays(GL_TRIANGLES, startNumber, m_groupingPreProcessor.numberOfVertex_comp2);
+            glDrawArrays(GL_TRIANGLES, startNumber, num_Vertex_CCP_comp2);
             //update starting number of each component
-            startNumber += m_groupingPreProcessor.numberOfVertex_comp2;
+            startNumber += num_Vertex_CCP_comp2;
         }
     }
 }
@@ -473,7 +530,9 @@ QVector<component> MyOpenGLWidget::getAxisForComp(QVector<component>& compVector
 {
     //open file for writing xml
     QString filename = machineToolName + ".xml";
-    QFile file(filename);
+    QString directoryName = QDir::current().path() + "/" + machineToolName;
+    QString filePath = directoryName + '/' + filename;
+    QFile file(filePath);
     file.open(QIODevice::WriteOnly);
 
     QXmlStreamWriter xmlWriter(&file);

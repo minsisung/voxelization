@@ -23,6 +23,8 @@ public:
     QVector<QPair<QString,QVector<QString>>> startGrouping();
     MachineTool createMT(QVector<QPair<QString,QVector<QString>>>& group_axisVector,
                          QVector<component>& compVector);
+    QVector<QString> getOverlappingCompsVector(){return m_overlappingCompsVector;}
+    QVector<JointString> getjointStringVector(){return jointStringVector;}
 
 private:
     QVector<QVector<QString>> CCPs;
@@ -30,6 +32,7 @@ private:
     QVector<QString> compVector;
     int num_group;
     QString lowestCompName;
+    QVector<QString> m_overlappingCompsVector;
     void mergeGroups(QVector<QVector<QString>>& subgroupVector, int ind_group1, int ind_group2);
     void deleteOverlappingComps(QVector<QString> overlappingCompsVector, QVector<QVector<QString>>& subgroupVector,
                                 int ind_group1, int ind_group2);
