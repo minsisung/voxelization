@@ -104,30 +104,40 @@ void MyOpenGLWidget::cleanup()
 void MyOpenGLWidget::initializeGL()
 {
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &MyOpenGLWidget::cleanup);
-
     initializeOpenGLFunctions();
     glClearColor(0.9f, 0.9f, 0.9f, m_transparent ? 0 : 1);
 
     //m_geometry.readSTL(m_filepath);
 
-
     //Select which one to be painted  1. machinetool  2. CCP
     QString paintMode = "machinetool";
+    //timer
+    QElapsedTimer timer_total;
+    QElapsedTimer timer_step1;
+    long long step1_time;
+    QVector<long long> step2_times;
+    QVector<long long> step3_times;
 
     //**Step 1: Find contact-components pairs
+    timer_total.start();
+    timer_step1.start();
 
     //read stl files (correct one!!)-------------------------
-    //    machineToolName = "UMC-500";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(0,1,1);
+    //        machineToolName = "UMC-500";   //----------------
+    //        //rotary axes of machine tool (A,B,C)
+    //        QVector3D mtRotaryAxes(0,1,1);
 
-    //    machineToolName = "UMC-750"; //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(0,1,1);
+    //        machineToolName = "UMC-750"; //----------------
+    //        //rotary axes of machine tool (A,B,C)
+    //        QVector3D mtRotaryAxes(0,1,1);
 
-    //                machineToolName = "UMC-1600H";   //----------------
-    //                //rotary axes of machine tool (A,B,C)
-    //                QVector3D mtRotaryAxes(1,0,1);
+    //    machineToolName = "UMC-1600H";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(1,0,1);
+
+    //    machineToolName = "VR-8";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(1,0,1);
 
     machineToolName = "VF-2";   //----------------
     //rotary axes of machine tool (A,B,C)
@@ -139,7 +149,6 @@ void MyOpenGLWidget::initializeGL()
     GroupingPreProcessor* m_groupingPreProcessor = new GroupingPreProcessor();
 
     //setup voxel space
-
     m_groupingPreProcessor->createMTVoxelspace(4.0f, compVector);
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
@@ -182,7 +191,7 @@ void MyOpenGLWidget::initializeGL()
         return;
 
     //create machine tool object by initial grouping
-    MT = initialGrouper->createMT(group_axisVector, compVector);
+    MT = initialGrouper->createMT(group_axisVector, compVector, machineToolName);
     QVector<JointString> jointStringVector = initialGrouper->getjointStringVector();
 
     OverlappingCompsVector = initialGrouper->getOverlappingCompsVector();
@@ -192,19 +201,38 @@ void MyOpenGLWidget::initializeGL()
     initialGrouper = nullptr;
 
     qDebug()<<"overlappingCompVector"<<OverlappingCompsVector;
+    step1_time = timer_step1.elapsed()/1000;
 
     int num_interation = 0;
     while(true){
         qDebug()<<"Grouping iteration no."<<num_interation + 1;
+        num_interation++;
 
         //**Step 2: Check collision for all configurations--------------
+        QElapsedTimer* timer_step2 = new QElapsedTimer;
+        timer_step2->start();
         m_groupingValidator.createMTVoxelspace(4.0f, compVector);
         qDebug()<<"GenerateMTVoxelspace";
         QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
         qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
 
+        //        //get information for drawing the machine tool
+        //        if(paintMode == "machinetool"){
+        //            m_groupingValidator.drawVoxelforMT(MT, 0, 0);
+        //            m_cubeGemoetry.m_paintMode = paintMode;
+        //            m_cubeGemoetry.setData(m_groupingValidator.getData());
+        //            m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
+        //        }
+
+        step2_times.append(timer_step2->elapsed()/1000);
+        delete timer_step2;
+        timer_step2 = nullptr;
+
         //**Step 3: if collision occurs, resolve it--------------------
+
         if(!collisionPairsVector.isEmpty()){
+            QElapsedTimer* timer_step3 = new QElapsedTimer;
+            timer_step3->start();
             GroupingResolver m_groupingResolver(CCPs, OverlappingCompsVector,
                                                 collisionPairsVector, group_axisVector);
             group_axisVector = m_groupingResolver.regroup();
@@ -215,8 +243,11 @@ void MyOpenGLWidget::initializeGL()
             }
 
             //Update MT
-            MT = m_groupingResolver.createMT(group_axisVector, compVector, jointStringVector);
+            MT = m_groupingResolver.createMT(group_axisVector, compVector, jointStringVector, machineToolName);
             m_groupingValidator.clear();
+            step3_times.append(timer_step3->elapsed()/1000);
+            delete timer_step3;
+            timer_step3 = nullptr;
         }else{
             qDebug()<<"Regrouping Done!";
             //get information for drawing the machine tool
@@ -226,9 +257,28 @@ void MyOpenGLWidget::initializeGL()
                 m_cubeGemoetry.setData(m_groupingValidator.getData());
                 m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
             }
+
+            //print out times for calculation
+            qDebug()<<"Initial Grouping takes:"<<step1_time << "seconds";
+            for(int i = 0; i < num_interation; i ++){
+                if(i < num_interation - 1){
+                    qDebug()<<"Iteration no."<<i + 1<<"time";
+                    qDebug()<<"Grouping validation takes:"<<step2_times[i] << "seconds";
+                    qDebug()<<"Grouping resolving takes:"<<step3_times[i] << "seconds";
+                }else{
+                    qDebug()<<"Iteration no."<<i + 1<<"time";
+                    qDebug()<<"Grouping validation takes:"<<step2_times[i] << "seconds";
+                }
+            }
             break;
         }
     }
+    qDebug()<<"Total process takes:"<<timer_total.elapsed()/1000 << "seconds";
+
+    //export urdf
+    UrdfExporter urdfExporter(MT);
+    urdfExporter.start();
+
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
@@ -236,7 +286,6 @@ void MyOpenGLWidget::initializeGL()
     m_program->bindAttributeLocation("vertex", 0);
     m_program->bindAttributeLocation("normal", 1);
     m_program->link();
-
     m_program->bind();
     m_projMatrixLoc = m_program->uniformLocation("projMatrix");
     m_mvMatrixLoc = m_program->uniformLocation("mvMatrix");

@@ -12,7 +12,8 @@ public:
 
     QVector<QPair<QString, QVector<QString> > > regroup();
     MachineTool createMT(QVector<QPair<QString,QVector<QString>>>& group_axisVector,
-                         QVector<component>& compVector, QVector<JointString>& jointStringVector);
+                         QVector<component>& compVector, QVector<JointString>& jointStringVector
+                         , QString machineToolName);
 private:
     QVector<QString> getContactCompsVector(QVector<QVector<QString>>& CCPs, QString& compName);
     QVector<QString> getGroupsForRegrouping();

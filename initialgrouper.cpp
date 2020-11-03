@@ -316,10 +316,11 @@ void InitialGrouper::setLowestComponent(QVector<component> &compnent_Mesh_Vector
 }
 
 MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& group_axisVector,
-                                     QVector<component>& compVector)
+                                     QVector<component>& compVector, QString machineToolName)
 {
     //Create machine tool object
     MachineTool MT;
+    MT.m_name = machineToolName;
 
     //initialize links
     for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
@@ -341,7 +342,6 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& 
     }
 
     qDebug()<<"MT contains # links:"<<MT.LinkVector.size()<<endl;
-
 
     //initialize joints
     for(int ind_joint = 0; ind_joint < jointStringVector.size(); ind_joint++){

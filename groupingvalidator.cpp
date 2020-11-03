@@ -17,6 +17,7 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
 {
     QSet<QPair<QString,QString>> collisionPairsSet;
 
+
     //create voxel space to check collisoin for all configurations
     voxelizer.createVoxelSapce();
 
@@ -28,16 +29,16 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
 
     // create voxel models for every link------------------------------------------------
 
-    //        for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
-    //            voxelizer.parentModelVoxelization(*loop);
-    //        }
+//    for (QVector<Link>::iterator loop = MT.LinkVector.begin();loop != MT.LinkVector.end(); loop++){
+//        voxelizer.parentModelVoxelization(*loop);
+//    }
 
-    // create voxel models for every link------------------------------------------------
+    //    create voxel models for every link------------------------------------------------
 
 
-    // Start creating parent voxel models  ----------------------------------------------------------------------
+    //            Start creating parent voxel models  ----------------------------------------------------------------------
 
-    //set joint limit
+    //            set joint limit
 
     for (QVector<Joint>::iterator loop = MT.JointVector.begin(); loop != MT.JointVector.end(); loop++){
         QChar linkType = loop->getChildLink()->getLinkType();
@@ -79,7 +80,7 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
     //timer
     QElapsedTimer parentModelstimer;
     parentModelstimer.start();
-    int samplingNumber = 2;
+    int samplingNumber = 1;
 
     for(int Number = 0; Number < baseLink->ChildLink.size(); Number++){
         Link* currentLink = baseLink->ChildLink[Number];
@@ -147,9 +148,9 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
     qDebug() << "Creating parent models took"<< parentModelstimer.elapsed() << "milliseconds"<<endl;
     qDebug()<<endl<<"Finish creating parent voxel models ------------------------------------"<<endl<<endl;
 
-    //     Finish creating parent voxel models  ---------------------------------------------------------------------
+    //         Finish creating parent voxel models  ---------------------------------------------------------------------
 
-    //    Checking all configuration for collision-----------------------------------------------
+    //        Checking all configuration for collision-----------------------------------------------
 
     QSet<QPair<QString, QString>> totalCollisionSet;
     QSet<QPair<QString, QString>>collidedPairsSet;
@@ -223,22 +224,34 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
     //    Checking all configuration for collision-----------------------------------------------
 
     //    Checking only one configuration for collision-----------------------------------------------
-    //        voxelizer.shiftVoxelModel(MT, 0.0f * 1, 0.0f *1, -0.0f *1);
-    //        QSet<QString> totalCollisionSet;
-    //        totalCollisionSet +=
-    //                voxelizer.collisionDetectionForGroups(MT, 0, 0 * samplingNumber + 0);
 
-    //        if(totalCollisionSet.empty()){
-    //            qDebug()<<"No collision occurs at X shift:"<<0<<" Y shift:"<<0
-    //                   <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
-    //                     MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<endl;
-    //        }else{
-    //            qDebug()<<"Collision pairs at X shift:"<<0<<" Y shift:"<<0
-    //                   <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotayte:"<<0<<
-    //                     MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<":"
-    //                  <<totalCollisionSet<<endl;
+    //    QSet<QPair<QString, QString>> totalCollisionSet;
+    //    QSet<QPair<QString, QString>>collidedPairsSet;
+    //    voxelizer.shiftVoxelModel(MT, 0.0f * 1, 0.0f *1, -0.0f *1);
+    //    totalCollisionSet +=
+    //            voxelizer.collisionDetectionForGroups(MT, 0, 0 * samplingNumber + 0);
+
+    //    if(totalCollisionSet.empty()){
+    //        qDebug()<<"No collision occurs at X shift:"<<0<<" Y shift:"<<0
+    //               <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotate:"<<0<<
+    //                 MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<endl;
+    //    }else{
+    //        qDebug()<<"Collision pairs at X shift:"<<0<<" Y shift:"<<0
+    //               <<" Z shift:"<<0<<MT.firstRotaryLink->getLinkType()<<"rotate:"<<0<<
+    //                 MT.secondRotaryLink->getLinkType()<<"rotate:"<<0<<":";
+
+    //        QSet<QPair<QString, QString>>::const_iterator i = totalCollisionSet.constBegin();
+
+    //        while (i != totalCollisionSet.constEnd()){
+    //            qDebug()<< i->first<<i->second;
+    //            QPair<QString, QString> collidedPairName = getCollidedPairName(MT, i->first, i->second);
+    //            qDebug()<<collidedPairName;
+    //            collidedPairsSet.insert(collidedPairName);
+    //            ++i;
     //        }
-    //        totalCollisionSet.clear();
+    //        collisionPairsSet.unite(collidedPairsSet);
+    //    }
+    //    totalCollisionSet.clear();
 
     //Checking only one configuration for collision-----------------------------------------------
 

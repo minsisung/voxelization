@@ -32,6 +32,7 @@ SOURCES += \
     mainwindow.cpp \
     myopenglwidget.cpp \
     tinyxml2.cpp \
+    urdfexporter.cpp \
     voxel.cpp \
     voxelforccp.cpp \
     voxelizer.cpp
@@ -54,6 +55,7 @@ HEADERS += \
     shaders.h \
     stl_reader.h \
     tinyxml2.h \
+    urdfexporter.h \
     voxel.h \
     voxelforccp.h \
     voxelizer.h

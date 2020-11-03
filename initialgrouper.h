@@ -22,7 +22,7 @@ public:
                    int num_group,QVector<component> &compnent_Mesh_Vector);
     QVector<QPair<QString,QVector<QString>>> startGrouping();
     MachineTool createMT(QVector<QPair<QString,QVector<QString>>>& group_axisVector,
-                         QVector<component>& compVector);
+                         QVector<component>& compVector, QString machineToolName);
     QVector<QString> getOverlappingCompsVector(){return m_overlappingCompsVector;}
     QVector<JointString> getjointStringVector(){return jointStringVector;}
 

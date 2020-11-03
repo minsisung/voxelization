@@ -25,6 +25,7 @@
 #include "groupingpreprocessor.h"
 #include "groupingvalidator.h"
 #include "groupingresolver.h"
+#include "urdfexporter.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 

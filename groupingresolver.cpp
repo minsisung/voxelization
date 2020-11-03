@@ -162,10 +162,11 @@ QVector<QPair<QString, QVector<QString> > > GroupingResolver::regroup()
 }
 
 MachineTool GroupingResolver::createMT(QVector<QPair<QString, QVector<QString> > > &group_axisVector, QVector<component> &compVector,
-                                       QVector<JointString>& jointStringVector)
+                                       QVector<JointString>& jointStringVector, QString machineToolName)
 {
     //Create machine tool object
     MachineTool MT;
+    MT.m_name = machineToolName;
 
     //initialize links
     for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
