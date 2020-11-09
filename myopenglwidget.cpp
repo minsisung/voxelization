@@ -122,26 +122,26 @@ void MyOpenGLWidget::initializeGL()
     timer_total.start();
     timer_step1.start();
 
-    //read stl files (correct one!!)-------------------------
-    //        machineToolName = "UMC-500";   //----------------
-    //        //rotary axes of machine tool (A,B,C)
-    //        QVector3D mtRotaryAxes(0,1,1);
+    //read stl files -------------------------
+    //    machineToolName = "UMC-500";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(0,1,1);
 
-    //        machineToolName = "UMC-750"; //----------------
-    //        //rotary axes of machine tool (A,B,C)
-    //        QVector3D mtRotaryAxes(0,1,1);
+//    machineToolName = "UMC-750"; //----------------
+//    //rotary axes of machine tool (A,B,C)
+//    QVector3D mtRotaryAxes(0,1,1);
 
-    //    machineToolName = "UMC-1600H";   //----------------
+        machineToolName = "UMC-1600H";   //----------------
+        //rotary axes of machine tool (A,B,C)
+        QVector3D mtRotaryAxes(1,0,1);
+
+//        machineToolName = "VR-8";   //----------------
+//        //rotary axes of machine tool (A,B,C)
+//        QVector3D mtRotaryAxes(1,0,1);
+
+    //    machineToolName = "VF-2";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
-
-    //    machineToolName = "VR-8";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(1,0,1);
-
-    machineToolName = "VF-2";   //----------------
-    //rotary axes of machine tool (A,B,C)
-    QVector3D mtRotaryAxes(1,0,1);
 
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
@@ -163,14 +163,14 @@ void MyOpenGLWidget::initializeGL()
     CCPs = m_groupingPreProcessor->CCPs;
     LIPs = m_groupingPreProcessor->LIPs;
 
-    //get information for drawing CCP
-    if(paintMode == "CCP"){
-        m_cubeGemoetry.m_paintMode = paintMode;
-        m_cubeGemoetry.setData(m_groupingPreProcessor->getData());
-        m_cubeGemoetry.setTotalCount(m_groupingPreProcessor->getTotalCount());
-        num_Vertex_CCP_comp1 = m_groupingPreProcessor->numberOfVertex_comp1;
-        num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
-    }
+    //    //get information for drawing CCP
+        if(paintMode == "CCP"){
+            m_cubeGemoetry.m_paintMode = paintMode;
+            m_cubeGemoetry.setData(m_groupingPreProcessor->getData());
+            m_cubeGemoetry.setTotalCount(m_groupingPreProcessor->getTotalCount());
+            num_Vertex_CCP_comp1 = m_groupingPreProcessor->numberOfVertex_comp1;
+            num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
+        }
 
     //deallocate the class
     delete m_groupingPreProcessor;
@@ -215,15 +215,6 @@ void MyOpenGLWidget::initializeGL()
         qDebug()<<"GenerateMTVoxelspace";
         QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
         qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
-
-        //        //get information for drawing the machine tool
-        //        if(paintMode == "machinetool"){
-        //            m_groupingValidator.drawVoxelforMT(MT, 0, 0);
-        //            m_cubeGemoetry.m_paintMode = paintMode;
-        //            m_cubeGemoetry.setData(m_groupingValidator.getData());
-        //            m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
-        //        }
-
         step2_times.append(timer_step2->elapsed()/1000);
         delete timer_step2;
         timer_step2 = nullptr;
@@ -249,14 +240,7 @@ void MyOpenGLWidget::initializeGL()
             delete timer_step3;
             timer_step3 = nullptr;
         }else{
-            qDebug()<<"Regrouping Done!";
-            //get information for drawing the machine tool
-            if(paintMode == "machinetool"){
-                m_groupingValidator.drawVoxelforMT(MT, 0, 0);
-                m_cubeGemoetry.m_paintMode = paintMode;
-                m_cubeGemoetry.setData(m_groupingValidator.getData());
-                m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
-            }
+            qDebug()<<"Grouping Done!";
 
             //print out times for calculation
             qDebug()<<"Initial Grouping takes:"<<step1_time << "seconds";
@@ -275,10 +259,17 @@ void MyOpenGLWidget::initializeGL()
     }
     qDebug()<<"Total process takes:"<<timer_total.elapsed()/1000 << "seconds";
 
+        //get information for drawing the machine tool
+        if(paintMode == "machinetool"){
+            m_groupingValidator.drawVoxelforMT(MT, 0, 0);
+            m_cubeGemoetry.m_paintMode = paintMode;
+            m_cubeGemoetry.setData(m_groupingValidator.getData());
+            m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
+        }
+
     //export urdf
     UrdfExporter urdfExporter(MT);
     urdfExporter.start();
-
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);

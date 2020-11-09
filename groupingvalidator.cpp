@@ -45,12 +45,12 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
 
         switch (linkType.toLatin1()) {
         case 'X':
-            loop->setLowerLimit(-0.1f);
+            loop->setLowerLimit(-0.05f);
             loop->setUpperLimit(0.1f);
             break;
         case 'Y':
             loop->setLowerLimit(-0.1f);
-            loop->setUpperLimit(0.1f);
+            loop->setUpperLimit(0.05f);
             break;
         case 'Z':
             loop->setLowerLimit(-0.1f);
@@ -65,7 +65,7 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
             loop->setUpperLimit(45.0f);
             break;
         case 'C':
-            loop->setLowerLimit(0.0f);
+            loop->setLowerLimit(-15.0f);
             loop->setUpperLimit(45.0f);
             break;
         }
@@ -80,7 +80,7 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
     //timer
     QElapsedTimer parentModelstimer;
     parentModelstimer.start();
-    int samplingNumber = 1;
+    int samplingNumber = 2;
 
     for(int Number = 0; Number < baseLink->ChildLink.size(); Number++){
         Link* currentLink = baseLink->ChildLink[Number];

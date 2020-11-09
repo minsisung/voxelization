@@ -88,7 +88,7 @@ QVector<QString> InitialGrouper::overlappingComps(QVector<QVector<QString> > &su
         if(checkingGroup.contains(targetGroup[ind_comp])){
             QString overlapping_comp = targetGroup[ind_comp];
             overlappingComps.append(overlapping_comp);
-            qDebug()<<"subgroup"<<ind_comp_CheckingGroup + 1<<"and subgroup"<<ind_comp_targetGroup + 1<<"both contains"<<overlapping_comp;
+            //            qDebug()<<"subgroup"<<ind_comp_CheckingGroup + 1<<"and subgroup"<<ind_comp_targetGroup + 1<<"both contains"<<overlapping_comp;
         }
     }
     return overlappingComps;
@@ -479,6 +479,25 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
     //keep doing iteration if there is component left being assigned to any group
     //or the number of subgroup is not number of axis + 1
     while((compVector.size()!= 0) | (subgroupVector.size() != num_group)){
+        for(int ind_subgroup1 = 0; ind_subgroup1 < subgroupVector.size(); ind_subgroup1++){
+            //merge subgroups if there is overlapping components in two subgroups
+            //loop all other subgroups
+            for(int ind_subgroup2 = ind_subgroup1 + 1; ind_subgroup2 < subgroupVector.size(); ind_subgroup2++){
+
+                //vector to store overlapping components if exist
+                QVector<QString> overlappingCompsVector = overlappingComps(subgroupVector, ind_subgroup1, ind_subgroup2);
+
+                //if there is component overlapping
+                if(!overlappingCompsVector.empty()){
+                    if(containsLIIfMerge(subgroupVector[ind_subgroup1], subgroupVector[ind_subgroup2], LIPs)){
+                        qDebug()<<"subgroup"<<ind_subgroup2 + 1<<"and subgroup"<<ind_subgroup2 + 1<<"both contains"<<overlappingCompsVector;
+                        m_overlappingCompsVector += overlappingCompsVector;
+                        deleteOverlappingComps(overlappingCompsVector, subgroupVector,ind_subgroup1, ind_subgroup2);
+                        qDebug()<<"-------------------------------------------------";
+                    }
+                }
+            }
+        }
 
         for(int ind_subgroup1 = 0; ind_subgroup1 < subgroupVector.size(); ind_subgroup1++){
             //merge subgroups if there is overlapping components in two subgroups
@@ -490,13 +509,9 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 
                 //if there is component overlapping
                 if(!overlappingCompsVector.empty()){
-                    qDebug()<<"There are overlapping component";
-                    if(containsLIIfMerge(subgroupVector[ind_subgroup1], subgroupVector[ind_subgroup2], LIPs)){
-                        m_overlappingCompsVector += overlappingCompsVector;
-                        deleteOverlappingComps(overlappingCompsVector, subgroupVector,ind_subgroup1, ind_subgroup2);
-                        qDebug()<<"-------------------------------------------------";
-                    }else{
-                        qDebug()<<"No LI contain after merging so merge group"<<ind_subgroup1 + 1 <<"and group"<<ind_subgroup2 + 1;
+                    if(!containsLIIfMerge(subgroupVector[ind_subgroup1], subgroupVector[ind_subgroup2], LIPs)){
+                        qDebug()<<"subgroup"<<ind_subgroup2 + 1<<"and subgroup"<<ind_subgroup2 + 1<<"both contains"<<overlappingCompsVector;
+                        qDebug()<<"No LI contains after merging so merge group"<<ind_subgroup1 + 1 <<"and group"<<ind_subgroup2 + 1;
                         mergeGroups(subgroupVector, ind_subgroup1, ind_subgroup2);
                         qDebug()<<"-------------------------------------------------";
                     }
