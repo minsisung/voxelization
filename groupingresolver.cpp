@@ -64,7 +64,6 @@ QVector<QString> GroupingResolver::getGroupsForRegrouping()
     groups.removeAt(groups.indexOf(groupContainsTargetComp));
     qDebug()<<"Target componentis in the group:"<<groupContainsTargetComp<<targetComp<<endl;
     qDebug()<<"regroup options:"<<groups;
-
     return groups;
 
 }

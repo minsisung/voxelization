@@ -127,29 +127,31 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(0,1,1);
 
-//    machineToolName = "UMC-750"; //----------------
-//    //rotary axes of machine tool (A,B,C)
-//    QVector3D mtRotaryAxes(0,1,1);
-
-        machineToolName = "UMC-1600H";   //----------------
+        machineToolName = "UMC-750"; //----------------
         //rotary axes of machine tool (A,B,C)
-        QVector3D mtRotaryAxes(1,0,1);
+        QVector3D mtRotaryAxes(0,1,1);
 
-//        machineToolName = "VR-8";   //----------------
-//        //rotary axes of machine tool (A,B,C)
-//        QVector3D mtRotaryAxes(1,0,1);
+    //    machineToolName = "UMC-1600H";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(1,0,1);
+
+//    machineToolName = "VR-8";   //----------------
+//    //rotary axes of machine tool (A,B,C)
+//    QVector3D mtRotaryAxes(1,0,1);
 
     //    machineToolName = "VF-2";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
+    float voxelsize = 5.0f;
+    qDebug()<<"Voxel size:" <<voxelsize<<"mm";
     QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
 
     //dynamically allocate the class
     GroupingPreProcessor* m_groupingPreProcessor = new GroupingPreProcessor();
 
     //setup voxel space
-    m_groupingPreProcessor->createMTVoxelspace(4.0f, compVector);
+    m_groupingPreProcessor->createMTVoxelspace(voxelsize, compVector);
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
@@ -164,13 +166,13 @@ void MyOpenGLWidget::initializeGL()
     LIPs = m_groupingPreProcessor->LIPs;
 
     //    //get information for drawing CCP
-        if(paintMode == "CCP"){
-            m_cubeGemoetry.m_paintMode = paintMode;
-            m_cubeGemoetry.setData(m_groupingPreProcessor->getData());
-            m_cubeGemoetry.setTotalCount(m_groupingPreProcessor->getTotalCount());
-            num_Vertex_CCP_comp1 = m_groupingPreProcessor->numberOfVertex_comp1;
-            num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
-        }
+    if(paintMode == "CCP"){
+        m_cubeGemoetry.m_paintMode = paintMode;
+        m_cubeGemoetry.setData(m_groupingPreProcessor->getData());
+        m_cubeGemoetry.setTotalCount(m_groupingPreProcessor->getTotalCount());
+        num_Vertex_CCP_comp1 = m_groupingPreProcessor->numberOfVertex_comp1;
+        num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
+    }
 
     //deallocate the class
     delete m_groupingPreProcessor;
@@ -211,7 +213,7 @@ void MyOpenGLWidget::initializeGL()
         //**Step 2: Check collision for all configurations--------------
         QElapsedTimer* timer_step2 = new QElapsedTimer;
         timer_step2->start();
-        m_groupingValidator.createMTVoxelspace(4.0f, compVector);
+        m_groupingValidator.createMTVoxelspace(voxelsize, compVector);
         qDebug()<<"GenerateMTVoxelspace";
         QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
         qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
@@ -219,7 +221,7 @@ void MyOpenGLWidget::initializeGL()
         delete timer_step2;
         timer_step2 = nullptr;
 
-        //**Step 3: if collision occurs, resolve it--------------------
+        //        //**Step 3: if collision occurs, resolve it--------------------
 
         if(!collisionPairsVector.isEmpty()){
             QElapsedTimer* timer_step3 = new QElapsedTimer;
@@ -259,13 +261,13 @@ void MyOpenGLWidget::initializeGL()
     }
     qDebug()<<"Total process takes:"<<timer_total.elapsed()/1000 << "seconds";
 
-        //get information for drawing the machine tool
-        if(paintMode == "machinetool"){
-            m_groupingValidator.drawVoxelforMT(MT, 0, 0);
-            m_cubeGemoetry.m_paintMode = paintMode;
-            m_cubeGemoetry.setData(m_groupingValidator.getData());
-            m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
-        }
+    //    //get information for drawing the machine tool
+    //    if(paintMode == "machinetool"){
+    //        m_groupingValidator.drawVoxelforMT(MT, 0, 0);
+    //        m_cubeGemoetry.m_paintMode = paintMode;
+    //        m_cubeGemoetry.setData(m_groupingValidator.getData());
+    //        m_cubeGemoetry.setTotalCount(m_groupingValidator.getTotalCount());
+    //    }
 
     //export urdf
     UrdfExporter urdfExporter(MT);
@@ -912,9 +914,10 @@ QVector<component> MyOpenGLWidget::readAxisForComp(QVector<component> &compVecto
                 num_comp_inXML++;
                 QString name = Rxml.attributes().value("Name").toString();
                 int index = indexOfComponent(compVector ,name);
-                if(index != -1)
+                if(index != -1){
                     compVector[index].m_mtRotaryAxes = mtRotaryAxes;
-
+                    qDebug()<<compVector[index].getName()<<"'s mtRotaryAxes is:"<<mtRotaryAxes;
+                }
                 while(Rxml.readNextStartElement()){
                     if(Rxml.name() == "rotaryAxisPoint1"){
                         QString xyz = Rxml.attributes().value("XYZ").toString();

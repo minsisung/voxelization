@@ -263,7 +263,7 @@ void Voxelizer::setupSize(float v_Size, QVector<stl_reader::StlMesh <float, unsi
 
     //setup voxel size from the bounding box of whole machine tool
     voxelSize = v_Size;
-    VSEnglargeRatio = 1.4f;
+    VSEnglargeRatio = 1.1f;
     spaceLength_X = (bounding_x_max - bounding_x_min) * VSEnglargeRatio * 1000;
     spaceLength_Y = (bounding_y_max - bounding_y_min) * VSEnglargeRatio* 1000;
     spaceLength_Z = (bounding_z_max - bounding_z_min) * VSEnglargeRatio * 1000;
@@ -320,7 +320,7 @@ void Voxelizer::setupSize(float v_Size, QVector<component> &componentVector)
 
     //setup voxel size from the bounding box of whole machine tool
     voxelSize = v_Size;
-    VSEnglargeRatio = 1.4f;
+    VSEnglargeRatio = 1.1f;
     spaceLength_X = (bounding_x_max - bounding_x_min) * VSEnglargeRatio * 1000;
     spaceLength_Y = (bounding_y_max - bounding_y_min) * VSEnglargeRatio* 1000;
     spaceLength_Z = (bounding_z_max - bounding_z_min) * VSEnglargeRatio * 1000;
