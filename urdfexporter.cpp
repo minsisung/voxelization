@@ -75,7 +75,7 @@ void UrdfExporter::exportSTL()
 
         //write all components into the link
         for(int ind_mesh = 0; ind_mesh < link.m_MeshNameVector.size(); ind_mesh++){
-            QString path = QDir::current().path() + "/" + m_MTName;
+            QString path = QDir::current().path() + "/" + m_MTName + "/groupingValidation";
             stl_reader::StlMesh <float, unsigned int> componentMesh;
             componentMesh.read_file((path + "/" + link.getMeshNameAt(ind_mesh)
                                      + ".STL").toStdString());

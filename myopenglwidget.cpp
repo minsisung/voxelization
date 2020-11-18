@@ -127,37 +127,38 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(0,1,1);
 
-        machineToolName = "UMC-750"; //----------------
-        //rotary axes of machine tool (A,B,C)
-        QVector3D mtRotaryAxes(0,1,1);
+    machineToolName = "UMC-750"; //----------------
+    //rotary axes of machine tool (A,B,C)
+    QVector3D mtRotaryAxes(0,1,1);
 
     //    machineToolName = "UMC-1600H";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-//    machineToolName = "VR-8";   //----------------
-//    //rotary axes of machine tool (A,B,C)
-//    QVector3D mtRotaryAxes(1,0,1);
+    //    machineToolName = "VR-8";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(1,0,1);
 
     //    machineToolName = "VF-2";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-    float voxelsize = 5.0f;
-    qDebug()<<"Voxel size:" <<voxelsize<<"mm";
-    QVector<component> compVector = readCompSTL(machineToolName, mtRotaryAxes);
+    //set up component vector for initial grouping using small voxel size
+    float voxelsize_initialGrouping = 3.0f;
+    qDebug()<<"Initial grouping voxel size:" <<voxelsize_initialGrouping<<"mm";
+    QVector<component> compVector_initialGrouping = readCompSTL(machineToolName, mtRotaryAxes, "initialGrouping");
 
     //dynamically allocate the class
     GroupingPreProcessor* m_groupingPreProcessor = new GroupingPreProcessor();
 
     //setup voxel space
-    m_groupingPreProcessor->createMTVoxelspace(voxelsize, compVector);
+    m_groupingPreProcessor->createMTVoxelspace(voxelsize_initialGrouping, compVector_initialGrouping);
     int num_LIPs = 3 + static_cast<int>(mtRotaryAxes.x()) +
             static_cast<int>(mtRotaryAxes.y()) + static_cast<int>(mtRotaryAxes.z());
 
     //find CCPs using collision detection and also update CCPVector by doing relative movement for
     //the following LIPs checking
-    QVector<contactComponentsPair> ccpVector = m_groupingPreProcessor->findContactComponentsPairs(compVector);
+    QVector<contactComponentsPair> ccpVector = m_groupingPreProcessor->findContactComponentsPairs(compVector_initialGrouping);
 
     //Find LIPs using the information from above
     int LIPs_Number = m_groupingPreProcessor->findLIPCandidates(ccpVector);
@@ -174,9 +175,10 @@ void MyOpenGLWidget::initializeGL()
         num_Vertex_CCP_comp2 = m_groupingPreProcessor->numberOfVertex_comp2;
     }
 
-    //deallocate the class
+    //deallocate the class and compVector_initialGrouping
     delete m_groupingPreProcessor;
     m_groupingPreProcessor = nullptr;
+    compVector_initialGrouping.clear();
 
     //if number of LIPs is small than the number of groups - 1, which means there might have missing components,
     //then stop processing.
@@ -185,15 +187,20 @@ void MyOpenGLWidget::initializeGL()
 
     //Initial grouping using LIPs and CCPs
     //dynamically allocate the class
-    InitialGrouper* initialGrouper = new InitialGrouper(CCPs, LIPs, num_LIPs + 1, compVector);
+    InitialGrouper* initialGrouper = new InitialGrouper(CCPs, LIPs, num_LIPs + 1, compVector_initialGrouping);
     QVector<QPair<QString,QVector<QString>>> group_axisVector = initialGrouper->startGrouping();
 
     //If LIPs number != number of group - 1, stop processing
     if(group_axisVector.isEmpty())
         return;
 
+    //set up component vector for grouping validation using big voxel size
+    float voxelsize_groupingValidation = 6.0f;
+    qDebug()<<"Initial grouping voxel size:" <<voxelsize_groupingValidation<<"mm";
+    QVector<component> compVector_groupingValidation = readCompSTL(machineToolName, mtRotaryAxes, "groupingValidation");
+
     //create machine tool object by initial grouping
-    MT = initialGrouper->createMT(group_axisVector, compVector, machineToolName);
+    MT = initialGrouper->createMT(group_axisVector, compVector_groupingValidation, machineToolName);
     QVector<JointString> jointStringVector = initialGrouper->getjointStringVector();
 
     OverlappingCompsVector = initialGrouper->getOverlappingCompsVector();
@@ -213,7 +220,7 @@ void MyOpenGLWidget::initializeGL()
         //**Step 2: Check collision for all configurations--------------
         QElapsedTimer* timer_step2 = new QElapsedTimer;
         timer_step2->start();
-        m_groupingValidator.createMTVoxelspace(voxelsize, compVector);
+        m_groupingValidator.createMTVoxelspace(voxelsize_groupingValidation, compVector_groupingValidation);
         qDebug()<<"GenerateMTVoxelspace";
         QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
         qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
@@ -236,7 +243,7 @@ void MyOpenGLWidget::initializeGL()
             }
 
             //Update MT
-            MT = m_groupingResolver.createMT(group_axisVector, compVector, jointStringVector, machineToolName);
+            MT = m_groupingResolver.createMT(group_axisVector, compVector_groupingValidation, jointStringVector, machineToolName);
             m_groupingValidator.clear();
             step3_times.append(timer_step3->elapsed()/1000);
             delete timer_step3;
@@ -498,12 +505,21 @@ QVector<stl_reader::StlMesh <float, unsigned int>> MyOpenGLWidget::readSTLFiles(
     return m_STLMeshVector;
 }
 
-QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotaryAxes)
+QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotaryAxes, QString mode)
 {
     QVector<component> compVector;
 
     //store all .stl that contain the name of machine tool
-    QString path = QDir::current().path() + "/" + mtName;
+    QString path;
+    if(mode == "initialGrouping"){
+        path = QDir::current().path() + "/" + mtName + "/initialGrouping";
+        qDebug()<<"create compVector for initial grouping";
+    }
+    if(mode == "groupingValidation"){
+        path = QDir::current().path() + "/" + mtName+ "/groupingValidation";
+        qDebug()<<"create compVector for grouping validation";
+    }
+
     QDir directory(path);
 
     QStringList STLList = directory.entryList(QStringList() << "*.STL" << "*.stl",QDir::Files);
@@ -554,7 +570,7 @@ QVector<component> MyOpenGLWidget::readCompSTL(QString mtName, QVector3D mtRotar
 
     QXmlStreamReader Rxml;
     QString filename = machineToolName + ".xml";
-    QString filePath_Name = path + "/" + filename;
+    QString filePath_Name = QDir::current().path() + "/" + mtName + "/" + filename;
     QFile file(filePath_Name);
     //if there xml doesn't exist
     if (!file.open(QFile::ReadOnly | QFile::Text))

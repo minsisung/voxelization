@@ -52,6 +52,7 @@ void Link::setSTLMesh()
 void Link::setSTLMesh(QVector<QString> linkCompsNames, QVector<component> compVector){
     int num_mesh = 0;
     for(int ind_comp = 0; ind_comp< linkCompsNames.size(); ind_comp++){
+
         //set STL file of each component for the link
         stl_reader::StlMesh <float, unsigned int> mesh;
         int ind_compVector = compVector.indexOf(linkCompsNames[ind_comp]);

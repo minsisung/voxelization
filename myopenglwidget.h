@@ -69,7 +69,7 @@ private:
     void drawMTComponents();
     void drawCCPComponents();
     QVector<stl_reader::StlMesh <float, unsigned int>> readSTLFiles(QString mtName);
-    QVector<component> readCompSTL(QString mtName, QVector3D mtRotaryAxes);
+    QVector<component> readCompSTL(QString mtName, QVector3D mtRotaryAxes, QString mode);
     QVector<component> getAxisForComp(QVector<component>& compVector, QVector3D& mtRotaryAxes);
     QVector3D findCommonAxis(TopoDS_Shape ashape, QString componentAxis);
     TopoDS_Shape readBRep(QString compName);
