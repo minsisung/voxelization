@@ -127,24 +127,24 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(0,1,1);
 
-    machineToolName = "UMC-750"; //----------------
-    //rotary axes of machine tool (A,B,C)
-    QVector3D mtRotaryAxes(0,1,1);
+    //    machineToolName = "UMC-750"; //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(0,1,1);
 
     //    machineToolName = "UMC-1600H";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-    //    machineToolName = "VR-8";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(1,0,1);
+        machineToolName = "VR-8";   //----------------
+        //rotary axes of machine tool (A,B,C)
+        QVector3D mtRotaryAxes(1,0,1);
 
-    //    machineToolName = "VF-2";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(1,0,1);
+//    machineToolName = "VF-2";   //----------------
+//    //rotary axes of machine tool (A,B,C)
+//    QVector3D mtRotaryAxes(1,0,1);
 
-    //set up component vector for initial grouping using small voxel size
-    float voxelsize_initialGrouping = 3.0f;
+    //set up component vector for initial grouping using small voxel size    **********************************
+    float voxelsize_initialGrouping = 4.0f;
     qDebug()<<"Initial grouping voxel size:" <<voxelsize_initialGrouping<<"mm";
     QVector<component> compVector_initialGrouping = readCompSTL(machineToolName, mtRotaryAxes, "initialGrouping");
 
@@ -178,7 +178,6 @@ void MyOpenGLWidget::initializeGL()
     //deallocate the class and compVector_initialGrouping
     delete m_groupingPreProcessor;
     m_groupingPreProcessor = nullptr;
-    compVector_initialGrouping.clear();
 
     //if number of LIPs is small than the number of groups - 1, which means there might have missing components,
     //then stop processing.
@@ -194,7 +193,7 @@ void MyOpenGLWidget::initializeGL()
     if(group_axisVector.isEmpty())
         return;
 
-    //set up component vector for grouping validation using big voxel size
+    //set up component vector for grouping validation using big voxel size ****************************************
     float voxelsize_groupingValidation = 6.0f;
     qDebug()<<"Initial grouping voxel size:" <<voxelsize_groupingValidation<<"mm";
     QVector<component> compVector_groupingValidation = readCompSTL(machineToolName, mtRotaryAxes, "groupingValidation");
@@ -208,6 +207,9 @@ void MyOpenGLWidget::initializeGL()
     //deallocate the class
     delete initialGrouper;
     initialGrouper = nullptr;
+
+    //clear component vector for initial goruping
+    compVector_initialGrouping.clear();
 
     qDebug()<<"overlappingCompVector"<<OverlappingCompsVector;
     step1_time = timer_step1.elapsed()/1000;

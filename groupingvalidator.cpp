@@ -9,7 +9,7 @@ void GroupingValidator::createMTVoxelspace(float vSize, QVector<component> &comp
     //setup voxelsize
     voxelSize = vSize;
 
-    //initialize voxel space and voxel size and return the name of the lowest component
+    //initialize voxel space and voxel size
     voxelizer.setupSize(voxelSize, componentVector);
 }
 
