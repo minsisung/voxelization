@@ -27,7 +27,7 @@ void UrdfExporter::exportSTL()
         file.open(QIODevice::WriteOnly | QIODevice::Text);
         QTextStream out(&file);
         out.setRealNumberNotation(QTextStream::ScientificNotation);
-        out << "solid STLExport" << endl;
+        out << "solid"<<QString::fromStdString(link.getName())<<"Link"<< endl;
 
         //default offset vector are x = 0, y = 0, z = 0
         Vector3 offsetVector(0.0, 0.0, 0.0);
@@ -158,6 +158,7 @@ void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* 
     xmlWriter.writeAttribute("type", QString::fromStdString(joint.getType()));
     xmlWriter.writeStartElement("origin");
 
+
     //if previous joint is a rotary joint, xyz of the current joint need to
     //minus by the xyz of prvious joint
     if(prev_joint!=nullptr && prev_joint->getType() == "revolute"){
@@ -171,6 +172,7 @@ void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* 
 
     xmlWriter.writeAttribute("rpy", QString::number(joint.getOrigin_rpy().x) + " " +  QString::number(joint.getOrigin_rpy().y)
                              + " " +  QString::number(joint.getOrigin_rpy().z));
+    xmlWriter.writeEndElement();//origin
     xmlWriter.writeStartElement("parent");
     xmlWriter.writeAttribute("link", QString::fromStdString(joint.getParentLink()->getName()));
     xmlWriter.writeEndElement();//parent
@@ -185,7 +187,6 @@ void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* 
     xmlWriter.writeAttribute("lower" ,QString::number(joint.getLowerLimit()));
     xmlWriter.writeAttribute("upper" ,QString::number(joint.getUpperLimit()));
     xmlWriter.writeEndElement();//limit
-    xmlWriter.writeEndElement();//origin
     xmlWriter.writeEndElement();//joint
 }
 

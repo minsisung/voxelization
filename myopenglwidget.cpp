@@ -135,9 +135,9 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-    //            machineToolName = "VR-8";   //----------------
-    //            //rotary axes of machine tool (A,B,C)
-    //            QVector3D mtRotaryAxes(1,0,1);
+//                machineToolName = "VR-8";   //----------------
+//                //rotary axes of machine tool (A,B,C)
+//                QVector3D mtRotaryAxes(1,0,1);
 
     //    machineToolName = "VF-2";   //----------------
     //    //rotary axes of machine tool (A,B,C)
