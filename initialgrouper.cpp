@@ -47,7 +47,7 @@ void InitialGrouper::mergeGroups(QVector<QVector<QString> > &subgroupVector, int
 
 void InitialGrouper::deleteOverlappingComps(QVector<QString> overlappingCompsVector, QVector<QVector<QString> > &subgroupVector, int ind_group1, int ind_group2)
 {
-    // move overlapping component to the subgroup with less components
+    // move overlapping component to the subgroup with less components!!!!!!!!!!!!!!!!!!
     if(subgroupVector[ind_group2].size() <= subgroupVector[ind_group1].size()){
         qDebug()<<"The overlapping components are deleted from group"<< ind_group1;
         for(int ind_overlappingComp = 0; ind_overlappingComp < overlappingCompsVector.size(); ind_overlappingComp++){
@@ -371,7 +371,6 @@ MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& 
                   "xyz:"<<joint_new.getOrigin_xyz().x<<joint_new.getOrigin_xyz().y<<
                   joint_new.getOrigin_xyz().z<<endl;
     }
-
 
     //create hash table for components
     for(int link_ind = 0; link_ind < MT.LinkVector.size(); ++link_ind){

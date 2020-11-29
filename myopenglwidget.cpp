@@ -123,9 +123,9 @@ void MyOpenGLWidget::initializeGL()
     timer_step1.start();
 
     //read stl files -------------------------
-    //    machineToolName = "UMC-500";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(0,1,1);
+    machineToolName = "UMC-500";   //----------------
+    //rotary axes of machine tool (A,B,C)
+    QVector3D mtRotaryAxes(0,1,1);
 
     //    machineToolName = "UMC-750"; //----------------
     //    //rotary axes of machine tool (A,B,C)
@@ -135,13 +135,13 @@ void MyOpenGLWidget::initializeGL()
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-        machineToolName = "VR-8";   //----------------
-        //rotary axes of machine tool (A,B,C)
-        QVector3D mtRotaryAxes(1,0,1);
+    //            machineToolName = "VR-8";   //----------------
+    //            //rotary axes of machine tool (A,B,C)
+    //            QVector3D mtRotaryAxes(1,0,1);
 
-//    machineToolName = "VF-2";   //----------------
-//    //rotary axes of machine tool (A,B,C)
-//    QVector3D mtRotaryAxes(1,0,1);
+    //    machineToolName = "VF-2";   //----------------
+    //    //rotary axes of machine tool (A,B,C)
+    //    QVector3D mtRotaryAxes(1,0,1);
 
     //set up component vector for initial grouping using small voxel size    **********************************
     float voxelsize_initialGrouping = 4.0f;
@@ -195,7 +195,7 @@ void MyOpenGLWidget::initializeGL()
 
     //set up component vector for grouping validation using big voxel size ****************************************
     float voxelsize_groupingValidation = 6.0f;
-    qDebug()<<"Initial grouping voxel size:" <<voxelsize_groupingValidation<<"mm";
+    qDebug()<<"Grouping validation voxel size:" <<voxelsize_groupingValidation<<"mm";
     QVector<component> compVector_groupingValidation = readCompSTL(machineToolName, mtRotaryAxes, "groupingValidation");
 
     //create machine tool object by initial grouping
@@ -230,7 +230,7 @@ void MyOpenGLWidget::initializeGL()
         delete timer_step2;
         timer_step2 = nullptr;
 
-        //        //**Step 3: if collision occurs, resolve it--------------------
+        //**Step 3: if collision occurs, resolve it--------------------
 
         if(!collisionPairsVector.isEmpty()){
             QElapsedTimer* timer_step3 = new QElapsedTimer;

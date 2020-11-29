@@ -12,6 +12,66 @@ void UrdfExporter::start()
     exportSTL();
 }
 
+void UrdfExporter::exportSTL()
+{    
+    for(int ind_link = 0; ind_link < m_MT.LinkVector.size(); ind_link++){
+        Link& link = m_MT.LinkVector[ind_link];
+        QString filename = QString::fromStdString(link.getName()) + ".STL";
+        QString directoryName = QDir::current().path() + "/" + m_MTName+ "/mesh";
+        QDir dir(directoryName);
+        if (!dir.exists()){
+            dir.mkpath(directoryName);
+        }
+        QString filePath = directoryName + '/' + filename;
+        QFile file(filePath);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&file);
+        out.setRealNumberNotation(QTextStream::ScientificNotation);
+        out << "solid STLExport" << endl;
+
+        //default offset vector are x = 0, y = 0, z = 0
+        Vector3 offsetVector(0.0, 0.0, 0.0);
+
+        //if the link has parent, update offsetvector by the joint that connect parent link and the current link
+        if(link.ParentLink!= nullptr)
+            offsetVector = findJoint(QString::fromStdString(link.ParentLink->getName()),
+                                     QString::fromStdString(link.getName()), m_MT.JointVector)->getOrigin_xyz();
+
+        qDebug()<<"Link name:"<<QString::fromStdString(link.getName());
+        qDebug()<<"offsetVector"<<offsetVector.x<<" "<<offsetVector.y<<" "<<offsetVector.z;
+
+        //write all components into the link
+        for(int ind_mesh = 0; ind_mesh < link.m_MeshNameVector.size(); ind_mesh++){
+            QString path = QDir::current().path() + "/" + m_MTName + "/groupingValidation";
+            stl_reader::StlMesh <float, unsigned int> componentMesh;
+            componentMesh.read_file((path + "/" + link.getMeshNameAt(ind_mesh)
+                                     + ".STL").toStdString());
+
+            STLFacetOut(out, componentMesh, offsetVector);
+        }
+        out << "endsolid STLExport" << endl;
+        file.close();
+        qDebug()<<QString::fromStdString(link.getName())<<"Link contains:"<<link.m_MeshNameVector;
+        qDebug()<<"Finished exporter stl file for"<<QString::fromStdString(link.getName());
+    }
+}
+
+void UrdfExporter::STLFacetOut(QTextStream &out, stl_reader::StlMesh <float, unsigned int>& mesh, Vector3& offsetVector)
+{
+    for(size_t itri = 0; itri < mesh.num_tris(); ++itri) {
+        const float* n = mesh.tri_normal(itri);
+        out << "facet normal " << n[0] << " " << n[1] << " " << n[2] << endl;
+        out << "   outer loop" << endl;
+
+        for(size_t icorner = 0; icorner < 3; ++icorner) {
+            const float* c = mesh.tri_corner_coords (itri, icorner);
+            out << "      vertex " << c[0] - offsetVector.x<< " " << c[1] - offsetVector.y<< " " << c[2] - offsetVector.z<< endl;
+        }
+        out << "   endloop" << endl;
+        out << "endfacet" << endl;
+    }
+}
+
 void UrdfExporter::exportXML()
 {
     //open file for writing xml
@@ -35,12 +95,18 @@ void UrdfExporter::exportXML()
 
     for(int Number = 0; Number < m_MT.baseLink->ChildLink.size(); Number++){
         Link* currentLink = m_MT.baseLink->ChildLink[Number];
+        Joint* prev_joint = nullptr;
         while(currentLink != nullptr){
+            qDebug()<<"Current Link:"<<QString::fromStdString(currentLink->getName());
             writeLink(xmlWriter, *currentLink);
             Link* parentLink = currentLink->ParentLink;
             Joint* joint = findJoint(QString::fromStdString(parentLink->getName()),
                                      QString::fromStdString(currentLink->getName()), m_MT.JointVector);
-            writeJoint(xmlWriter, *joint);
+
+            writeJoint(xmlWriter, *joint, prev_joint);
+
+            //update prev_joint
+            prev_joint = joint;
 
             if(!currentLink->ChildLink.isEmpty()){
                 currentLink = currentLink->ChildLink[0];
@@ -53,39 +119,6 @@ void UrdfExporter::exportXML()
     xmlWriter.writeEndElement();//robot
 
     file.close();
-}
-
-void UrdfExporter::exportSTL()
-{    
-    for(int ind_link = 0; ind_link < m_MT.LinkVector.size(); ind_link++){
-        Link& link = m_MT.LinkVector[ind_link];
-        QString filename = QString::fromStdString(link.getName()) + ".STL";
-        QString directoryName = QDir::current().path() + "/" + m_MTName+ "/mesh";
-        QDir dir(directoryName);
-        if (!dir.exists()){
-            dir.mkpath(directoryName);
-        }
-        QString filePath = directoryName + '/' + filename;
-        QFile file(filePath);
-        file.open(QIODevice::WriteOnly | QIODevice::Text);
-
-        QTextStream out(&file);
-        out.setRealNumberNotation(QTextStream::ScientificNotation);
-        out << "solid STLExport" << endl;
-
-        //write all components into the link
-        for(int ind_mesh = 0; ind_mesh < link.m_MeshNameVector.size(); ind_mesh++){
-            QString path = QDir::current().path() + "/" + m_MTName + "/groupingValidation";
-            stl_reader::StlMesh <float, unsigned int> componentMesh;
-            componentMesh.read_file((path + "/" + link.getMeshNameAt(ind_mesh)
-                                     + ".STL").toStdString());
-            STLFacetOut(out, componentMesh);
-        }
-        out << "endsolid STLExport" << endl;
-        file.close();
-        qDebug()<<QString::fromStdString(link.getName())<<"Link contains:"<<link.m_MeshNameVector;
-        qDebug()<<"Finished exporter stl file for"<<QString::fromStdString(link.getName());
-    }
 }
 
 void UrdfExporter::writeLink(QXmlStreamWriter& xmlWriter, Link &link)
@@ -118,14 +151,24 @@ void UrdfExporter::writeLink(QXmlStreamWriter& xmlWriter, Link &link)
     xmlWriter.writeEndElement();//link
 }
 
-void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint)
+void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* prev_joint)
 {
     xmlWriter.writeStartElement("joint");
     xmlWriter.writeAttribute("name", QString::fromStdString(joint.getName()));
     xmlWriter.writeAttribute("type", QString::fromStdString(joint.getType()));
     xmlWriter.writeStartElement("origin");
-    xmlWriter.writeAttribute("xyz", QString::number(joint.getOrigin_xyz().x) + " " +  QString::number(joint.getOrigin_xyz().y)
-                             + " " +  QString::number(joint.getOrigin_xyz().z));
+
+    //if previous joint is a rotary joint, xyz of the current joint need to
+    //minus by the xyz of prvious joint
+    if(prev_joint!=nullptr && prev_joint->getType() == "revolute"){
+        xmlWriter.writeAttribute("xyz", QString::number(joint.getOrigin_xyz().x - prev_joint->getOrigin_xyz().x) + " "
+                                 +  QString::number(joint.getOrigin_xyz().y -  - prev_joint->getOrigin_xyz().y)
+                                 + " " +  QString::number(joint.getOrigin_xyz().z -  - prev_joint->getOrigin_xyz().z));
+    }else{
+        xmlWriter.writeAttribute("xyz", QString::number(joint.getOrigin_xyz().x) + " " +  QString::number(joint.getOrigin_xyz().y)
+                                 + " " +  QString::number(joint.getOrigin_xyz().z));
+    }
+
     xmlWriter.writeAttribute("rpy", QString::number(joint.getOrigin_rpy().x) + " " +  QString::number(joint.getOrigin_rpy().y)
                              + " " +  QString::number(joint.getOrigin_rpy().z));
     xmlWriter.writeStartElement("parent");
@@ -156,18 +199,4 @@ Joint* UrdfExporter::findJoint(QString parentLinkName, QString childLinkName, QV
     return nullptr;
 }
 
-void UrdfExporter::STLFacetOut(QTextStream &out, stl_reader::StlMesh <float, unsigned int>& mesh)
-{
-    for(size_t itri = 0; itri < mesh.num_tris(); ++itri) {
-        const float* n = mesh.tri_normal(itri);
-        out << "facet normal " << n[0] << " " << n[1] << " " << n[2] << endl;
-        out << "   outer loop" << endl;
 
-        for(size_t icorner = 0; icorner < 3; ++icorner) {
-            const float* c = mesh.tri_corner_coords (itri, icorner);
-            out << "      vertex " << c[0] << " " << c[1] << " " << c[2] << endl;
-        }
-        out << "   endloop" << endl;
-        out << "endfacet" << endl;
-    }
-}

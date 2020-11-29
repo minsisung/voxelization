@@ -13,12 +13,13 @@ public:
     void start();
 
 private:
-    void exportXML();
     void exportSTL();
+    void STLFacetOut(QTextStream &out, stl_reader::StlMesh <float, unsigned int>& mesh, Vector3& offsetVector);
+    void exportXML();
     void writeLink(QXmlStreamWriter& xmlWriter, Link& link);
-    void writeJoint(QXmlStreamWriter& xmlWriter, Joint& joint);
+    void writeJoint(QXmlStreamWriter& xmlWriter, Joint& joint, Joint* prev_joint);
     Joint *findJoint(QString parentLinkName, QString childLinkName, QVector<Joint>& JointVector);
-    void STLFacetOut(QTextStream &out, stl_reader::StlMesh <float, unsigned int>& mesh);
+
     MachineTool m_MT;
     QString m_MTName;
 };
