@@ -47,14 +47,14 @@ void InitialGrouper::mergeGroups(QVector<QVector<QString> > &subgroupVector, int
 
 void InitialGrouper::deleteOverlappingComps(QVector<QString> overlappingCompsVector, QVector<QVector<QString> > &subgroupVector, int ind_group1, int ind_group2)
 {
-    // move overlapping component to the subgroup with less components!!!!!!!!!!!!!!!!!!
+    // move overlapping component to the subgroup with less components!!!!!!!!!!!!!!!!!! should be <=
     if(subgroupVector[ind_group2].size() <= subgroupVector[ind_group1].size()){
-        qDebug()<<"The overlapping components are deleted from group"<< ind_group1;
+        qDebug()<<"The overlapping components are deleted from group"<< ind_group1 + 1;
         for(int ind_overlappingComp = 0; ind_overlappingComp < overlappingCompsVector.size(); ind_overlappingComp++){
             subgroupVector[ind_group1].remove(subgroupVector[ind_group1].indexOf(overlappingCompsVector[ind_overlappingComp]));
         }
     }else{
-        qDebug()<<"The overlapping components are deleted from group"<< ind_group2<<endl;
+        qDebug()<<"The overlapping components are deleted from group"<< ind_group2 + 1<<endl;
         for(int ind_overlappingComp = 0; ind_overlappingComp < overlappingCompsVector.size(); ind_overlappingComp++){
             subgroupVector[ind_group2].remove(subgroupVector[ind_group2].indexOf(overlappingCompsVector[ind_overlappingComp]));
         }
@@ -315,6 +315,32 @@ void InitialGrouper::setLowestComponent(QVector<component> &compnent_Mesh_Vector
     lowestCompName = lowestComp;
 }
 
+void InitialGrouper::findUncertainty(QVector<QVector<QString>>& CCPs, QVector<QVector<QString>>& subgroupVector)
+{
+    //uncertainty from overlapping component
+    if(!m_overlappingCompsVector.isEmpty()){
+        for(int i = 0; i < m_overlappingCompsVector.size(); i++){
+            uncertainty = true;
+            qDebug()<<"Uncertainty exists because of overlapping component"<<m_overlappingCompsVector[i];
+        }
+    }
+
+    //uncertainty from CCP connect two groups
+    for(int i = 0; i < CCPs.size(); i++){
+        for(int j = 0; j < subgroupVector.size(); j++){
+            //if two components of a CCP belong to two different groups
+            if(subgroupVector[j].contains(CCPs[i][0]) && !subgroupVector[j].contains(CCPs[i][1])){
+                uncertainty = true;
+                qDebug()<<"Uncertainty exists because"<<CCPs[i][0]<<"and"<<CCPs[i][1]<<
+                          "are connected by a CCP but belong to two different groups";
+                break;
+            }
+        }
+    }
+    if(!uncertainty)
+        qDebug()<<"No uncertainty exists"<<endl;
+}
+
 MachineTool InitialGrouper::createMT(QVector<QPair<QString, QVector<QString>>>& group_axisVector,
                                      QVector<component>& compVector, QString machineToolName)
 {
@@ -530,8 +556,6 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 
         qDebug()<<"All components after merging:"<<compVector<<endl;
 
-        qDebug()<<"All CCPs after merging:"<<CCPs<<endl;
-
         growsGroup(subgroupVector, compVector, CCPs);
 
         qDebug()<<endl<<"after growing operation"<<endl;
@@ -549,5 +573,8 @@ QVector<QPair<QString,QVector<QString>>> InitialGrouper::startGrouping()
 
     //Assign axis to each group
     QVector<QPair<QString,QVector<QString>>> group_axisVector = assignAxisToGroups(subgroupVector);
+
+    findUncertainty(CCPs, subgroupVector);
+
     return group_axisVector;
 }

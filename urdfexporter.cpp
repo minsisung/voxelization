@@ -27,7 +27,7 @@ void UrdfExporter::exportSTL()
         file.open(QIODevice::WriteOnly | QIODevice::Text);
         QTextStream out(&file);
         out.setRealNumberNotation(QTextStream::ScientificNotation);
-        out << "solid"<<QString::fromStdString(link.getName())<<"Link"<< endl;
+        out << "solid "<<QString::fromStdString(link.getName())<< endl;
 
         //default offset vector are x = 0, y = 0, z = 0
         Vector3 offsetVector(0.0, 0.0, 0.0);
@@ -49,7 +49,7 @@ void UrdfExporter::exportSTL()
 
             STLFacetOut(out, componentMesh, offsetVector);
         }
-        out << "endsolid STLExport" << endl;
+        out << "endsolid" << endl;
         file.close();
         qDebug()<<QString::fromStdString(link.getName())<<"Link contains:"<<link.m_MeshNameVector;
         qDebug()<<"Finished exporter stl file for"<<QString::fromStdString(link.getName());
@@ -88,7 +88,7 @@ void UrdfExporter::exportXML()
     xmlWriter.setAutoFormatting(true);
     xmlWriter.writeStartDocument();
     xmlWriter.writeStartElement("robot");
-    xmlWriter.writeAttribute("Name" ,m_MTName);
+    xmlWriter.writeAttribute("name" ,m_MTName);
 
     //export base link
     writeLink(xmlWriter, *m_MT.baseLink);
@@ -143,8 +143,7 @@ void UrdfExporter::writeLink(QXmlStreamWriter& xmlWriter, Link &link)
     xmlWriter.writeStartElement("material");
     xmlWriter.writeAttribute("name", "");
     xmlWriter.writeStartElement("color");
-    xmlWriter.writeAttribute("rgba" ,QString::number(link.getRGBA().x) + " " +  QString::number(link.getRGBA().y)
-                             + " " +  QString::number(link.getRGBA().z));
+    xmlWriter.writeAttribute("rgba" ,"0.752941176470588 0.752941176470588 0.752941176470588 1");
     xmlWriter.writeEndElement();//color
     xmlWriter.writeEndElement();//material
     xmlWriter.writeEndElement();//visual
@@ -163,8 +162,8 @@ void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* 
     //minus by the xyz of prvious joint
     if(prev_joint!=nullptr && prev_joint->getType() == "revolute"){
         xmlWriter.writeAttribute("xyz", QString::number(joint.getOrigin_xyz().x - prev_joint->getOrigin_xyz().x) + " "
-                                 +  QString::number(joint.getOrigin_xyz().y -  - prev_joint->getOrigin_xyz().y)
-                                 + " " +  QString::number(joint.getOrigin_xyz().z -  - prev_joint->getOrigin_xyz().z));
+                                 +  QString::number(joint.getOrigin_xyz().y - prev_joint->getOrigin_xyz().y)
+                                 + " " +  QString::number(joint.getOrigin_xyz().z - prev_joint->getOrigin_xyz().z));
     }else{
         xmlWriter.writeAttribute("xyz", QString::number(joint.getOrigin_xyz().x) + " " +  QString::number(joint.getOrigin_xyz().y)
                                  + " " +  QString::number(joint.getOrigin_xyz().z));
@@ -186,6 +185,8 @@ void UrdfExporter::writeJoint(QXmlStreamWriter& xmlWriter, Joint &joint, Joint* 
     xmlWriter.writeStartElement("limit");
     xmlWriter.writeAttribute("lower" ,QString::number(joint.getLowerLimit()));
     xmlWriter.writeAttribute("upper" ,QString::number(joint.getUpperLimit()));
+    xmlWriter.writeAttribute("effort" ,QString::number(1));
+    xmlWriter.writeAttribute("velocity" ,QString::number(1));
     xmlWriter.writeEndElement();//limit
     xmlWriter.writeEndElement();//joint
 }

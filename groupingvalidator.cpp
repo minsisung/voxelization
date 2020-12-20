@@ -80,7 +80,7 @@ QVector<QPair<QString,QString>>  GroupingValidator::collisionDetectionForConfigu
     //timer
     QElapsedTimer parentModelstimer;
     parentModelstimer.start();
-    int samplingNumber = 2;
+    int samplingNumber = 5;
 
     for(int Number = 0; Number < baseLink->ChildLink.size(); Number++){
         Link* currentLink = baseLink->ChildLink[Number];

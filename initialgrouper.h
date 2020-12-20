@@ -25,6 +25,7 @@ public:
                          QVector<component>& compVector, QString machineToolName);
     QVector<QString> getOverlappingCompsVector(){return m_overlappingCompsVector;}
     QVector<JointString> getjointStringVector(){return jointStringVector;}
+    bool hasUncertainty(){return uncertainty;}
 
 private:
     QVector<QVector<QString>> CCPs;
@@ -48,6 +49,8 @@ private:
     Vector3 getJointXYZ(QString lipCompName,QString jointName, QVector<component>& compVector);
     void setLowestComponent(QVector<component> &compnent_Mesh_Vector);
     QVector<JointString> jointStringVector;
+    bool uncertainty = false;
+    void findUncertainty(QVector<QVector<QString>>& CCPs, QVector<QVector<QString>>& subgroupVector);
 };
 
 

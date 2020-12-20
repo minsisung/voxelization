@@ -113,38 +113,38 @@ void MyOpenGLWidget::initializeGL()
     QString paintMode = "machinetool";
     //timer
     QElapsedTimer timer_total;
-    QElapsedTimer timer_step1;
-    long long step1_time;
-    QVector<long long> step2_times;
-    QVector<long long> step3_times;
+    QElapsedTimer timer_grouping;
+    long long grouping_time;
+    QVector<long long> validation_times;
+    QVector<long long> resolution_times;
 
     //**Step 1: Find contact-components pairs
     timer_total.start();
-    timer_step1.start();
+    timer_grouping.start();
 
-    //read stl files -------------------------
-    machineToolName = "UMC-500";   //----------------
+    //    //read stl files -------------------------
+    //        machineToolName = "UMC-500";   //----------------
+    //        //rotary axes of machine tool (A,B,C)
+    //        QVector3D mtRotaryAxes(0,1,1);
+
+    //            machineToolName = "UMC-750"; //----------------
+    //            //rotary axes of machine tool (A,B,C)
+    //            QVector3D mtRotaryAxes(0,1,1);
+
+    machineToolName = "UMC-1600H";   //----------------
     //rotary axes of machine tool (A,B,C)
-    QVector3D mtRotaryAxes(0,1,1);
+    QVector3D mtRotaryAxes(1,0,1);
 
-    //    machineToolName = "UMC-750"; //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(0,1,1);
-
-    //    machineToolName = "UMC-1600H";   //----------------
+    //    machineToolName = "VR-8";   //----------------
     //    //rotary axes of machine tool (A,B,C)
     //    QVector3D mtRotaryAxes(1,0,1);
 
-//                machineToolName = "VR-8";   //----------------
-//                //rotary axes of machine tool (A,B,C)
-//                QVector3D mtRotaryAxes(1,0,1);
-
-    //    machineToolName = "VF-2";   //----------------
-    //    //rotary axes of machine tool (A,B,C)
-    //    QVector3D mtRotaryAxes(1,0,1);
+    //                machineToolName = "VF-2";   //----------------
+    //                //rotary axes of machine tool (A,B,C)
+    //                QVector3D mtRotaryAxes(1,0,1);
 
     //set up component vector for initial grouping using small voxel size    **********************************
-    float voxelsize_initialGrouping = 4.0f;
+    float voxelsize_initialGrouping = 3.0f;
     qDebug()<<"Initial grouping voxel size:" <<voxelsize_initialGrouping<<"mm";
     QVector<component> compVector_initialGrouping = readCompSTL(machineToolName, mtRotaryAxes, "initialGrouping");
 
@@ -193,16 +193,20 @@ void MyOpenGLWidget::initializeGL()
     if(group_axisVector.isEmpty())
         return;
 
-    //set up component vector for grouping validation using big voxel size ****************************************
-    float voxelsize_groupingValidation = 6.0f;
-    qDebug()<<"Grouping validation voxel size:" <<voxelsize_groupingValidation<<"mm";
+    OverlappingCompsVector = initialGrouper->getOverlappingCompsVector();
+    qDebug()<<"overlappingCompVector"<<OverlappingCompsVector;
+
+    bool containsUncertainty = initialGrouper->hasUncertainty();
+
     QVector<component> compVector_groupingValidation = readCompSTL(machineToolName, mtRotaryAxes, "groupingValidation");
 
     //create machine tool object by initial grouping
     MT = initialGrouper->createMT(group_axisVector, compVector_groupingValidation, machineToolName);
     QVector<JointString> jointStringVector = initialGrouper->getjointStringVector();
 
-    OverlappingCompsVector = initialGrouper->getOverlappingCompsVector();
+    //pause timer for link-component grouping
+    grouping_time = timer_grouping.elapsed()/1000;
+
 
     //deallocate the class
     delete initialGrouper;
@@ -211,63 +215,74 @@ void MyOpenGLWidget::initializeGL()
     //clear component vector for initial goruping
     compVector_initialGrouping.clear();
 
-    qDebug()<<"overlappingCompVector"<<OverlappingCompsVector;
-    step1_time = timer_step1.elapsed()/1000;
+    //validation and resolution are necessary only when no overlapping component (no uncertainty)
+    if(!containsUncertainty){
+        qDebug()<<"Contains NO uncertainty from link-component grouping";
+        //print out times for calculation
+        qDebug()<<"Initial Grouping takes:"<<grouping_time << "seconds";
+    }else{
+        qDebug()<<"Contains uncertainty from link-component grouping";
 
-    int num_interation = 0;
-    while(true){
-        qDebug()<<"Grouping iteration no."<<num_interation + 1;
-        num_interation++;
+        //set up component vector for grouping validation using big voxel size ****************************************
+        float voxelsize_groupingValidation = 4.0f;
+        qDebug()<<"Grouping validation voxel size:" <<voxelsize_groupingValidation<<"mm";
 
-        //**Step 2: Check collision for all configurations--------------
-        QElapsedTimer* timer_step2 = new QElapsedTimer;
-        timer_step2->start();
-        m_groupingValidator.createMTVoxelspace(voxelsize_groupingValidation, compVector_groupingValidation);
-        qDebug()<<"GenerateMTVoxelspace";
-        QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
-        qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
-        step2_times.append(timer_step2->elapsed()/1000);
-        delete timer_step2;
-        timer_step2 = nullptr;
+        int num_interation = 0;
+        while(true){
+            qDebug()<<"Grouping iteration no."<<num_interation + 1;
+            num_interation++;
 
-        //**Step 3: if collision occurs, resolve it--------------------
+            //**Step 2: Check collision for all configurations--------------
+            QElapsedTimer* timer_step2 = new QElapsedTimer;
+            timer_step2->start();
+            m_groupingValidator.createMTVoxelspace(voxelsize_groupingValidation, compVector_groupingValidation);
+            qDebug()<<"GenerateMTVoxelspace";
+            QVector<QPair<QString,QString>> collisionPairsVector = m_groupingValidator.collisionDetectionForConfigurations(MT, true);
+            qDebug()<<"Collision Pairs for all configurations:"<<collisionPairsVector<<endl;
+            validation_times.append(timer_step2->elapsed()/1000);
+            delete timer_step2;
+            timer_step2 = nullptr;
 
-        if(!collisionPairsVector.isEmpty()){
-            QElapsedTimer* timer_step3 = new QElapsedTimer;
-            timer_step3->start();
-            GroupingResolver m_groupingResolver(CCPs, OverlappingCompsVector,
-                                                collisionPairsVector, group_axisVector);
-            group_axisVector = m_groupingResolver.regroup();
+            //**Step 3: if collision occurs, resolve it--------------------
 
-            for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
-                qDebug()<<"Link"<<group_axisVector[ind_group].first<<"contains"
-                       <<group_axisVector[ind_group].second;
-            }
+            if(!collisionPairsVector.isEmpty()){
+                QElapsedTimer* timer_step3 = new QElapsedTimer;
+                timer_step3->start();
+                GroupingResolver m_groupingResolver(CCPs, OverlappingCompsVector,
+                                                    collisionPairsVector, group_axisVector);
+                group_axisVector = m_groupingResolver.regroup();
 
-            //Update MT
-            MT = m_groupingResolver.createMT(group_axisVector, compVector_groupingValidation, jointStringVector, machineToolName);
-            m_groupingValidator.clear();
-            step3_times.append(timer_step3->elapsed()/1000);
-            delete timer_step3;
-            timer_step3 = nullptr;
-        }else{
-            qDebug()<<"Grouping Done!";
-
-            //print out times for calculation
-            qDebug()<<"Initial Grouping takes:"<<step1_time << "seconds";
-            for(int i = 0; i < num_interation; i ++){
-                if(i < num_interation - 1){
-                    qDebug()<<"Iteration no."<<i + 1<<"time";
-                    qDebug()<<"Grouping validation takes:"<<step2_times[i] << "seconds";
-                    qDebug()<<"Grouping resolving takes:"<<step3_times[i] << "seconds";
-                }else{
-                    qDebug()<<"Iteration no."<<i + 1<<"time";
-                    qDebug()<<"Grouping validation takes:"<<step2_times[i] << "seconds";
+                for(int ind_group = 0; ind_group < group_axisVector.size(); ind_group++){
+                    qDebug()<<"Link"<<group_axisVector[ind_group].first<<"contains"
+                           <<group_axisVector[ind_group].second;
                 }
+
+                //Update MT
+                MT = m_groupingResolver.createMT(group_axisVector, compVector_groupingValidation, jointStringVector, machineToolName);
+                m_groupingValidator.clear();
+                resolution_times.append(timer_step3->elapsed()/1000);
+                delete timer_step3;
+                timer_step3 = nullptr;
+            }else{
+                qDebug()<<"Grouping Done!";
+
+                //print out times for calculation
+                qDebug()<<"Initial Grouping takes:"<<grouping_time << "seconds";
+                for(int i = 0; i < num_interation; i ++){
+                    if(i < num_interation - 1){
+                        qDebug()<<"Iteration no."<<i + 1<<"time";
+                        qDebug()<<"Grouping validation takes:"<<validation_times[i] << "seconds";
+                        qDebug()<<"Grouping resolving takes:"<<resolution_times[i] << "seconds";
+                    }else{
+                        qDebug()<<"Iteration no."<<i + 1<<"time";
+                        qDebug()<<"Grouping validation takes:"<<validation_times[i] << "seconds";
+                    }
+                }
+                break;
             }
-            break;
         }
     }
+
     qDebug()<<"Total process takes:"<<timer_total.elapsed()/1000 << "seconds";
 
     //    //get information for drawing the machine tool
